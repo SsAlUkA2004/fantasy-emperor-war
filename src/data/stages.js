@@ -100,6 +100,41 @@ export const STAGES = [
   },
 ]
 
+/**
+ * ด่านฝึกฝน เล่นซ้ำได้ไม่จำกัด ให้ค่าประสบการณ์อย่างเดียว ไม่มีเพชร
+ *
+ * ที่ไม่ให้เพชรเพราะรางวัลที่ฟาร์มซ้ำได้ไม่จำกัดคือช่องโหว่ที่ Security Rules
+ * ปิดไม่ได้เลย ส่วนค่าประสบการณ์ปลอดภัยกว่าเพราะมีเพดานเลเวลกั้นอยู่แล้ว
+ * ด่านฟาร์มเพชรจะมาตอนที่ย้ายการคำนวณไปฝั่งเซิร์ฟเวอร์
+ */
+export const TRAINING = [
+  {
+    id: 't-1',
+    name: 'ลานฝึกชั้นต้น',
+    intro: 'หุ่นฟางที่ขยับได้ ไม่เจ็บใครแต่ทนได้นาน',
+    training: true,
+    exp: 90,
+    requires: '1-2',
+    enemies: [
+      { id: 'skeleton', level: 3 },
+      { id: 'skeleton', level: 3 },
+    ],
+  },
+  {
+    id: 't-2',
+    name: 'ลานฝึกชั้นกลาง',
+    intro: 'คู่ซ้อมที่เอาจริงขึ้น เตรียมใจไว้หน่อย',
+    training: true,
+    exp: 200,
+    requires: '1-5',
+    enemies: [
+      { id: 'frostwolf', level: 8 },
+      { id: 'hexer', level: 8 },
+      { id: 'frostwolf', level: 8 },
+    ],
+  },
+]
+
 export function getStage(id) {
-  return STAGES.find((s) => s.id === id) ?? null
+  return STAGES.find((s) => s.id === id) ?? TRAINING.find((s) => s.id === id) ?? null
 }

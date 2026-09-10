@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { loadCollection } from '../lib/player'
 import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
-import { expToNext, MAX_LEVEL } from '../lib/leveling'
+import { expToNext, levelCap, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { heroStats } from '../lib/stats'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
@@ -32,7 +32,18 @@ export default function Lobby() {
         <header className="lobby-head">
           <div>
             <h1>{player.username}</h1>
-            <p className="meta">ผู้ฝึกหัด · 0 แต้ม</p>
+            <p className="meta">
+              เลเวล {player.playerLevel ?? 1} · ผู้ฝึกหัด · {player.pvpPoints ?? 0} แต้ม
+            </p>
+            {(player.playerLevel ?? 1) < PLAYER_MAX_LEVEL && (
+              <div className="bar thin">
+                <span
+                  style={{
+                    width: `${Math.round(((player.playerExp ?? 0) / playerExpToNext(player.playerLevel ?? 1)) * 100)}%`,
+                  }}
+                />
+              </div>
+            )}
           </div>
           <div className="purse">
             <span className="gem">◆</span>
@@ -59,7 +70,7 @@ export default function Lobby() {
                   <p className="meta">
                     {ROLES[c.role]} · เลเวล {entry.level} · {'★'.repeat(entry.star)}
                   </p>
-                  {entry.level < MAX_LEVEL && (
+                  {entry.level < levelCap(c.rarity, entry.star) && (
                     <div className="bar thin">
                       <span
                         style={{ width: `${Math.round((entry.exp / expToNext(entry.level)) * 100)}%` }}
@@ -67,8 +78,8 @@ export default function Lobby() {
                     </div>
                   )}
                   <p className="meta tiny">
-                    {entry.level >= MAX_LEVEL
-                      ? 'เลเวลสูงสุดแล้ว'
+                    {entry.level >= levelCap(c.rarity, entry.star)
+                      ? `ตันที่เพดาน ${levelCap(c.rarity, entry.star)}`
                       : `${entry.exp} / ${expToNext(entry.level)}`}
                   </p>
                 </div>
@@ -95,6 +106,9 @@ export default function Lobby() {
         </Link>
 
         <div className="gate">
+          <Link className="rune-link" to="/friends">
+            เพื่อน
+          </Link>
           <Link className="rune-link" to="/status">
             รายละเอียดระบบ
           </Link>

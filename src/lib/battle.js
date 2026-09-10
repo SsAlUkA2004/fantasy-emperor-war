@@ -1,6 +1,6 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
-import { effectiveStats } from './stats'
+import { effectiveStats, skillScale } from './stats'
 
 // ─────────────────────────────────────────────────────────────
 // เครื่องยนต์การต่อสู้ ไม่รู้จัก React เลย รับสถานะเข้ามาแล้วคืนสถานะใหม่ออกไป
@@ -71,6 +71,8 @@ function buildAlly(entry, index) {
     charId: c.id,
     name: c.name,
     level: entry.level,
+    star: entry.star,
+    skillScale: skillScale(entry.star),
     element: c.element,
     elementName: ELEMENTS[c.element].name,
     mark: ELEMENTS[c.element].mark,
@@ -97,6 +99,8 @@ function buildEnemy(entry, index) {
     charId: e.id,
     name: e.name,
     level: entry.level,
+    star: 1,
+    skillScale: 1,
     element: e.element,
     elementName: ELEMENTS[e.element].name,
     elementMark: ELEMENTS[e.element].mark,
@@ -246,7 +250,7 @@ function useSkill(state, actor, targetKey) {
   if (actor.charId === 'athen') {
     const target = pickEnemyTarget(state, actor, targetKey)
     if (!target) return
-    const { amount } = computeDamage(actor, target, 1.8)
+    const { amount } = computeDamage(actor, target, 1.8 * actor.skillScale)
     applyDamage(state, target, amount)
     target.effects.burn = 2
     log(state, `${actor.name} ร่ายฟันเพลิงคำราม เสีย ${amount} หน่วย และ ${target.name} ติดไฟ`, 'ally')
@@ -264,7 +268,7 @@ function useSkill(state, actor, targetKey) {
     const allies = livingOf(state, 'ally')
     const hurt = allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]
     if (!hurt) return
-    const heal = Math.round(hurt.maxHp * 0.3)
+    const heal = Math.round(hurt.maxHp * 0.3 * actor.skillScale)
     hurt.hp = Math.min(hurt.maxHp, hurt.hp + heal)
     hurt.effects.burn = 0
     hurt.effects.stun = 0
@@ -281,7 +285,7 @@ function useUltimate(state, actor, targetKey) {
     const target = pickEnemyTarget(state, actor, targetKey)
     if (!target) return
     const burning = target.effects.burn > 0
-    const { amount } = computeDamage(actor, target, burning ? 6 : 4)
+    const { amount } = computeDamage(actor, target, (burning ? 6 : 4) * actor.skillScale)
     applyDamage(state, target, amount)
     log(
       state,
@@ -295,7 +299,7 @@ function useUltimate(state, actor, targetKey) {
     const foes = livingOf(state, 'enemy')
     log(state, `${actor.name} กระแทกพื้นด้วยปฐพีสั่นสะเทือน`, 'ally')
     foes.forEach((f) => {
-      const { amount } = computeDamage(actor, f, 1.5)
+      const { amount } = computeDamage(actor, f, 1.5 * actor.skillScale)
       applyDamage(state, f, amount)
       if (f.alive && Math.random() < 0.5) {
         f.effects.stun = 1
@@ -309,7 +313,7 @@ function useUltimate(state, actor, targetKey) {
     const allies = livingOf(state, 'ally')
     log(state, `${actor.name} กางม่านแสงศักดิ์สิทธิ์คลุมทั้งทีม`, 'ally')
     allies.forEach((a) => {
-      const heal = Math.round(a.maxHp * 0.25)
+      const heal = Math.round(a.maxHp * 0.25 * actor.skillScale)
       a.hp = Math.min(a.maxHp, a.hp + heal)
       a.effects.shield = true
     })

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { heroStats, elementMatchup } from '../lib/stats'
-import { expToNext, MAX_LEVEL } from '../lib/leveling'
+import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
 
@@ -33,7 +33,9 @@ export default function Hero() {
   const stats = heroStats(charId, level, star)
   const element = ELEMENTS[c.element]
   const { strongAgainst, weakTo } = elementMatchup(c.element)
-  const capped = level >= MAX_LEVEL
+  const cap = levelCap(c.rarity, star)
+  const capped = level >= cap
+  const rarityCap = RARITY_CAPS[c.rarity]
 
   return (
     <main className="screen top">
@@ -66,9 +68,11 @@ export default function Hero() {
         {entry && (
           <section className="exp-block">
             <div className="exp-line">
-              <span className="hero-level">เลเวล {level}</span>
+              <span className="hero-level">
+                เลเวล {level} <span className="meta">/ {cap}</span>
+              </span>
               <span className="meta">
-                {capped ? 'สูงสุดแล้ว' : `${entry.exp} / ${expToNext(level)}`}
+                {capped ? 'ตันที่เพดานแล้ว' : `${entry.exp} / ${expToNext(level)}`}
               </span>
             </div>
             {!capped && (
@@ -94,7 +98,24 @@ export default function Hero() {
             </div>
           ))}
         </dl>
-        <p className="meta tiny">ค่าพลังเพิ่มขึ้น 8% ต่อเลเวล และ 15% ต่อดาว</p>
+        <p className="meta tiny">ค่าพลังเพิ่มขึ้น 8% ต่อเลเวล และ 15% ต่อดาว สกิลแรงขึ้น 10% ต่อดาว</p>
+
+        <h2 className="section-title">การทะลุเลเวล</h2>
+        <p className="meta">
+          ตัวละครระดับ {c.rarity} ตันที่เลเวล {rarityCap.base} เมื่อมีดาวเดียว
+          เพิ่มดาวได้ถึง {MAX_STAR} ดาว ซึ่งดันเพดานไปถึง {rarityCap.ascended}
+        </p>
+        <div className="star-track">
+          {[...Array(MAX_STAR)].map((_, i) => (
+            <div className="star-step" key={i} data-reached={i < star}>
+              <span className="star-mark">★</span>
+              <span className="meta tiny">{levelCap(c.rarity, i + 1)}</span>
+            </div>
+          ))}
+        </div>
+        <p className="meta tiny">
+          เพิ่มดาวด้วยการนำตัวละครตัวเดียวกันที่ได้จากกาชามาหลอมรวม ระบบนี้จะเปิดพร้อมกาชา
+        </p>
 
         <h2 className="section-title">ท่าที่ใช้ได้</h2>
 

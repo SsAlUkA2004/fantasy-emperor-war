@@ -2,6 +2,16 @@ import { CHARACTERS, ELEMENTS } from '../data/characters'
 
 export const LEVEL_GROWTH = 0.08
 export const STAR_GROWTH = 0.15
+export const STAR_SKILL_GROWTH = 0.1
+
+/**
+ * ตัวคูณที่ดาวเพิ่มให้กับสกิลและท่าไม้ตาย
+ * ดาวจึงไม่ได้แค่ดันเพดานเลเวล แต่ทำให้ท่าแรงขึ้นจริง
+ * ดาว 5 = สกิลแรงกว่าดาว 1 อยู่ 40%
+ */
+export function skillScale(star = 1) {
+  return 1 + (star - 1) * STAR_SKILL_GROWTH
+}
 
 /**
  * ค่าพลังจริงหลังคูณเลเวลและดาว

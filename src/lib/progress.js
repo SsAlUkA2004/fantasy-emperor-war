@@ -1,6 +1,7 @@
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { FIRST_CLEAR_GEMS } from '../data/stages'
+import { gainPlayerExp } from './leveling'
 
 /**
  * บันทึกผลการผ่านด่าน
@@ -14,20 +15,29 @@ import { FIRST_CLEAR_GEMS } from '../data/stages'
  * เพดานสูงสุดคือจำนวนด่านคูณ 30 ซึ่งเท่ากับที่เล่นจริงอยู่แล้ว
  * จะปิดช่องนี้สนิทต้องย้ายการคำนวณไปเซิร์ฟเวอร์ในเฟส 4
  */
-export async function saveStageResult(player, stageId, stars) {
+export async function saveStageResult(player, stage, stars, exp) {
+  const stageId = stage.id
   const previous = player.stageProgress?.[stageId] ?? 0
-  const firstClear = previous === 0
+  const firstClear = !stage.training && previous === 0
 
-  if (!firstClear && stars <= previous) return { firstClear: false, gems: 0 }
+  const account = gainPlayerExp(player.playerLevel ?? 1, player.playerExp ?? 0, exp)
+  const patch = {
+    playerLevel: account.level,
+    playerExp: account.exp,
+  }
+
+  // ด่านฝึกฝนไม่บันทึกความคืบหน้าและไม่ให้เพชร เล่นซ้ำได้ไม่จำกัด
+  if (stage.training) {
+    await updateDoc(doc(db, 'users', player.uid), patch)
+    return { firstClear: false, gems: 0, account }
+  }
 
   // เขียนทั้งก้อนแทนการใช้ field path แบบจุด
   // เพราะรหัสด่านอย่าง "1-1" ขึ้นต้นด้วยตัวเลขและมีขีดกลาง
   // ซึ่ง Firestore ไม่ยอมรับเป็น field path
-  const patch = {
-    stageProgress: {
-      ...(player.stageProgress ?? {}),
-      [stageId]: Math.max(previous, stars),
-    },
+  patch.stageProgress = {
+    ...(player.stageProgress ?? {}),
+    [stageId]: Math.max(previous, stars),
   }
 
   if (firstClear) {
@@ -35,5 +45,5 @@ export async function saveStageResult(player, stageId, stars) {
   }
 
   await updateDoc(doc(db, 'users', player.uid), patch)
-  return { firstClear, gems: firstClear ? FIRST_CLEAR_GEMS : 0 }
+  return { firstClear, gems: firstClear ? FIRST_CLEAR_GEMS : 0, account }
 }

@@ -1,7 +1,7 @@
 import { collection, doc, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
-import { STARTER_IDS } from '../data/characters'
-import { gainExp } from './leveling'
+import { CHARACTERS, STARTER_IDS } from '../data/characters'
+import { gainExp, levelCap } from './leveling'
 
 /**
  * บันทึกตัวละครเริ่มต้นที่ผู้เล่นเลือก
@@ -49,8 +49,9 @@ export async function awardExp(uid, entries, amount) {
   const results = []
 
   entries.forEach((entry) => {
-    const next = gainExp(entry.level, entry.exp, amount)
-    results.push({ id: entry.id, from: entry.level, ...next })
+    const cap = levelCap(CHARACTERS[entry.id]?.rarity ?? 'R', entry.star ?? 1)
+    const next = gainExp(entry.level, entry.exp, amount, cap)
+    results.push({ id: entry.id, from: entry.level, cap, ...next })
     batch.update(doc(db, 'users', uid, 'collection', entry.id), {
       level: next.level,
       exp: next.exp,

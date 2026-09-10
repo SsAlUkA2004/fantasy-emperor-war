@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { STAGES, ENEMIES } from '../data/stages'
+import { STAGES, TRAINING, ENEMIES } from '../data/stages'
 import { ELEMENTS } from '../data/characters'
 import { effectiveStats } from '../lib/stats'
 import StatPeek from '../components/StatPeek'
@@ -69,6 +69,33 @@ export default function StageMap() {
                   )}
                 </span>
                 <span className="stage-stars">{stars ? '★'.repeat(stars) : ''}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <h2 className="section-title">ลานฝึก</h2>
+        <p className="meta">เล่นซ้ำได้ไม่จำกัด ได้ค่าประสบการณ์อย่างเดียว ไม่มีเพชรและไม่มีดาว</p>
+
+        <div className="stage-list">
+          {TRAINING.map((t) => {
+            const open = (progress[t.requires] ?? 0) > 0
+            return (
+              <button
+                key={t.id}
+                className="stage-row"
+                data-locked={!open}
+                disabled={!open}
+                onClick={() => navigate(`/battle/${t.id}`)}
+              >
+                <span className="stage-id">exp</span>
+                <span className="stage-body">
+                  <span className="stage-name">{t.name}</span>
+                  <span className="meta">
+                    {open ? `ได้ ${t.exp} หน่วยต่อรอบ` : `ผ่านด่าน ${t.requires} เพื่อปลดล็อก`}
+                  </span>
+                </span>
+                <span className="stage-stars" />
               </button>
             )
           })}

@@ -6,6 +6,7 @@ import Lobby from './pages/Lobby'
 import StageMap from './pages/StageMap'
 import Battle from './pages/Battle'
 import Hero from './pages/Hero'
+import Friends from './pages/Friends'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/stages" element={<Gate><StageMap /></Gate>} />
           <Route path="/battle/:stageId" element={<Gate><Battle /></Gate>} />
           <Route path="/hero/:charId" element={<Gate><Hero /></Gate>} />
+          <Route path="/friends" element={<Gate><Friends /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

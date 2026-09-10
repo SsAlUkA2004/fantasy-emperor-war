@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getStage } from '../data/stages'
 import { createBattle, currentUnit, movesFor, needsTarget, takeTurn, starsEarned } from '../lib/battle'
+import { loadCollection as reloadCollection } from '../lib/player'
 import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
@@ -20,14 +21,20 @@ export default function Battle() {
   const [auto, setAuto] = useState(false)
   const [target, setTarget] = useState(null)
   const [reward, setReward] = useState(null)
+  const [round, setRound] = useState(0)
   const roster = useRef([])
   const saved = useRef(false)
   const logEnd = useRef(null)
 
   const stage = getStage(stageId)
 
+  // round เปลี่ยนค่าเมื่อกดเล่นอีกครั้ง ทำให้ตั้งสนามรบใหม่ทั้งหมด
   useEffect(() => {
     if (!stage) return
+    saved.current = false
+    setReward(null)
+    setTarget(null)
+    setState(null)
     loadCollection(user.uid).then((owned) => {
       const team = (player.team ?? [])
         .map((id) => owned.find((o) => o.id === id))
@@ -35,7 +42,7 @@ export default function Battle() {
       roster.current = team
       if (team.length) setState(createBattle(team, stage))
     })
-  }, [stageId])
+  }, [stageId, round])
 
   // เดินเทิร์นอัตโนมัติ เมื่อถึงคิวมอนสเตอร์ หรือเมื่อเปิดออโต้ไว้
   useEffect(() => {
@@ -62,7 +69,7 @@ export default function Battle() {
       const exp = stage.exp ?? 0
 
       Promise.all([
-        saveStageResult({ ...player, uid: user.uid }, stageId, stars),
+        saveStageResult({ ...player, uid: user.uid }, stage, stars, exp),
         awardExp(user.uid, roster.current, exp),
       ])
         .then(([r, levels]) => {
@@ -132,7 +139,13 @@ export default function Battle() {
         </section>
 
         {state.outcome ? (
-          <Result outcome={state.outcome} reward={reward} onBack={() => navigate('/stages')} />
+          <Result
+            outcome={state.outcome}
+            reward={reward}
+            training={stage.training}
+            onAgain={() => setRound((r) => r + 1)}
+            onBack={() => navigate('/stages')}
+          />
         ) : (
           <div className="moves">
             {yourTurn ? (
@@ -210,7 +223,7 @@ function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
   )
 }
 
-function Result({ outcome, reward, onBack }) {
+function Result({ outcome, reward, training, onAgain, onBack }) {
   const won = outcome === 'won'
 
   return (
@@ -218,7 +231,7 @@ function Result({ outcome, reward, onBack }) {
       <div className="panel-head">{won ? 'ชนะแล้ว' : 'พ่ายแพ้'}</div>
       {won ? (
         <>
-          <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>
+          {!training && <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>}
           {reward?.exp > 0 && <p>ได้ค่าประสบการณ์ {reward.exp} หน่วย</p>}
           {reward?.levels
             ?.filter((l) => l.gained > 0)
@@ -227,14 +240,30 @@ function Result({ outcome, reward, onBack }) {
                 เลเวลขึ้นเป็น {l.level} แล้ว
               </p>
             ))}
+          {reward?.levels?.some((l) => l.level >= l.cap) && (
+            <p className="meta">บางตัวชนเพดานเลเวลแล้ว ต้องเพิ่มดาวเพื่อดันเพดานขึ้นไปอีก</p>
+          )}
+          {reward?.account?.gained > 0 && (
+            <p className="levelup">เลเวลผู้เล่นขึ้นเป็น {reward.account.level}</p>
+          )}
           {reward?.firstClear && <p>ผ่านครั้งแรก ได้เพชร {reward.gems} เม็ด</p>}
-          {reward && !reward.firstClear && !reward.failed && <p className="meta">เคยผ่านด่านนี้แล้ว รอบนี้ไม่ได้เพชรเพิ่ม</p>}
-          {reward?.failed && <div className="trace">บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลด Security Rules เวอร์ชันล่าสุดแล้วหรือยัง</div>}
+          {reward && !reward.firstClear && !reward.failed && !training && (
+            <p className="meta">เคยผ่านด่านนี้แล้ว รอบนี้ไม่ได้เพชรเพิ่ม</p>
+          )}
+          {reward?.failed && (
+            <div className="trace">
+              บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลด Security Rules เวอร์ชันล่าสุดแล้วหรือยัง
+            </div>
+          )}
         </>
       ) : (
-        <p>ลองจัดทีมใหม่หรือไปเก็บเลเวลจากด่านก่อนหน้าดู</p>
+        <p>ลองจัดทีมใหม่หรือไปเก็บเลเวลจากด่านฝึกฝนดู</p>
       )}
-      <button className="rune-link block" onClick={onBack}>
+
+      <button className="rune-link block" onClick={onAgain}>
+        เล่นอีกครั้ง
+      </button>
+      <button className="plain-link" onClick={onBack}>
         กลับไปแผนที่
       </button>
     </section>
