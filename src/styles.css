@@ -90,12 +90,12 @@ a {
 }
 
 .sigil-outer {
-  animation: turn 68s linear infinite;
+  animation: turn 26s linear infinite;
   transform-origin: center;
 }
 
 .sigil-inner {
-  animation: turn 44s linear infinite reverse;
+  animation: turn 18s linear infinite reverse;
   transform-origin: center;
 }
 
@@ -297,4 +297,267 @@ a {
   .lamp[data-state='checking'] {
     animation: none;
   }
+}
+
+/* ───────── เพิ่มในเฟส 1 ───────── */
+
+.screen.top {
+  justify-content: flex-start;
+  padding-top: 3rem;
+}
+
+.tagline.small {
+  font-size: 0.82rem;
+  margin-top: 1.25rem;
+}
+
+.meta {
+  color: var(--parchment-dim);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--gold);
+  margin: 2.25rem 0 0.9rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(200, 164, 77, 0.18);
+}
+
+/* ฟอร์ม */
+
+.field {
+  margin-bottom: 0.9rem;
+}
+
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--parchment-dim);
+  margin-bottom: 0.35rem;
+}
+
+.field input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: rgba(11, 8, 24, 0.65);
+  border: 1px solid rgba(200, 164, 77, 0.3);
+  color: var(--parchment);
+  font-family: var(--body);
+  font-size: 1rem;
+}
+
+.field input::placeholder {
+  color: rgba(167, 159, 140, 0.55);
+}
+
+.field input:focus {
+  border-color: var(--gold);
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(200, 164, 77, 0.35);
+}
+
+.rune-link.block {
+  display: block;
+  width: 100%;
+  margin-top: 1.1rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+}
+
+.rune-link:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.plain-link {
+  display: block;
+  width: 100%;
+  margin-top: 0.85rem;
+  background: none;
+  border: none;
+  color: var(--rune);
+  font-family: var(--body);
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.plain-link:hover {
+  color: var(--gold-bright);
+}
+
+/* เลือกตัวละคร */
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.9rem 0.4rem;
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.22);
+  color: var(--parchment-dim);
+  font-family: var(--body);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.pick[data-active='true'] {
+  border-color: var(--gold);
+  background: rgba(36, 27, 79, 0.85);
+  color: var(--parchment);
+}
+
+.pick-mark {
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+
+.pick-name {
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold-bright);
+}
+
+.pick-role {
+  font-size: 0.72rem;
+}
+
+/* แผ่นข้อมูลตัวละคร */
+
+.dossier {
+  margin-top: 1.5rem;
+  border: 1px solid rgba(200, 164, 77, 0.28);
+  background: linear-gradient(180deg, rgba(36, 27, 79, 0.6), rgba(20, 16, 43, 0.75));
+  padding: 1.4rem 1.25rem;
+}
+
+.dossier h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--gold-bright);
+  margin: 0 0 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.epithet {
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--parchment-dim);
+}
+
+.blurb {
+  margin: 1rem 0 0;
+  font-size: 0.92rem;
+}
+
+.dossier .ledger {
+  margin-top: 1.25rem;
+}
+
+.move {
+  margin-top: 1.25rem;
+  padding-left: 0.85rem;
+  border-left: 2px solid rgba(111, 214, 200, 0.5);
+}
+
+.move.ult {
+  border-left-color: var(--gold);
+}
+
+.move h3 {
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--rune);
+  margin: 0 0 0.2rem;
+}
+
+.move.ult h3 {
+  color: var(--gold-bright);
+}
+
+.move p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--parchment-dim);
+}
+
+/* หน้าหลัก */
+
+.lobby-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.lobby-head h1 {
+  margin-bottom: 0.15rem;
+}
+
+.purse {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+  white-space: nowrap;
+}
+
+.gem {
+  color: var(--rune);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.6rem;
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.2);
+}
+
+.card-mark {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex: none;
+}
+
+.card-body h3 {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  color: var(--gold-bright);
+  margin: 0 0 0.15rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.rarity {
+  font-family: var(--body);
+  font-size: 0.7rem;
+  color: var(--rune);
+  border: 1px solid rgba(111, 214, 200, 0.4);
+  padding: 0 0.35rem;
+}
+
+.soon {
+  opacity: 0.75;
 }
