@@ -3,13 +3,15 @@ import { PlayerProvider, usePlayer } from './context/PlayerContext'
 import TitleScreen from './pages/TitleScreen'
 import ChooseStarter from './pages/ChooseStarter'
 import Lobby from './pages/Lobby'
+import StageMap from './pages/StageMap'
+import Battle from './pages/Battle'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
 // เพราะ GitHub Pages เป็นโฮสต์ไฟล์นิ่ง ถ้าผู้เล่นรีเฟรชหน้าที่ path ลึก ๆ
 // เซิร์ฟเวอร์จะหาไฟล์นั้นไม่เจอแล้วขึ้น 404
 
-function Gate() {
+function Gate({ children }) {
   const { user, player, loading } = usePlayer()
 
   if (loading) {
@@ -20,10 +22,9 @@ function Gate() {
     )
   }
 
-  if (!user) return <TitleScreen />
-  if (!player) return <TitleScreen />
+  if (!user || !player) return <TitleScreen />
   if (!player.starterChosen) return <ChooseStarter />
-  return <Lobby />
+  return children
 }
 
 export default function App() {
@@ -31,7 +32,9 @@ export default function App() {
     <PlayerProvider>
       <HashRouter>
         <Routes>
-          <Route path="/" element={<Gate />} />
+          <Route path="/" element={<Gate><Lobby /></Gate>} />
+          <Route path="/stages" element={<Gate><StageMap /></Gate>} />
+          <Route path="/battle/:stageId" element={<Gate><Battle /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

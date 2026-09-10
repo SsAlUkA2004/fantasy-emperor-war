@@ -54,10 +54,12 @@ export default function Lobby() {
 
         <section className="soon">
           <h2 className="section-title">ยังไม่เปิด</h2>
-          <p className="meta">
-            ด่านผจญภัย กาชา และการประลอง จะเปิดในเฟสถัดไป ตอนนี้ระบบสมัครสมาชิกกับกระเป๋าตัวละครทำงานแล้ว
-          </p>
+          <p className="meta">กาชาและการประลองจะเปิดในเฟสถัดไป</p>
         </section>
+
+        <Link className="rune-link block" to="/stages">
+          ออกผจญภัย
+        </Link>
 
         <div className="gate">
           <Link className="rune-link" to="/status">
