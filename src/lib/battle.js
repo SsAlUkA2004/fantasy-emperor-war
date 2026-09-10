@@ -1,5 +1,6 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
+import { effectiveStats } from './stats'
 
 // ─────────────────────────────────────────────────────────────
 // เครื่องยนต์การต่อสู้ ไม่รู้จัก React เลย รับสถานะเข้ามาแล้วคืนสถานะใหม่ออกไป
@@ -62,22 +63,23 @@ function livingOf(state, side) {
 
 function buildAlly(entry, index) {
   const c = CHARACTERS[entry.id]
-  const growth = 1 + (entry.level - 1) * 0.08
-  const star = 1 + (entry.star - 1) * 0.15
+  const s = effectiveStats(c.stats, entry.level, entry.star)
 
   return {
     key: `a${index}`,
     side: 'ally',
     charId: c.id,
     name: c.name,
+    level: entry.level,
     element: c.element,
+    elementName: ELEMENTS[c.element].name,
     mark: ELEMENTS[c.element].mark,
-    maxHp: Math.round(c.stats.hp * growth * star),
-    hp: Math.round(c.stats.hp * growth * star),
-    atk: Math.round(c.stats.atk * growth * star),
-    def: Math.round(c.stats.def * growth * star),
-    spd: c.stats.spd,
-    crit: c.stats.crit,
+    maxHp: s.hp,
+    hp: s.hp,
+    atk: s.atk,
+    def: s.def,
+    spd: s.spd,
+    crit: s.crit,
     mp: 0,
     gauge: 0,
     alive: true,
@@ -87,21 +89,24 @@ function buildAlly(entry, index) {
 
 function buildEnemy(entry, index) {
   const e = ENEMIES[entry.id]
-  const growth = 1 + (entry.level - 1) * 0.08
+  const s = effectiveStats(e.stats, entry.level, 1)
 
   return {
     key: `e${index}`,
     side: 'enemy',
     charId: e.id,
     name: e.name,
+    level: entry.level,
     element: e.element,
+    elementName: ELEMENTS[e.element].name,
+    elementMark: ELEMENTS[e.element].mark,
     mark: e.mark,
-    maxHp: Math.round(e.stats.hp * growth),
-    hp: Math.round(e.stats.hp * growth),
-    atk: Math.round(e.stats.atk * growth),
-    def: Math.round(e.stats.def * growth),
-    spd: e.stats.spd,
-    crit: e.stats.crit,
+    maxHp: s.hp,
+    hp: s.hp,
+    atk: s.atk,
+    def: s.def,
+    spd: s.spd,
+    crit: s.crit,
     mp: 0,
     gauge: 0,
     alive: true,

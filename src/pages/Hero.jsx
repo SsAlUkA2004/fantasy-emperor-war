@@ -1,0 +1,139 @@
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
+import { heroStats, elementMatchup } from '../lib/stats'
+import { expToNext, MAX_LEVEL } from '../lib/leveling'
+import { loadCollection } from '../lib/player'
+import { usePlayer } from '../context/PlayerContext'
+
+export default function Hero() {
+  const { charId } = useParams()
+  const navigate = useNavigate()
+  const { user } = usePlayer()
+  const [entry, setEntry] = useState(undefined)
+
+  const c = CHARACTERS[charId]
+
+  useEffect(() => {
+    loadCollection(user.uid).then((owned) => setEntry(owned.find((o) => o.id === charId) ?? null))
+  }, [charId, user.uid])
+
+  if (!c) {
+    return (
+      <main className="screen">
+        <div className="stage">
+          <p className="meta center">ไม่พบตัวละครนี้</p>
+        </div>
+      </main>
+    )
+  }
+
+  const level = entry?.level ?? 1
+  const star = entry?.star ?? 1
+  const stats = heroStats(charId, level, star)
+  const element = ELEMENTS[c.element]
+  const { strongAgainst, weakTo } = elementMatchup(c.element)
+  const capped = level >= MAX_LEVEL
+
+  return (
+    <main className="screen top">
+      <div className="sheet">
+        <button className="plain-link back" onClick={() => navigate(-1)}>
+          กลับ
+        </button>
+
+        <header className="hero-head">
+          <span className="hero-mark">{element.mark}</span>
+          <div>
+            <h1>{c.name}</h1>
+            <p className="meta">{c.epithet}</p>
+          </div>
+        </header>
+
+        <p className="meta chips">
+          <span className="chip">ธาตุ{element.name}</span>
+          <span className="chip">{ROLES[c.role]}</span>
+          <span className="chip gold">{c.rarity}</span>
+          <span className="chip">{'★'.repeat(star)}</span>
+        </p>
+
+        {entry === undefined && <p className="meta">กำลังอ่านข้อมูล</p>}
+
+        {entry === null && (
+          <p className="meta">ยังไม่มีตัวละครนี้ ค่าที่แสดงเป็นค่าพื้นฐานที่เลเวล 1</p>
+        )}
+
+        {entry && (
+          <section className="exp-block">
+            <div className="exp-line">
+              <span className="hero-level">เลเวล {level}</span>
+              <span className="meta">
+                {capped ? 'สูงสุดแล้ว' : `${entry.exp} / ${expToNext(level)}`}
+              </span>
+            </div>
+            {!capped && (
+              <div className="bar">
+                <span style={{ width: `${Math.round((entry.exp / expToNext(level)) * 100)}%` }} />
+              </div>
+            )}
+          </section>
+        )}
+
+        <h2 className="section-title">ค่าพลัง</h2>
+        <dl className="ledger">
+          {[
+            ['พลังชีวิต', stats.hp],
+            ['พลังโจมตี', stats.atk],
+            ['พลังป้องกัน', stats.def],
+            ['ความเร็ว', stats.spd],
+            ['โอกาสคริติคอล', stats.crit + '%'],
+          ].map(([label, value]) => (
+            <div className="ledger-row" key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="meta tiny">ค่าพลังเพิ่มขึ้น 8% ต่อเลเวล และ 15% ต่อดาว</p>
+
+        <h2 className="section-title">ท่าที่ใช้ได้</h2>
+
+        <div className="move">
+          <h3>โจมตี</h3>
+          <p>ดาเมจ 100% ใช้ได้ทุกเทิร์นโดยไม่เสียอะไร เพิ่มเกจไม้ตาย 25</p>
+        </div>
+
+        <div className="move">
+          <h3>{c.skill.name}</h3>
+          <p>{c.skill.desc}</p>
+          <p className="cost">ใช้พลังเวท {c.skill.mp} · ได้คืนเทิร์นละ 2 · เพิ่มเกจ 15</p>
+        </div>
+
+        <div className="move ult">
+          <h3>{c.ultimate.name}</h3>
+          <p>{c.ultimate.desc}</p>
+          <p className="cost">ใช้ได้เมื่อเกจครบ 100 แล้วเกจกลับเป็น 0</p>
+        </div>
+
+        <h2 className="section-title">ธาตุ</h2>
+        <div className="matchup">
+          <div className="matchup-row">
+            <span className="meta">ตีแรงใส่</span>
+            <span className="chip good">
+              {strongAgainst ? `${ELEMENTS[strongAgainst].mark} ธาตุ${ELEMENTS[strongAgainst].name}` : '—'}
+            </span>
+          </div>
+          <div className="matchup-row">
+            <span className="meta">โดนตีแรงจาก</span>
+            <span className="chip bad">
+              {weakTo ? `${ELEMENTS[weakTo].mark} ธาตุ${ELEMENTS[weakTo].name}` : '—'}
+            </span>
+          </div>
+        </div>
+        <p className="meta tiny">ฝ่ายที่ได้เปรียบธาตุจะสร้างดาเมจเพิ่มขึ้น 30%</p>
+
+        <p className="blurb">{c.blurb}</p>
+      </div>
+    </main>
+  )
+}

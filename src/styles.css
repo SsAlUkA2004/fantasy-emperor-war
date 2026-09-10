@@ -869,3 +869,140 @@ a {
   color: var(--gold-bright);
   font-family: var(--display);
 }
+
+/* ───────── หน้ารายละเอียดตัวละคร ───────── */
+
+.plain-link.back {
+  width: auto;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  text-align: left;
+}
+
+.hero-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hero-mark {
+  font-size: 2.6rem;
+  line-height: 1;
+  flex: none;
+}
+
+.hero-head h1 {
+  margin-bottom: 0.1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.chip {
+  font-size: 0.76rem;
+  color: var(--parchment-dim);
+  border: 1px solid rgba(200, 164, 77, 0.28);
+  padding: 0.15rem 0.55rem;
+}
+
+.chip.gold {
+  color: var(--gold-bright);
+  border-color: rgba(200, 164, 77, 0.6);
+}
+
+.chip.good {
+  color: var(--rune);
+  border-color: rgba(111, 214, 200, 0.5);
+}
+
+.chip.bad {
+  color: var(--ember);
+  border-color: rgba(194, 88, 67, 0.5);
+}
+
+.exp-block {
+  margin-top: 1.5rem;
+}
+
+.exp-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+
+.hero-level {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+}
+
+.cost {
+  margin-top: 0.35rem !important;
+  font-size: 0.76rem !important;
+  color: var(--rune) !important;
+}
+
+.matchup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.matchup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* การ์ดในหน้าหลักกดเข้าไปดูได้ */
+
+.card {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 160ms ease;
+}
+
+.card:hover {
+  border-color: var(--gold);
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-more {
+  color: var(--gold);
+  font-size: 1.3rem;
+  flex: none;
+}
+
+/* ธาตุของมอนสเตอร์ในแผนที่ */
+
+.foe-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.foe {
+  font-size: 0.8rem;
+  color: var(--parchment-dim);
+}
+
+.tag.element {
+  color: var(--parchment-dim);
+  border-color: rgba(200, 164, 77, 0.28);
+}
+
+.tag.good {
+  color: var(--rune);
+  border-color: rgba(111, 214, 200, 0.55);
+}

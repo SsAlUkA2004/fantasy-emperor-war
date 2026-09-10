@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { STAGES, ENEMIES } from '../data/stages'
+import { ELEMENTS } from '../data/characters'
 import { usePlayer } from '../context/PlayerContext'
 
 export default function StageMap() {
@@ -37,11 +38,20 @@ export default function StageMap() {
                 <span className="stage-id">{stage.id}</span>
                 <span className="stage-body">
                   <span className="stage-name">{stage.name}</span>
-                  <span className="meta">
-                    {open
-                      ? stage.enemies.map((e) => ENEMIES[e.id].name).join(' · ')
-                      : 'ผ่านด่านก่อนหน้าเพื่อปลดล็อก'}
-                  </span>
+                  {open ? (
+                    <span className="foe-line">
+                      {stage.enemies.map((e, n) => {
+                        const foe = ENEMIES[e.id]
+                        return (
+                          <span className="foe" key={n}>
+                            {ELEMENTS[foe.element].mark} {foe.name}
+                          </span>
+                        )
+                      })}
+                    </span>
+                  ) : (
+                    <span className="meta">ผ่านด่านก่อนหน้าเพื่อปลดล็อก</span>
+                  )}
                 </span>
                 <span className="stage-stars">{stars ? '★'.repeat(stars) : ''}</span>
               </button>

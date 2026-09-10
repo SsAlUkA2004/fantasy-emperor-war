@@ -5,6 +5,8 @@ import { createBattle, currentUnit, movesFor, needsTarget, takeTurn, starsEarned
 import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
+import { hasAdvantage } from '../lib/stats'
+import { ELEMENTS } from '../data/characters'
 
 const STEP_DELAY = 750
 
@@ -107,6 +109,7 @@ export default function Battle() {
               unit={u}
               active={actor?.key === u.key}
               selected={target === u.key}
+              favoured={actor?.side === 'ally' && hasAdvantage(actor.element, u.element)}
               onSelect={() => u.alive && setTarget(u.key)}
             />
           ))}
@@ -155,8 +158,9 @@ export default function Battle() {
   )
 }
 
-function Combatant({ unit, active, selected, ally, onSelect }) {
+function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
   const pct = Math.round((unit.hp / unit.maxHp) * 100)
+  const element = ELEMENTS[unit.element]
 
   return (
     <button
@@ -171,6 +175,10 @@ function Combatant({ unit, active, selected, ally, onSelect }) {
       <div className="combatant-body">
         <div className="combatant-name">
           {unit.name}
+          <span className="tag element">
+            {element.mark} {element.name}
+          </span>
+          {favoured && <span className="tag good">แพ้ทางเรา</span>}
           {unit.effects.burn > 0 && <span className="tag burn">ติดไฟ</span>}
           {unit.effects.taunt > 0 && <span className="tag">ดึงเป้า</span>}
           {unit.effects.stun > 0 && <span className="tag">สตัน</span>}
@@ -181,7 +189,7 @@ function Combatant({ unit, active, selected, ally, onSelect }) {
         </div>
         <div className="combatant-meta">
           {unit.hp} / {unit.maxHp}
-          {ally && ` · เวท ${unit.mp} · เกจ ${unit.gauge}`}
+          {ally && ` · เลเวล ${unit.level} · เวท ${unit.mp} · เกจ ${unit.gauge}`}
         </div>
       </div>
     </button>

@@ -37,7 +37,7 @@ export default function Lobby() {
             const c = getCharacter(entry.id)
             if (!c) return null
             return (
-              <div className="card" key={entry.id}>
+              <Link className="card" to={`/hero/${entry.id}`} key={entry.id}>
                 <span className="card-mark">{ELEMENTS[c.element].mark}</span>
                 <div className="card-body">
                   <h3>
@@ -60,7 +60,8 @@ export default function Lobby() {
                       : `${entry.exp} / ${expToNext(entry.level)}`}
                   </p>
                 </div>
-              </div>
+                <span className="card-more">›</span>
+              </Link>
             )
           })}
         </section>
