@@ -135,6 +135,38 @@ export const TRAINING = [
   },
 ]
 
+/**
+ * ด่านเก็บเพชร จำกัดจำนวนครั้งต่อวัน
+ *
+ * ที่ต้องจำกัดเพราะรางวัลที่ฟาร์มได้ไม่จำกัดคือช่องโหว่ที่ปิดไม่ได้เลย
+ * แต่พอจำกัดเป็นรายวัน กฎจะตรวจได้จริง เพราะเทียบวันจากนาฬิกาเซิร์ฟเวอร์
+ * ไม่ใช่จากเครื่องผู้เล่น ต่อให้ตั้งเวลาเครื่องใหม่ก็ไม่ช่วย
+ */
+export const GEM_RUNS_PER_DAY = 3
+export const GEM_REWARD = 60
+
+export const GEM_STAGES = [
+  {
+    id: 'g-1',
+    name: 'เหมืองคริสตัลร้าง',
+    intro: 'คริสตัลยังฝังอยู่ในผนัง แต่มีอะไรบางอย่างเฝ้าไว้',
+    gemStage: true,
+    exp: 60,
+    gems: GEM_REWARD,
+    requires: '1-3',
+    enemies: [
+      { id: 'golem', level: 8 },
+      { id: 'skeleton', level: 8 },
+      { id: 'frostwolf', level: 8 },
+    ],
+  },
+]
+
 export function getStage(id) {
-  return STAGES.find((s) => s.id === id) ?? TRAINING.find((s) => s.id === id) ?? null
+  return (
+    STAGES.find((s) => s.id === id) ??
+    TRAINING.find((s) => s.id === id) ??
+    GEM_STAGES.find((s) => s.id === id) ??
+    null
+  )
 }

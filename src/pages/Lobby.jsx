@@ -6,6 +6,7 @@ import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
 import { expToNext, levelCap, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { heroStats } from '../lib/stats'
 import StatPeek from '../components/StatPeek'
+import TeamStrip from '../components/TeamStrip'
 import { signOut } from '../lib/auth'
 
 function statRows(charId, level, star) {
@@ -50,6 +51,9 @@ export default function Lobby() {
             {player.gems.toLocaleString('th-TH')}
           </div>
         </header>
+
+        <h2 className="section-title">ทีมออกรบ</h2>
+        <TeamStrip team={player.team} />
 
         <section className="roster">
           <h2 className="section-title">ผู้ติดตาม</h2>

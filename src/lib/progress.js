@@ -1,7 +1,8 @@
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
-import { FIRST_CLEAR_GEMS } from '../data/stages'
+import { FIRST_CLEAR_GEMS, GEM_RUNS_PER_DAY } from '../data/stages'
 import { gainPlayerExp } from './leveling'
+import { isSameThaiDay, runsLeft } from './dayclock'
 
 /**
  * บันทึกผลการผ่านด่าน
@@ -30,6 +31,26 @@ export async function saveStageResult(player, stage, stars, exp) {
   if (stage.training) {
     await updateDoc(doc(db, 'users', player.uid), patch)
     return { firstClear: false, gems: 0, account }
+  }
+
+  // ด่านเก็บเพชร จ่ายตามโควตารายวัน
+  // ตัวนับรีเซ็ตเองเมื่อข้ามวัน โดยดูจากเวลาที่เซิร์ฟเวอร์ประทับไว้ครั้งก่อน
+  if (stage.gemStage) {
+    const left = runsLeft(player, GEM_RUNS_PER_DAY)
+    if (left <= 0) {
+      await updateDoc(doc(db, 'users', player.uid), patch)
+      return { firstClear: false, gems: 0, account, quotaSpent: true }
+    }
+
+    const sameDay = isSameThaiDay(player.gemRunAt)
+    await updateDoc(doc(db, 'users', player.uid), {
+      ...patch,
+      gems: player.gems + stage.gems,
+      gemRunAt: serverTimestamp(),
+      gemRunCount: sameDay ? (player.gemRunCount ?? 0) + 1 : 1,
+    })
+
+    return { firstClear: false, gems: stage.gems, account, runsLeft: left - 1 }
   }
 
   // เขียนทั้งก้อนแทนการใช้ field path แบบจุด

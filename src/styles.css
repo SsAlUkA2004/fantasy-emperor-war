@@ -1357,3 +1357,64 @@ a {
   border-bottom: none;
   padding-top: 0;
 }
+
+/* ───────── แถบทีม ───────── */
+
+.team-strip {
+  margin-top: 1rem;
+  padding: 0.85rem 0.9rem;
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.25);
+}
+
+.team-strip-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.mini-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 3.6rem;
+  border: 1px dashed rgba(200, 164, 77, 0.28);
+  background: rgba(11, 8, 24, 0.4);
+}
+
+.mini-slot[data-filled='true'] {
+  border-style: solid;
+  border-color: rgba(200, 164, 77, 0.55);
+  background: rgba(36, 27, 79, 0.7);
+}
+
+.mini-mark {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.mini-name {
+  font-family: var(--display);
+  font-size: 0.82rem;
+  color: var(--gold-bright);
+}
+
+.mini-empty {
+  font-size: 0.72rem;
+  color: rgba(167, 159, 140, 0.6);
+}
+
+.team-strip-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.7rem;
+}
+
+.stage-id.gem {
+  color: var(--rune);
+  font-size: 1rem;
+}

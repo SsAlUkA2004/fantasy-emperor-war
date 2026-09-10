@@ -146,6 +146,7 @@ export default function Battle() {
             outcome={state.outcome}
             reward={reward}
             training={stage.training}
+            gemStage={stage.gemStage}
             onAgain={() => setRound((r) => r + 1)}
             onBack={() => navigate('/stages')}
           />
@@ -226,7 +227,7 @@ function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
   )
 }
 
-function Result({ outcome, reward, training, onAgain, onBack }) {
+function Result({ outcome, reward, training, gemStage, onAgain, onBack }) {
   const won = outcome === 'won'
 
   return (
@@ -234,7 +235,7 @@ function Result({ outcome, reward, training, onAgain, onBack }) {
       <div className="panel-head">{won ? 'ชนะแล้ว' : 'พ่ายแพ้'}</div>
       {won ? (
         <>
-          {!training && <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>}
+          {!training && !gemStage && <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>}
           {reward?.exp > 0 && <p>ได้ค่าประสบการณ์ {reward.exp} หน่วย</p>}
           {reward?.levels
             ?.filter((l) => l.gained > 0)
@@ -250,7 +251,13 @@ function Result({ outcome, reward, training, onAgain, onBack }) {
             <p className="levelup">เลเวลผู้เล่นขึ้นเป็น {reward.account.level}</p>
           )}
           {reward?.firstClear && <p>ผ่านครั้งแรก ได้เพชร {reward.gems} เม็ด</p>}
-          {reward && !reward.firstClear && !reward.failed && !training && (
+          {reward?.runsLeft !== undefined && (
+            <p className="levelup">
+              ได้เพชร {reward.gems} เม็ด · วันนี้เหลืออีก {reward.runsLeft} ครั้ง
+            </p>
+          )}
+          {reward?.quotaSpent && <p className="meta">ครบโควตาเพชรของวันนี้แล้ว รอบนี้ได้แต่ค่าประสบการณ์</p>}
+          {reward && !reward.firstClear && !reward.failed && !training && !gemStage && (
             <p className="meta">เคยผ่านด่านนี้แล้ว รอบนี้ไม่ได้เพชรเพิ่ม</p>
           )}
           {reward?.failed && (

@@ -1,5 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { STAGES, TRAINING, ENEMIES } from '../data/stages'
+import { STAGES, TRAINING, GEM_STAGES, GEM_RUNS_PER_DAY, ENEMIES } from '../data/stages'
+import { runsLeft, hoursUntilReset } from '../lib/dayclock'
+import TeamStrip from '../components/TeamStrip'
 import { ELEMENTS } from '../data/characters'
 import { effectiveStats } from '../lib/stats'
 import StatPeek from '../components/StatPeek'
@@ -9,6 +11,7 @@ export default function StageMap() {
   const { player } = usePlayer()
   const navigate = useNavigate()
   const progress = player.stageProgress ?? {}
+  const left = runsLeft(player, GEM_RUNS_PER_DAY)
 
   // ปลดล็อกด่านถัดไปเมื่อผ่านด่านก่อนหน้า ด่านแรกเปิดเสมอ
   function unlocked(index) {
@@ -19,6 +22,8 @@ export default function StageMap() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <TeamStrip team={player.team} />
+
         <h1>บทที่ 1 — ชายแดนตะวันออก</h1>
         <p className="meta">ผ่านด่านครั้งแรกได้เพชร 30 เม็ด เล่นซ้ำได้แต่ไม่ได้เพชรอีก</p>
 
@@ -69,6 +74,41 @@ export default function StageMap() {
                   )}
                 </span>
                 <span className="stage-stars">{stars ? '★'.repeat(stars) : ''}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <h2 className="section-title">เหมืองคริสตัล</h2>
+        <p className="meta">
+          เก็บเพชรได้วันละ {GEM_RUNS_PER_DAY} ครั้ง วันนี้เหลือ {left} ครั้ง
+          {left === 0 && ` · รีเซ็ตอีก ${hoursUntilReset()} ชั่วโมง`}
+        </p>
+
+        <div className="stage-list">
+          {GEM_STAGES.map((g) => {
+            const open = (progress[g.requires] ?? 0) > 0
+            return (
+              <button
+                key={g.id}
+                className="stage-row"
+                data-locked={!open || left === 0}
+                data-boss
+                disabled={!open || left === 0}
+                onClick={() => navigate(`/battle/${g.id}`)}
+              >
+                <span className="stage-id gem">◆</span>
+                <span className="stage-body">
+                  <span className="stage-name">{g.name}</span>
+                  <span className="meta">
+                    {!open
+                      ? `ผ่านด่าน ${g.requires} เพื่อปลดล็อก`
+                      : left === 0
+                        ? 'ครบโควตาวันนี้แล้ว'
+                        : `ได้ ${g.gems} เพชร และ ${g.exp} exp ต่อรอบ`}
+                  </span>
+                </span>
+                <span className="stage-stars" />
               </button>
             )
           })}
