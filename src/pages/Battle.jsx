@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getStage } from '../data/stages'
+import { getStage, STAGES } from '../data/stages'
 import { createBattle, currentUnit, movesFor, needsTarget, takeTurn, starsEarned } from '../lib/battle'
 import { loadCollection as reloadCollection } from '../lib/player'
 import { awardExp, loadCollection } from '../lib/player'
@@ -27,6 +27,14 @@ export default function Battle() {
   const logEnd = useRef(null)
 
   const stage = getStage(stageId)
+
+  // ด่านถัดไปในลำดับรวมทั้งเกม ข้ามบทได้เอง
+  // ลานฝึกกับเหมืองไม่มีด่านถัดไป เพราะไม่ได้อยู่ในลำดับเนื้อเรื่อง
+  const nextStage = (() => {
+    if (!stage || stage.training || stage.gemStage) return null
+    const i = STAGES.findIndex((x) => x.id === stage.id)
+    return i >= 0 && i < STAGES.length - 1 ? STAGES[i + 1] : null
+  })()
 
   // round เปลี่ยนค่าเมื่อกดเล่นอีกครั้ง ทำให้ตั้งสนามรบใหม่ทั้งหมด
   useEffect(() => {
@@ -141,18 +149,8 @@ export default function Battle() {
           ))}
         </section>
 
-        {state.outcome ? (
-          <Result
-            outcome={state.outcome}
-            reward={reward}
-            training={stage.training}
-            gemStage={stage.gemStage}
-            onAgain={() => setRound((r) => r + 1)}
-            onBack={() => navigate('/stages')}
-          />
-        ) : (
-          <div className="moves">
-            {yourTurn ? (
+        <div className="moves">
+            {state.outcome ? null : yourTurn ? (
               movesFor(actor).map((m) => (
                 <button
                   key={m.type}
@@ -169,9 +167,21 @@ export default function Battle() {
                 {auto ? 'ออโต้กำลังเล่นให้' : `รอ ${actor?.name ?? ''} ลงมือ`}
               </p>
             )}
-          </div>
-        )}
+        </div>
       </div>
+
+      {state.outcome && (
+        <Result
+          outcome={state.outcome}
+          reward={reward}
+          training={stage.training}
+          gemStage={stage.gemStage}
+          nextStage={nextStage}
+          onNext={() => navigate(`/battle/${nextStage.id}`)}
+          onAgain={() => setRound((r) => r + 1)}
+          onBack={() => navigate('/stages')}
+        />
+      )}
     </main>
   )
 }
@@ -227,12 +237,13 @@ function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
   )
 }
 
-function Result({ outcome, reward, training, gemStage, onAgain, onBack }) {
+function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgain, onBack }) {
   const won = outcome === 'won'
 
   return (
-    <section className="panel result">
-      <div className="panel-head">{won ? 'ชนะแล้ว' : 'พ่ายแพ้'}</div>
+    <div className="veil" role="dialog" aria-modal="true">
+      <section className="panel result popup" data-outcome={outcome}>
+        <div className="panel-head">{won ? 'ชนะแล้ว' : 'พ่ายแพ้'}</div>
       {won ? (
         <>
           {!training && !gemStage && <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>}
@@ -267,16 +278,22 @@ function Result({ outcome, reward, training, gemStage, onAgain, onBack }) {
           )}
         </>
       ) : (
-        <p>ลองจัดทีมใหม่หรือไปเก็บเลเวลจากด่านฝึกฝนดู</p>
+        <p>ลองจัดทีมใหม่หรือไปเก็บเลเวลจากลานฝึกดู</p>
       )}
 
+      {won && nextStage && (
+        <button className="rune-link block primary" onClick={onNext}>
+          ไปด่าน {nextStage.id} · {nextStage.name}
+        </button>
+      )}
       <button className="rune-link block" onClick={onAgain}>
         เล่นอีกครั้ง
       </button>
       <button className="plain-link" onClick={onBack}>
         กลับไปแผนที่
       </button>
-    </section>
+      </section>
+    </div>
   )
 }
 
