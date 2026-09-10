@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { STARTER_IDS } from '../data/characters'
+import { gainExp } from './leveling'
 
 /**
  * บันทึกตัวละครเริ่มต้นที่ผู้เล่นเลือก
@@ -18,6 +19,7 @@ export async function chooseStarter(uid, charId) {
 
   batch.set(doc(db, 'users', uid, 'collection', charId), {
     level: 1,
+    exp: 0,
     star: 1,
     shards: 0,
     obtainedAt: serverTimestamp(),
@@ -33,5 +35,28 @@ export async function chooseStarter(uid, charId) {
 
 export async function loadCollection(uid) {
   const snap = await getDocs(collection(db, 'users', uid, 'collection'))
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  // ตัวละครที่สร้างไว้ก่อนมีระบบเลเวลจะไม่มีฟิลด์ exp จึงเติมศูนย์ให้
+  return snap.docs.map((d) => ({ id: d.id, exp: 0, ...d.data() }))
+}
+
+/**
+ * แจกค่าประสบการณ์ให้ทุกตัวที่ร่วมรบ รวมถึงตัวที่ล้มไปแล้ว
+ * ตัวที่ตายก็ยังได้ เพราะไม่งั้นผู้เล่นจะเลี่ยงการใช้ตัวอ่อน
+ * แล้วทีมจะไม่มีวันโตขึ้นมาพร้อมกัน
+ */
+export async function awardExp(uid, entries, amount) {
+  const batch = writeBatch(db)
+  const results = []
+
+  entries.forEach((entry) => {
+    const next = gainExp(entry.level, entry.exp, amount)
+    results.push({ id: entry.id, from: entry.level, ...next })
+    batch.update(doc(db, 'users', uid, 'collection', entry.id), {
+      level: next.level,
+      exp: next.exp,
+    })
+  })
+
+  await batch.commit()
+  return results
 }

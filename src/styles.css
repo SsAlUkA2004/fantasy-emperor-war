@@ -851,3 +851,21 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ───────── ระบบเลเวล ───────── */
+
+.bar.thin {
+  height: 0.25rem;
+  margin-top: 0.35rem;
+  max-width: 11rem;
+}
+
+.meta.tiny {
+  font-size: 0.72rem;
+  margin-top: 0.2rem;
+}
+
+.levelup {
+  color: var(--gold-bright);
+  font-family: var(--display);
+}

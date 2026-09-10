@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { loadCollection } from '../lib/player'
 import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
+import { expToNext, MAX_LEVEL } from '../lib/leveling'
 import { signOut } from '../lib/auth'
 
 export default function Lobby() {
@@ -45,6 +46,18 @@ export default function Lobby() {
                   </h3>
                   <p className="meta">
                     {ROLES[c.role]} · เลเวล {entry.level} · {'★'.repeat(entry.star)}
+                  </p>
+                  {entry.level < MAX_LEVEL && (
+                    <div className="bar thin">
+                      <span
+                        style={{ width: `${Math.round((entry.exp / expToNext(entry.level)) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                  <p className="meta tiny">
+                    {entry.level >= MAX_LEVEL
+                      ? 'เลเวลสูงสุดแล้ว'
+                      : `${entry.exp} / ${expToNext(entry.level)}`}
                   </p>
                 </div>
               </div>

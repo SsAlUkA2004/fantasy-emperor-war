@@ -45,12 +45,14 @@ export const FIRST_CLEAR_GEMS = 30
 export const STAGES = [
   {
     id: '1-1',
+    exp: 25,
     name: 'ชายป่าฝั่งตะวันออก',
     intro: 'หนูป่าตัวหนึ่งขวางทางอยู่ ไม่ใช่เรื่องใหญ่',
     enemies: [{ id: 'ratling', level: 1 }],
   },
   {
     id: '1-2',
+    exp: 35,
     name: 'ทางเดินใต้ร่มไม้',
     intro: 'คราวนี้มากันสองตัว',
     enemies: [
@@ -60,6 +62,7 @@ export const STAGES = [
   },
   {
     id: '1-3',
+    exp: 45,
     name: 'สุสานร้าง',
     intro: 'กระดูกที่ขยับได้เอง ไม่รู้ว่าใครปลุกมันขึ้นมา',
     enemies: [
@@ -69,6 +72,7 @@ export const STAGES = [
   },
   {
     id: '1-4',
+    exp: 55,
     name: 'ลำธารเยือกแข็ง',
     intro: 'ฝูงหมาป่าเร็วกว่าที่คิด ระวังโดนตัดหน้า',
     enemies: [
@@ -78,6 +82,7 @@ export const STAGES = [
   },
   {
     id: '1-5',
+    exp: 70,
     name: 'ค่ายพักของพวกนอกรีต',
     intro: 'นักเวทเถื่อนสาปให้ติดไฟได้ อย่าปล่อยให้มันร่ายซ้ำ',
     enemies: [
@@ -88,6 +93,7 @@ export const STAGES = [
   },
   {
     id: '1-6',
+    exp: 120,
     name: 'ประตูหินโบราณ',
     intro: 'กอเลมยืนเฝ้ามาหลายร้อยปี ลำพังคนเดียวคงไม่พอ',
     enemies: [{ id: 'golem', level: 1 }],

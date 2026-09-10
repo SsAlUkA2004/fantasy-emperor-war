@@ -137,6 +137,16 @@ function startRound(state) {
     .sort((a, b) => b.spd - a.spd)
     .map((u) => u.key)
   state.cursor = 0
+  beginTurn(state)
+}
+
+/**
+ * เติมพลังเวทให้ตัวที่กำลังจะลงมือ ต้องทำตรงนี้ ไม่ใช่ตอน takeTurn
+ * ไม่งั้นหน้าจอจะโชว์ค่าก่อนเติม แล้วผู้เล่นเห็นตัวเลขหักไม่ตรงกับที่เขียนไว้
+ */
+function beginTurn(state) {
+  const actor = currentUnit(state)
+  if (actor) actor.mp = Math.min(10, actor.mp + MP_PER_TURN)
 }
 
 export function currentUnit(state) {
@@ -174,8 +184,7 @@ export function needsTarget(unit, type) {
   if (type === 'attack') return true
   if (!c) return true
   if (unit.charId === 'athen') return true
-  if (unit.charId === 'galen') return type === 'ultimate' ? false : false
-  if (unit.charId === 'lumina') return false
+  if (unit.charId === 'galen' || unit.charId === 'lumina') return false
   return true
 }
 
@@ -331,11 +340,15 @@ function advance(state) {
   state.cursor += 1
   while (state.cursor < state.order.length) {
     const u = state.units.find((x) => x.key === state.order[state.cursor])
-    if (u && u.alive) return
+    if (u && u.alive) {
+      beginTurn(state)
+      return
+    }
     state.cursor += 1
   }
   state.round += 1
   startRound(state)
+  return
 }
 
 /**
@@ -346,8 +359,6 @@ export function takeTurn(state, action = null) {
   const next = clone(state)
   const actor = currentUnit(next)
   if (!actor) return next
-
-  actor.mp = Math.min(10, actor.mp + MP_PER_TURN)
 
   if (actor.effects.stun > 0) {
     actor.effects.stun -= 1

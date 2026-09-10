@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getStage } from '../data/stages'
 import { createBattle, currentUnit, movesFor, needsTarget, takeTurn, starsEarned } from '../lib/battle'
-import { loadCollection } from '../lib/player'
+import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 
@@ -17,6 +17,7 @@ export default function Battle() {
   const [auto, setAuto] = useState(false)
   const [target, setTarget] = useState(null)
   const [reward, setReward] = useState(null)
+  const roster = useRef([])
   const saved = useRef(false)
   const logEnd = useRef(null)
 
@@ -28,6 +29,7 @@ export default function Battle() {
       const team = (player.team ?? [])
         .map((id) => owned.find((o) => o.id === id))
         .filter(Boolean)
+      roster.current = team
       if (team.length) setState(createBattle(team, stage))
     })
   }, [stageId])
@@ -54,9 +56,14 @@ export default function Battle() {
 
     if (state.outcome === 'won') {
       const stars = starsEarned(state)
-      saveStageResult({ ...player, uid: user.uid }, stageId, stars)
-        .then((r) => {
-          setReward({ stars, ...r })
+      const exp = stage.exp ?? 0
+
+      Promise.all([
+        saveStageResult({ ...player, uid: user.uid }, stageId, stars),
+        awardExp(user.uid, roster.current, exp),
+      ])
+        .then(([r, levels]) => {
+          setReward({ stars, exp, levels, ...r })
           return refresh()
         })
         .catch(() => setReward({ stars, firstClear: false, gems: 0, failed: true }))
@@ -190,6 +197,14 @@ function Result({ outcome, reward, onBack }) {
       {won ? (
         <>
           <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>
+          {reward?.exp > 0 && <p>ได้ค่าประสบการณ์ {reward.exp} หน่วย</p>}
+          {reward?.levels
+            ?.filter((l) => l.gained > 0)
+            .map((l) => (
+              <p className="levelup" key={l.id}>
+                เลเวลขึ้นเป็น {l.level} แล้ว
+              </p>
+            ))}
           {reward?.firstClear && <p>ผ่านครั้งแรก ได้เพชร {reward.gems} เม็ด</p>}
           {reward && !reward.firstClear && !reward.failed && <p className="meta">เคยผ่านด่านนี้แล้ว รอบนี้ไม่ได้เพชรเพิ่ม</p>}
           {reward?.failed && <div className="trace">บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลด Security Rules เวอร์ชันล่าสุดแล้วหรือยัง</div>}
