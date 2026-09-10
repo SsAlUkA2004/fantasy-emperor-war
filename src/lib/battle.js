@@ -5,11 +5,15 @@ import { effectiveStats, skillScale } from './stats'
 // ─────────────────────────────────────────────────────────────
 // เครื่องยนต์การต่อสู้ ไม่รู้จัก React เลย รับสถานะเข้ามาแล้วคืนสถานะใหม่ออกไป
 // แยกแบบนี้เพื่อให้เฟส 5 เอาไปรันฝั่งเซิร์ฟเวอร์ตอนคำนวณผล PvP ได้โดยไม่ต้องเขียนใหม่
+//
+// สกิลทุกตัวอ่านมาจากรายการ effects ในไฟล์ characters.js
+// ไม่มีโค้ดที่ผูกกับชื่อตัวละครใดเป็นการเฉพาะ เพิ่มตัวละครใหม่จึงไม่ต้องแตะไฟล์นี้
 // ─────────────────────────────────────────────────────────────
 
 const ATTACK_GAUGE = 25
 const SKILL_GAUGE = 15
 const MP_PER_TURN = 2
+const MAX_MP = 10
 const BURN_PERCENT = 0.05
 
 function clone(state) {
@@ -26,28 +30,13 @@ function statAfterBuffs(unit, key) {
 }
 
 function computeDamage(attacker, defender, multiplier) {
-  const def = statAfterBuffs(defender, 'def')
-  const mitigated = 100 / (100 + def)
+  const mitigated = 100 / (100 + statAfterBuffs(defender, 'def'))
   const element = elementBonus(attacker.element, defender.element)
   const crit = Math.random() * 100 < attacker.crit
   const variance = 0.95 + Math.random() * 0.1
 
   const raw = attacker.atk * multiplier * mitigated * element * (crit ? 1.5 : 1) * variance
   return { amount: Math.max(1, Math.round(raw)), crit, element: element > 1 }
-}
-
-function applyDamage(state, unit, amount) {
-  if (unit.effects.shield) {
-    unit.effects.shield = false
-    log(state, `${unit.name} ใช้เกราะแสงรับไว้ได้`)
-    return 0
-  }
-  unit.hp = Math.max(0, unit.hp - amount)
-  if (unit.hp === 0) {
-    unit.alive = false
-    log(state, `${unit.name} ล้มลงแล้ว`, 'fall')
-  }
-  return amount
 }
 
 function log(state, text, kind = 'plain') {
@@ -59,52 +48,35 @@ function livingOf(state, side) {
   return state.units.filter((u) => u.side === side && u.alive)
 }
 
-// ───────── สร้างสนามรบ ─────────
-
-function buildAlly(entry, index) {
-  const c = CHARACTERS[entry.id]
-  const s = effectiveStats(c.stats, entry.level, entry.star)
-
-  return {
-    key: `a${index}`,
-    side: 'ally',
-    charId: c.id,
-    name: c.name,
-    level: entry.level,
-    star: entry.star,
-    skillScale: skillScale(entry.star),
-    element: c.element,
-    elementName: ELEMENTS[c.element].name,
-    mark: ELEMENTS[c.element].mark,
-    maxHp: s.hp,
-    hp: s.hp,
-    atk: s.atk,
-    def: s.def,
-    spd: s.spd,
-    crit: s.crit,
-    mp: 0,
-    gauge: 0,
-    alive: true,
-    effects: { burn: 0, taunt: 0, defUp: 0, stun: 0, shield: false },
+function applyDamage(state, unit, amount) {
+  if (unit.effects.shield) {
+    unit.effects.shield = false
+    log(state, `${unit.name} ใช้เกราะรับไว้ได้`)
+    return 0
   }
+  unit.hp = Math.max(0, unit.hp - amount)
+  if (unit.hp === 0) {
+    unit.alive = false
+    log(state, `${unit.name} ล้มลงแล้ว`, 'fall')
+  }
+  return amount
 }
 
-function buildEnemy(entry, index) {
-  const e = ENEMIES[entry.id]
-  const s = effectiveStats(e.stats, entry.level, 1)
+// ───────── สร้างสนามรบ ─────────
 
+function makeUnit(base, opts) {
+  const s = effectiveStats(base.stats, opts.level, opts.star)
   return {
-    key: `e${index}`,
-    side: 'enemy',
-    charId: e.id,
-    name: e.name,
-    level: entry.level,
-    star: 1,
-    skillScale: 1,
-    element: e.element,
-    elementName: ELEMENTS[e.element].name,
-    elementMark: ELEMENTS[e.element].mark,
-    mark: e.mark,
+    key: opts.key,
+    side: opts.side,
+    charId: base.id,
+    name: base.name,
+    level: opts.level,
+    star: opts.star,
+    skillScale: skillScale(opts.star),
+    element: base.element,
+    elementName: ELEMENTS[base.element].name,
+    mark: opts.mark,
     maxHp: s.hp,
     hp: s.hp,
     atk: s.atk,
@@ -114,15 +86,34 @@ function buildEnemy(entry, index) {
     mp: 0,
     gauge: 0,
     alive: true,
-    hasSkill: Boolean(e.skill),
+    skill: base.skill ?? null,
+    ultimate: base.ultimate ?? null,
     effects: { burn: 0, taunt: 0, defUp: 0, stun: 0, shield: false },
   }
 }
 
 export function createBattle(allyEntries, stage) {
   const units = [
-    ...allyEntries.map(buildAlly),
-    ...stage.enemies.map(buildEnemy),
+    ...allyEntries.map((e, i) => {
+      const c = CHARACTERS[e.id]
+      return makeUnit(c, {
+        key: `a${i}`,
+        side: 'ally',
+        level: e.level ?? 1,
+        star: e.star ?? 1,
+        mark: ELEMENTS[c.element].mark,
+      })
+    }),
+    ...stage.enemies.map((e, i) => {
+      const m = ENEMIES[e.id]
+      return makeUnit(m, {
+        key: `e${i}`,
+        side: 'enemy',
+        level: e.level ?? 1,
+        star: 1,
+        mark: m.mark,
+      })
+    }),
   ]
 
   const state = {
@@ -155,7 +146,7 @@ function startRound(state) {
  */
 function beginTurn(state) {
   const actor = currentUnit(state)
-  if (actor) actor.mp = Math.min(10, actor.mp + MP_PER_TURN)
+  if (actor) actor.mp = Math.min(MAX_MP, actor.mp + MP_PER_TURN)
 }
 
 export function currentUnit(state) {
@@ -167,19 +158,20 @@ export function currentUnit(state) {
 // ───────── ท่าที่เลือกได้ ─────────
 
 export function movesFor(unit) {
-  const c = CHARACTERS[unit.charId]
   const moves = [{ type: 'attack', name: 'โจมตี', hint: 'ดาเมจ 100%', ready: true }]
 
-  if (c) {
+  if (unit.skill) {
     moves.push({
       type: 'skill',
-      name: c.skill.name,
-      hint: `ใช้พลังเวท ${c.skill.mp}`,
-      ready: unit.mp >= c.skill.mp,
+      name: unit.skill.name,
+      hint: `ใช้พลังเวท ${unit.skill.mp}`,
+      ready: unit.mp >= unit.skill.mp,
     })
+  }
+  if (unit.ultimate) {
     moves.push({
       type: 'ultimate',
-      name: c.ultimate.name,
+      name: unit.ultimate.name,
       hint: `เกจ ${unit.gauge}/100`,
       ready: unit.gauge >= 100,
     })
@@ -188,18 +180,16 @@ export function movesFor(unit) {
   return moves
 }
 
+/** ท่านี้ต้องเลือกเป้าหมายไหม ดูจากว่ามีผลลัพธ์ที่พุ่งไปที่ศัตรูตัวเดียวหรือเปล่า */
 export function needsTarget(unit, type) {
-  const c = CHARACTERS[unit.charId]
   if (type === 'attack') return true
-  if (!c) return true
-  if (unit.charId === 'athen') return true
-  if (unit.charId === 'galen' || unit.charId === 'lumina') return false
-  return true
+  const move = type === 'skill' ? unit.skill : unit.ultimate
+  return Boolean(move?.effects?.some((e) => e.target === 'one'))
 }
 
 // ───────── ลงมือ ─────────
 
-function pickEnemyTarget(state, actor, chosenKey) {
+function pickFoe(state, actor, chosenKey) {
   const foes = livingOf(state, actor.side === 'ally' ? 'enemy' : 'ally')
   if (!foes.length) return null
 
@@ -207,12 +197,87 @@ function pickEnemyTarget(state, actor, chosenKey) {
   const taunting = foes.find((u) => u.effects.taunt > 0)
   if (taunting) return taunting
 
-  const chosen = foes.find((u) => u.key === chosenKey)
-  return chosen ?? foes[0]
+  return foes.find((u) => u.key === chosenKey) ?? foes[0]
+}
+
+/** แปลงชื่อเป้าหมายในข้อมูลสกิล ให้เป็นรายชื่อหน่วยจริงในสนาม */
+function resolveTargets(state, actor, spec, chosenKey) {
+  const allies = livingOf(state, actor.side)
+
+  switch (spec) {
+    case 'self':
+      return [actor]
+    case 'allFoes':
+      return livingOf(state, actor.side === 'ally' ? 'enemy' : 'ally')
+    case 'allAllies':
+      return allies
+    case 'lowestAlly': {
+      const sorted = [...allies].sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)
+      return sorted.length ? [sorted[0]] : []
+    }
+    case 'one':
+    default: {
+      const foe = pickFoe(state, actor, chosenKey)
+      return foe ? [foe] : []
+    }
+  }
+}
+
+function runEffects(state, actor, move, chosenKey) {
+  const scale = actor.skillScale
+
+  move.effects.forEach((effect) => {
+    const targets = resolveTargets(state, actor, effect.target, chosenKey)
+
+    targets.forEach((target) => {
+      if (effect.kind === 'damage') {
+        const bonus = effect.bonusOn && target.effects[effect.bonusOn] ? effect.bonusMult : 1
+        const { amount, crit, element } = computeDamage(actor, target, effect.mult * scale * bonus)
+        applyDamage(state, target, amount)
+
+        const tags = [crit && 'คริติคอล', element && 'แพ้ทางธาตุ', bonus > 1 && 'ขยายผล'].filter(Boolean)
+        log(
+          state,
+          `${target.name} เสีย ${amount} หน่วย${tags.length ? ` (${tags.join(' ')})` : ''}`,
+          actor.side
+        )
+        return
+      }
+
+      if (effect.kind === 'heal') {
+        const heal = Math.round(target.maxHp * effect.percent * scale)
+        target.hp = Math.min(target.maxHp, target.hp + heal)
+        log(state, `${target.name} ฟื้นพลัง ${heal} หน่วย`, actor.side)
+        return
+      }
+
+      if (effect.kind === 'cleanse') {
+        target.effects.burn = 0
+        target.effects.stun = 0
+        log(state, `${target.name} หลุดจากสถานะติดลบ`, actor.side)
+        return
+      }
+
+      if (effect.kind === 'status') {
+        if (effect.chance && Math.random() > effect.chance) return
+        if (effect.status === 'shield') target.effects.shield = true
+        else target.effects[effect.status] = effect.turns
+
+        const label = {
+          burn: 'ติดไฟ',
+          stun: 'ขยับไม่ได้',
+          taunt: 'ดึงเป้าโจมตี',
+          defUp: 'ป้องกันเพิ่มขึ้น',
+          shield: 'ได้เกราะ',
+        }[effect.status]
+        log(state, `${target.name} ${label}`, actor.side)
+      }
+    })
+  })
 }
 
 function basicAttack(state, actor, targetKey) {
-  const target = pickEnemyTarget(state, actor, targetKey)
+  const target = pickFoe(state, actor, targetKey)
   if (!target) return
 
   const { amount, crit, element } = computeDamage(actor, target, 1)
@@ -225,99 +290,6 @@ function basicAttack(state, actor, targetKey) {
     `${actor.name} โจมตี ${target.name} เสีย ${amount} หน่วย${tags.length ? ` (${tags.join(' ')})` : ''}`,
     actor.side
   )
-}
-
-function useSkill(state, actor, targetKey) {
-  const c = CHARACTERS[actor.charId]
-
-  // ฝั่งมอนสเตอร์ใช้สกิลตามข้อมูลในไฟล์ stages
-  if (!c) {
-    const e = ENEMIES[actor.charId]
-    const target = pickEnemyTarget(state, actor, targetKey)
-    if (!target || !e.skill) return
-    actor.mp -= e.skill.mp
-    const { amount } = computeDamage(actor, target, e.skill.multiplier)
-    applyDamage(state, target, amount)
-    if (e.skill.burn) target.effects.burn = e.skill.burn
-    actor.gauge = Math.min(100, actor.gauge + SKILL_GAUGE)
-    log(state, `${actor.name} ร่าย ${e.skill.name} ใส่ ${target.name} เสีย ${amount} หน่วย`, 'enemy')
-    return
-  }
-
-  actor.mp -= c.skill.mp
-  actor.gauge = Math.min(100, actor.gauge + SKILL_GAUGE)
-
-  if (actor.charId === 'athen') {
-    const target = pickEnemyTarget(state, actor, targetKey)
-    if (!target) return
-    const { amount } = computeDamage(actor, target, 1.8 * actor.skillScale)
-    applyDamage(state, target, amount)
-    target.effects.burn = 2
-    log(state, `${actor.name} ร่ายฟันเพลิงคำราม เสีย ${amount} หน่วย และ ${target.name} ติดไฟ`, 'ally')
-    return
-  }
-
-  if (actor.charId === 'galen') {
-    actor.effects.taunt = 2
-    actor.effects.defUp = 2
-    log(state, `${actor.name} ตั้งกำแพงปฐพี ดึงเป้าโจมตีมาที่ตัวเอง`, 'ally')
-    return
-  }
-
-  if (actor.charId === 'lumina') {
-    const allies = livingOf(state, 'ally')
-    const hurt = allies.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]
-    if (!hurt) return
-    const heal = Math.round(hurt.maxHp * 0.3 * actor.skillScale)
-    hurt.hp = Math.min(hurt.maxHp, hurt.hp + heal)
-    hurt.effects.burn = 0
-    hurt.effects.stun = 0
-    log(state, `${actor.name} ร่ายพรจันทรา ฟื้นพลัง ${hurt.name} ${heal} หน่วย`, 'ally')
-  }
-}
-
-function useUltimate(state, actor, targetKey) {
-  const c = CHARACTERS[actor.charId]
-  if (!c) return
-  actor.gauge = 0
-
-  if (actor.charId === 'athen') {
-    const target = pickEnemyTarget(state, actor, targetKey)
-    if (!target) return
-    const burning = target.effects.burn > 0
-    const { amount } = computeDamage(actor, target, (burning ? 6 : 4) * actor.skillScale)
-    applyDamage(state, target, amount)
-    log(
-      state,
-      `${actor.name} ปลดปล่อยอัคนีมหาประลัย เสีย ${amount} หน่วย${burning ? ' ขยายผลจากไฟที่ติดอยู่' : ''}`,
-      'ally'
-    )
-    return
-  }
-
-  if (actor.charId === 'galen') {
-    const foes = livingOf(state, 'enemy')
-    log(state, `${actor.name} กระแทกพื้นด้วยปฐพีสั่นสะเทือน`, 'ally')
-    foes.forEach((f) => {
-      const { amount } = computeDamage(actor, f, 1.5 * actor.skillScale)
-      applyDamage(state, f, amount)
-      if (f.alive && Math.random() < 0.5) {
-        f.effects.stun = 1
-        log(state, `${f.name} เสียหลักจนขยับไม่ได้`, 'ally')
-      }
-    })
-    return
-  }
-
-  if (actor.charId === 'lumina') {
-    const allies = livingOf(state, 'ally')
-    log(state, `${actor.name} กางม่านแสงศักดิ์สิทธิ์คลุมทั้งทีม`, 'ally')
-    allies.forEach((a) => {
-      const heal = Math.round(a.maxHp * 0.25 * actor.skillScale)
-      a.hp = Math.min(a.maxHp, a.hp + heal)
-      a.effects.shield = true
-    })
-  }
 }
 
 function endOfTurn(state, actor) {
@@ -357,7 +329,6 @@ function advance(state) {
   }
   state.round += 1
   startRound(state)
-  return
 }
 
 /**
@@ -371,7 +342,7 @@ export function takeTurn(state, action = null) {
 
   if (actor.effects.stun > 0) {
     actor.effects.stun -= 1
-    log(next, `${actor.name} ยังขยับไม่ได้`, 'plain')
+    log(next, `${actor.name} ยังขยับไม่ได้`)
     endOfTurn(next, actor)
     if (!checkOutcome(next)) advance(next)
     return next
@@ -379,9 +350,18 @@ export function takeTurn(state, action = null) {
 
   const move = action ?? decideAction(next, actor)
 
-  if (move.type === 'ultimate') useUltimate(next, actor, move.target)
-  else if (move.type === 'skill') useSkill(next, actor, move.target)
-  else basicAttack(next, actor, move.target)
+  if (move.type === 'ultimate' && actor.ultimate) {
+    actor.gauge = 0
+    log(next, `${actor.name} ปลดปล่อย ${actor.ultimate.name}`, actor.side)
+    runEffects(next, actor, actor.ultimate, move.target)
+  } else if (move.type === 'skill' && actor.skill) {
+    actor.mp -= actor.skill.mp
+    actor.gauge = Math.min(100, actor.gauge + SKILL_GAUGE)
+    log(next, `${actor.name} ร่าย ${actor.skill.name}`, actor.side)
+    runEffects(next, actor, actor.skill, move.target)
+  } else {
+    basicAttack(next, actor, move.target)
+  }
 
   endOfTurn(next, actor)
   if (!checkOutcome(next)) advance(next)
@@ -390,30 +370,31 @@ export function takeTurn(state, action = null) {
 
 /**
  * สมองของออโต้ ใช้ร่วมกันทั้งฝั่งมอนสเตอร์และฝั่งผู้เล่น
- * เรียงความสำคัญ: ท่าไม้ตายเมื่อพร้อม → สกิลเมื่อคุ้ม → โจมตีปกติ
+ * ตัดสินใจจากชนิดของผลลัพธ์ในสกิล ไม่ได้ดูว่าเป็นตัวละครไหน
  */
 export function decideAction(state, actor) {
-  const c = CHARACTERS[actor.charId]
   const foes = livingOf(state, actor.side === 'ally' ? 'enemy' : 'ally')
-  const weakest = [...foes].sort((a, b) => a.hp - b.hp)[0]
-  const target = weakest?.key
+  const target = [...foes].sort((a, b) => a.hp - b.hp)[0]?.key
 
-  if (c) {
-    if (actor.gauge >= 100) return { type: 'ultimate', target }
+  if (actor.ultimate && actor.gauge >= 100) return { type: 'ultimate', target }
 
-    if (actor.mp >= c.skill.mp) {
-      if (actor.charId === 'lumina') {
-        const hurt = livingOf(state, 'ally').some((a) => a.hp / a.maxHp < 0.6)
-        if (hurt) return { type: 'skill' }
-      } else if (actor.charId === 'galen') {
-        if (actor.effects.taunt === 0) return { type: 'skill' }
-      } else {
-        const t = foes.find((f) => f.key === target)
-        if (t && t.effects.burn === 0) return { type: 'skill', target }
-      }
+  if (actor.skill && actor.mp >= actor.skill.mp) {
+    const effects = actor.skill.effects
+    const heals = effects.some((e) => e.kind === 'heal')
+    const buffsSelf = effects.every((e) => e.target === 'self')
+    const dealsDamage = effects.some((e) => e.kind === 'damage')
+
+    // สกิลฟื้นพลัง ใช้ต่อเมื่อมีคนเลือดต่ำกว่า 60% เท่านั้น
+    if (heals) {
+      if (livingOf(state, actor.side).some((a) => a.hp / a.maxHp < 0.6)) return { type: 'skill' }
+    } else if (buffsSelf) {
+      // สกิลบัฟตัวเอง ใช้ต่อเมื่อบัฟยังไม่ติดอยู่ จะได้ไม่กดซ้ำทิ้ง
+      if (actor.effects.taunt === 0 && actor.effects.defUp === 0) return { type: 'skill' }
+    } else if (dealsDamage) {
+      return { type: 'skill', target }
+    } else {
+      return { type: 'skill', target }
     }
-  } else if (actor.hasSkill && actor.mp >= 3) {
-    return { type: 'skill', target }
   }
 
   return { type: 'attack', target }

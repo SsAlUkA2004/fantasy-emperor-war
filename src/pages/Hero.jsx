@@ -5,12 +5,15 @@ import { heroStats, elementMatchup } from '../lib/stats'
 import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
+import { ascend, nextStarCost } from '../lib/gacha'
 
 export default function Hero() {
   const { charId } = useParams()
   const navigate = useNavigate()
   const { user } = usePlayer()
   const [entry, setEntry] = useState(undefined)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
 
   const c = CHARACTERS[charId]
 
@@ -113,8 +116,41 @@ export default function Hero() {
             </div>
           ))}
         </div>
+        {entry && (
+          <div className="ascend">
+            <div className="ledger-row">
+              <dt>ชิ้นส่วนที่มี</dt>
+              <dd>
+                {entry.shards ?? 0}
+                {nextStarCost(star) !== null && ` / ${nextStarCost(star)}`}
+              </dd>
+            </div>
+            {error && <div className="trace">{error}</div>}
+            {nextStarCost(star) === null ? (
+              <p className="meta">ดาวเต็มแล้ว</p>
+            ) : (
+              <button
+                className="rune-link block"
+                disabled={busy || (entry.shards ?? 0) < nextStarCost(star)}
+                onClick={async () => {
+                  setBusy(true)
+                  setError(null)
+                  try {
+                    const next = await ascend(user.uid, { ...entry, id: charId })
+                    setEntry({ ...entry, ...next })
+                  } catch (e) {
+                    setError(e.message || 'หลอมไม่สำเร็จ')
+                  }
+                  setBusy(false)
+                }}
+              >
+                หลอมเป็น {star + 1} ดาว
+              </button>
+            )}
+          </div>
+        )}
         <p className="meta tiny">
-          เพิ่มดาวด้วยการนำตัวละครตัวเดียวกันที่ได้จากกาชามาหลอมรวม ระบบนี้จะเปิดพร้อมกาชา
+          ชิ้นส่วนได้จากการสุ่มกาชาแล้วเจอตัวซ้ำ ตัวซ้ำระดับ R ให้ 5 ชิ้น SR ให้ 20 SSR ให้ 50
         </p>
 
         <h2 className="section-title">ท่าที่ใช้ได้</h2>

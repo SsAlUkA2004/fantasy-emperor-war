@@ -98,7 +98,7 @@ export default function Lobby() {
 
         <section className="soon">
           <h2 className="section-title">ยังไม่เปิด</h2>
-          <p className="meta">กาชาและการประลองจะเปิดในเฟสถัดไป</p>
+          <p className="meta">การประลองจะเปิดในเฟสถัดไป</p>
         </section>
 
         <Link className="rune-link block" to="/stages">
@@ -106,6 +106,12 @@ export default function Lobby() {
         </Link>
 
         <div className="gate">
+          <Link className="rune-link" to="/gacha">
+            อัญเชิญ
+          </Link>
+          <Link className="rune-link" to="/team">
+            จัดทีม
+          </Link>
           <Link className="rune-link" to="/friends">
             เพื่อน
           </Link>

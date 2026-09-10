@@ -101,7 +101,10 @@ export default function Battle() {
     <main className="screen top battle">
       <div className="sheet">
         <header className="battle-head">
-          <div>
+          <button className="plain-link inline" onClick={() => navigate('/stages')}>
+            ← ออก
+          </button>
+          <div className="battle-title">
             <h1>{stage.name}</h1>
             <p className="meta">รอบที่ {state.round}</p>
           </div>
