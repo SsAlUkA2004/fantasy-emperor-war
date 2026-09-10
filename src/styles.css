@@ -1006,3 +1006,105 @@ a {
   color: var(--rune);
   border-color: rgba(111, 214, 200, 0.55);
 }
+
+/* ───────── กล่องสถานะย่อตอนชี้เมาส์ ───────── */
+
+.peek-host {
+  position: relative;
+}
+
+.peek {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 20;
+  width: 15.5rem;
+  max-width: 90vw;
+  padding: 0.75rem 0.85rem;
+  background: #120e28;
+  border: 1px solid rgba(200, 164, 77, 0.45);
+  box-shadow: 0 0.75rem 1.5rem rgba(5, 3, 12, 0.65);
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.2rem);
+  transition: opacity 130ms ease, transform 130ms ease, visibility 130ms;
+}
+
+/* โผล่เฉพาะอุปกรณ์ที่มีเมาส์จริง บนมือถือการแตะคือการเปิดหน้าเต็ม */
+@media (hover: hover) and (pointer: fine) {
+  .peek-host:hover > .peek,
+  .peek-host:focus-visible > .peek {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.peek-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold-bright);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(200, 164, 77, 0.2);
+}
+
+.peek-sub {
+  font-family: var(--body);
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+  white-space: nowrap;
+}
+
+.peek-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 0.75rem;
+}
+
+.peek-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  color: var(--parchment-dim);
+}
+
+.peek-cell strong {
+  font-weight: 500;
+  color: var(--parchment);
+}
+
+.peek-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(200, 164, 77, 0.15);
+  font-size: 0.74rem;
+  color: var(--parchment-dim);
+}
+
+.peek-matchup {
+  color: rgba(167, 159, 140, 0.8);
+}
+
+.peek-note {
+  margin: 0.45rem 0 0;
+  font-size: 0.74rem;
+  color: var(--rune);
+}
+
+/* การ์ดในสนามรบกว้างเต็มแถว จัดกล่องให้ชิดขวาแทนไม่ให้ล้นจอ */
+.combatant > .peek {
+  left: auto;
+  right: 0;
+}

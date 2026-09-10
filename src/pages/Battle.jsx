@@ -7,6 +7,7 @@ import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 import { hasAdvantage } from '../lib/stats'
 import { ELEMENTS } from '../data/characters'
+import StatPeek from '../components/StatPeek'
 
 const STEP_DELAY = 750
 
@@ -164,7 +165,7 @@ function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
 
   return (
     <button
-      className="combatant"
+      className="combatant peek-host"
       data-active={active}
       data-selected={selected}
       data-down={!unit.alive}
@@ -192,6 +193,19 @@ function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
           {ally && ` · เลเวล ${unit.level} · เวท ${unit.mp} · เกจ ${unit.gauge}`}
         </div>
       </div>
+
+      <StatPeek
+        title={unit.name}
+        subtitle={`เลเวล ${unit.level}`}
+        element={unit.element}
+        stats={[
+          ['พลังชีวิต', `${unit.hp}/${unit.maxHp}`],
+          ['โจมตี', unit.atk],
+          ['ป้องกัน', unit.def],
+          ['ความเร็ว', unit.spd],
+        ]}
+        note={ally ? `พลังเวท ${unit.mp} · เกจไม้ตาย ${unit.gauge}/100` : null}
+      />
     </button>
   )
 }

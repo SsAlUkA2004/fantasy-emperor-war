@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { STAGES, ENEMIES } from '../data/stages'
 import { ELEMENTS } from '../data/characters'
+import { effectiveStats } from '../lib/stats'
+import StatPeek from '../components/StatPeek'
 import { usePlayer } from '../context/PlayerContext'
 
 export default function StageMap() {
@@ -42,9 +44,22 @@ export default function StageMap() {
                     <span className="foe-line">
                       {stage.enemies.map((e, n) => {
                         const foe = ENEMIES[e.id]
+                        const st = effectiveStats(foe.stats, e.level, 1)
                         return (
-                          <span className="foe" key={n}>
+                          <span className="foe peek-host" key={n}>
                             {ELEMENTS[foe.element].mark} {foe.name}
+                            <StatPeek
+                              title={foe.name}
+                              subtitle={foe.boss ? 'บอส' : null}
+                              element={foe.element}
+                              stats={[
+                                ['พลังชีวิต', st.hp],
+                                ['โจมตี', st.atk],
+                                ['ป้องกัน', st.def],
+                                ['ความเร็ว', st.spd],
+                              ]}
+                              note={foe.skill ? `มีสกิล ${foe.skill.name}` : null}
+                            />
                           </span>
                         )
                       })}

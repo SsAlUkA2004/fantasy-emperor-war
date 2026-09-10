@@ -4,7 +4,19 @@ import { usePlayer } from '../context/PlayerContext'
 import { loadCollection } from '../lib/player'
 import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
 import { expToNext, MAX_LEVEL } from '../lib/leveling'
+import { heroStats } from '../lib/stats'
+import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
+
+function statRows(charId, level, star) {
+  const s = heroStats(charId, level, star)
+  return [
+    ['พลังชีวิต', s.hp],
+    ['โจมตี', s.atk],
+    ['ป้องกัน', s.def],
+    ['ความเร็ว', s.spd],
+  ]
+}
 
 export default function Lobby() {
   const { user, player } = usePlayer()
@@ -37,7 +49,7 @@ export default function Lobby() {
             const c = getCharacter(entry.id)
             if (!c) return null
             return (
-              <Link className="card" to={`/hero/${entry.id}`} key={entry.id}>
+              <Link className="card peek-host" to={`/hero/${entry.id}`} key={entry.id}>
                 <span className="card-mark">{ELEMENTS[c.element].mark}</span>
                 <div className="card-body">
                   <h3>
@@ -61,6 +73,13 @@ export default function Lobby() {
                   </p>
                 </div>
                 <span className="card-more">›</span>
+                <StatPeek
+                  title={c.name}
+                  subtitle={`เลเวล ${entry.level} · ${'★'.repeat(entry.star)}`}
+                  element={c.element}
+                  stats={statRows(c.id, entry.level, entry.star)}
+                  note={c.skill.name}
+                />
               </Link>
             )
           })}
