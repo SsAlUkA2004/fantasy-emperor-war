@@ -7,12 +7,12 @@
 // ─────────────────────────────────────────────────────────────
 
 export const firebaseConfig = {
-  apiKey: 'ใส่ค่าตรงนี้',
-  authDomain: 'ใส่ค่าตรงนี้',
-  projectId: 'ใส่ค่าตรงนี้',
-  storageBucket: 'ใส่ค่าตรงนี้',
-  messagingSenderId: 'ใส่ค่าตรงนี้',
-  appId: 'ใส่ค่าตรงนี้',
+  apiKey: 'AIzaSyDeqNBN82-gl3s0YxsjIBFul9cdyX-ZQM4',
+  authDomain: 'fantasy-emperor-war.firebaseapp.com',
+  projectId: 'fantasy-emperor-war',
+  storageBucket: 'fantasy-emperor-war.firebasestorage.app',
+  messagingSenderId: '1075381070019',
+  appId: '1:1075381070019:web:0cc7bca02e4b9802231a76',
 }
 
 export const isConfigured = !Object.values(firebaseConfig).some(
