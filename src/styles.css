@@ -1575,3 +1575,77 @@ a {
 .rune-link.block.primary:hover {
   background: rgba(200, 164, 77, 0.24);
 }
+
+/* ───────── ป๊อปอัพผลกาชา ───────── */
+
+.pull-popup {
+  max-width: 30rem;
+}
+
+.pull-popup[data-best='SSR'] .panel-head {
+  color: var(--gold-bright);
+  text-shadow: 0 0 1.75rem rgba(200, 164, 77, 0.6);
+}
+
+.pull-popup[data-best='SR'] .panel-head {
+  color: var(--rune);
+}
+
+.tally {
+  margin: 0 0 1rem !important;
+  letter-spacing: 0.04em;
+}
+
+.pull-popup .pull-grid {
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+}
+
+.pull-card.reveal {
+  animation: card-in 300ms cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.9rem) scale(0.88);
+  }
+}
+
+.pull-popup .rune-link.block.primary {
+  margin-top: 1.25rem;
+}
+
+/* ───────── บล็อกเลเวลผู้เล่น ───────── */
+
+.level-block {
+  margin-top: 0.75rem;
+  max-width: 18rem;
+}
+
+.level-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.3rem;
+}
+
+.level-block .bar.thin.wide {
+  margin-top: 0;
+}
+
+.roster-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 2.25rem 0 0.9rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(200, 164, 77, 0.18);
+}
+
+.section-title.flush {
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+}

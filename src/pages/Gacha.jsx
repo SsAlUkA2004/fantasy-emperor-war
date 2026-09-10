@@ -7,6 +7,7 @@ import { PULL_COST, TEN_PULL_COST, PITY_SR, PITY_SSR, RATES, pull } from '../lib
 export default function Gacha() {
   const { user, player, refresh } = usePlayer()
   const [results, setResults] = useState(null)
+  const [lastCount, setLastCount] = useState(1)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -23,6 +24,7 @@ export default function Gacha() {
     setBusy(true)
     setError(null)
     setResults(null)
+    setLastCount(count)
     try {
       const r = await pull({ ...player, uid: user.uid }, count)
       setResults(r.summary)
@@ -79,33 +81,83 @@ export default function Gacha() {
 
         {busy && <p className="meta center">กำลังอัญเชิญ</p>}
 
-        {results && (
-          <>
-            <h2 className="section-title">ผลการอัญเชิญ</h2>
-            <div className="pull-grid">
-              {results.map((r, i) => {
-                const c = CHARACTERS[r.id]
-                return (
-                  <Link className="pull-card" to={`/hero/${r.id}`} data-rarity={r.rarity} key={i}>
-                    <span className="pull-mark">{ELEMENTS[c.element].mark}</span>
-                    <span className="pull-name">{c.name}</span>
-                    <span className="pull-role">{ROLES[c.role]}</span>
-                    <span className="pull-tag">
-                      {r.isNew ? 'ตัวใหม่' : `ซ้ำ +${r.shards} ชิ้นส่วน`}
-                    </span>
-                  </Link>
-                )
-              })}
-            </div>
-          </>
-        )}
-
         <div className="gate">
           <Link className="rune-link" to="/">
             กลับหน้าหลัก
           </Link>
         </div>
       </div>
+
+      {results && (
+        <PullResult
+          results={results}
+          count={lastCount}
+          gems={player.gems}
+          busy={busy}
+          onAgain={() => roll(lastCount)}
+          onClose={() => setResults(null)}
+        />
+      )}
     </main>
+  )
+}
+
+const RARITY_ORDER = { SSR: 0, SR: 1, R: 2 }
+
+function PullResult({ results, count, gems, busy, onAgain, onClose }) {
+  // เรียงของหายากขึ้นก่อน เพราะสิ่งที่ผู้เล่นอยากรู้ที่สุดคือได้ SSR ไหม
+  const sorted = [...results].sort(
+    (a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity]
+  )
+  const best = sorted[0]?.rarity ?? 'R'
+  const tally = results.reduce((acc, r) => {
+    acc[r.rarity] = (acc[r.rarity] ?? 0) + 1
+    return acc
+  }, {})
+  const again = count === 10 ? TEN_PULL_COST : PULL_COST
+
+  return (
+    <div className="veil" role="dialog" aria-modal="true">
+      <section className="panel popup pull-popup" data-best={best}>
+        <div className="panel-head">
+          {best === 'SSR' ? 'ได้ตัวระดับตำนาน' : best === 'SR' ? 'ได้ตัวหายาก' : 'ผลการอัญเชิญ'}
+        </div>
+
+        <p className="meta tally">
+          {['SSR', 'SR', 'R'].filter((r) => tally[r]).map((r) => `${r} ${tally[r]} ตัว`).join(' · ')}
+        </p>
+
+        <div className="pull-grid">
+          {sorted.map((r, i) => {
+            const c = CHARACTERS[r.id]
+            return (
+              <Link
+                className="pull-card reveal"
+                to={`/hero/${r.id}`}
+                data-rarity={r.rarity}
+                style={{ animationDelay: `${i * 90}ms` }}
+                key={i}
+              >
+                <span className="pull-mark">{ELEMENTS[c.element].mark}</span>
+                <span className="pull-name">{c.name}</span>
+                <span className="pull-role">{ROLES[c.role]}</span>
+                <span className="pull-tag">
+                  {r.isNew ? 'ตัวใหม่' : `ซ้ำ +${r.shards} ชิ้นส่วน`}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+
+        <p className="meta tiny">แตะการ์ดเพื่อดูรายละเอียดตัวละคร</p>
+
+        <button className="rune-link block primary" onClick={onAgain} disabled={busy || gems < again}>
+          {gems < again ? 'เพชรไม่พอสุ่มอีก' : `สุ่มอีก ${count} ครั้ง · ${again}`}
+        </button>
+        <button className="plain-link" onClick={onClose}>
+          ปิด
+        </button>
+      </section>
+    </div>
   )
 }

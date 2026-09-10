@@ -6,7 +6,6 @@ import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
 import { expToNext, levelCap, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { heroStats } from '../lib/stats'
 import StatPeek from '../components/StatPeek'
-import TeamStrip from '../components/TeamStrip'
 import { signOut } from '../lib/auth'
 
 function statRows(charId, level, star) {
@@ -27,24 +26,50 @@ export default function Lobby() {
     loadCollection(user.uid).then(setOwned)
   }, [user.uid])
 
+  // เรียงตามลำดับที่จัดไว้ในทีม ไม่ใช่ลำดับที่ได้ตัวละครมา
+  const active = owned
+    ? (player.team ?? []).map((id) => owned.find((o) => o.id === id)).filter(Boolean)
+    : null
+
   return (
     <main className="screen top">
       <div className="sheet">
         <header className="lobby-head">
           <div>
             <h1>{player.username}</h1>
-            <p className="meta">
-              เลเวล {player.playerLevel ?? 1} · ผู้ฝึกหัด · {player.pvpPoints ?? 0} แต้ม
-            </p>
-            {(player.playerLevel ?? 1) < PLAYER_MAX_LEVEL && (
-              <div className="bar thin">
-                <span
-                  style={{
-                    width: `${Math.round(((player.playerExp ?? 0) / playerExpToNext(player.playerLevel ?? 1)) * 100)}%`,
-                  }}
-                />
+            <p className="meta">ผู้ฝึกหัด · {player.pvpPoints ?? 0} แต้ม</p>
+
+            <div className="level-block">
+              <div className="level-line">
+                <span className="hero-level">เลเวล {player.playerLevel ?? 1}</span>
+                <span className="meta tiny">
+                  {(player.playerLevel ?? 1) >= PLAYER_MAX_LEVEL
+                    ? 'ถึงเลเวลสูงสุดแล้ว'
+                    : `${(player.playerExp ?? 0).toLocaleString('th-TH')} / ${playerExpToNext(
+                        player.playerLevel ?? 1
+                      ).toLocaleString('th-TH')} exp`}
+                </span>
               </div>
-            )}
+
+              {(player.playerLevel ?? 1) < PLAYER_MAX_LEVEL && (
+                <>
+                  <div className="bar thin wide">
+                    <span
+                      style={{
+                        width: `${Math.round(((player.playerExp ?? 0) / playerExpToNext(player.playerLevel ?? 1)) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="meta tiny">
+                    อีก{' '}
+                    {(
+                      playerExpToNext(player.playerLevel ?? 1) - (player.playerExp ?? 0)
+                    ).toLocaleString('th-TH')}{' '}
+                    หน่วยจะขึ้นเลเวล {(player.playerLevel ?? 1) + 1}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
           <div className="purse">
             <span className="gem">◆</span>
@@ -52,15 +77,19 @@ export default function Lobby() {
           </div>
         </header>
 
-        <h2 className="section-title">ทีมออกรบ</h2>
-        <TeamStrip team={player.team} />
-
         <section className="roster">
-          <h2 className="section-title">ผู้ติดตาม</h2>
+          <div className="roster-head">
+            <h2 className="section-title flush">ผู้ติดตามที่ใช้อยู่</h2>
+            <Link className="plain-link inline" to="/team">
+              จัดทีม
+            </Link>
+          </div>
 
           {owned === null && <p className="meta">กำลังเปิดกระเป๋า</p>}
 
-          {owned?.map((entry) => {
+          {active?.length === 0 && <p className="meta">ยังไม่ได้เลือกใครเข้าทีม</p>}
+
+          {active?.map((entry) => {
             const c = getCharacter(entry.id)
             if (!c) return null
             return (
@@ -98,6 +127,12 @@ export default function Lobby() {
               </Link>
             )
           })}
+
+          {owned && active.length < 3 && (
+            <p className="meta tiny">
+              ทีมยังว่างอีก {3 - active.length} ช่อง · มีตัวละครทั้งหมด {owned.length} ตัว
+            </p>
+          )}
         </section>
 
         <section className="soon">
