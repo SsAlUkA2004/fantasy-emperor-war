@@ -1418,3 +1418,88 @@ a {
   color: var(--rune);
   font-size: 1rem;
 }
+
+/* ───────── แถบเปลี่ยนบท ───────── */
+
+.chapter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+}
+
+.chapter-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.chapter-title h1 {
+  margin: 0.1rem 0 0.15rem;
+  font-size: 1.5rem;
+}
+
+.arrow {
+  flex: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--gold-bright);
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.35);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.arrow:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(36, 27, 79, 0.85);
+}
+
+.arrow:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.chapter-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 164, 77, 0.5);
+  background: transparent;
+  cursor: pointer;
+}
+
+.dot[data-active='true'] {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
+
+.dot[data-locked='true'] {
+  border-color: rgba(167, 159, 140, 0.3);
+  cursor: not-allowed;
+}
+
+.locked-note {
+  margin-top: 2rem;
+  padding: 2rem 1rem;
+  border: 1px dashed rgba(200, 164, 77, 0.25);
+}
+
+.code-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

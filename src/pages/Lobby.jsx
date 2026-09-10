@@ -116,6 +116,9 @@ export default function Lobby() {
           <Link className="rune-link" to="/team">
             จัดทีม
           </Link>
+          <Link className="rune-link" to="/redeem">
+            แลกโค้ด
+          </Link>
           <Link className="rune-link" to="/friends">
             เพื่อน
           </Link>
