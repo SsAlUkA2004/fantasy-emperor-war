@@ -61,6 +61,9 @@ export default function Lobby() {
                       }}
                     />
                   </div>
+                  <p className="meta tiny source-note">
+                    ได้จากผ่านด่านครั้งแรกและเหมืองคริสตัลเท่านั้น ลานฝึกไม่ให้
+                  </p>
                   <p className="meta tiny">
                     อีก{' '}
                     {(

@@ -4,67 +4,90 @@ import { FIRST_CLEAR_GEMS, GEM_RUNS_PER_DAY } from '../data/stages'
 import { gainPlayerExp } from './leveling'
 import { isSameThaiDay, runsLeft } from './dayclock'
 
-/**
- * บันทึกผลการผ่านด่าน
- *
- * เพชรจะเพิ่มเฉพาะครั้งแรกที่ผ่านด่านนั้น เล่นซ้ำได้แต่ไม่ได้เพชรอีก
- * Security Rules ตรวจสองอย่าง: เพชรเพิ่มได้ทีละ 30 พอดี
- * และ stageProgress ต้องมีคีย์ใหม่เพิ่มมาหนึ่งอันเท่านั้น
- *
- * ข้อจำกัดที่ยอมรับในเฟสนี้: กฎตรวจได้แค่ว่า "ตัวเลขสมเหตุสมผล"
- * แต่พิสูจน์ไม่ได้ว่าสู้จริง คนที่แก้โค้ดเองยังกดผ่านด่านโดยไม่เล่นได้
- * เพดานสูงสุดคือจำนวนด่านคูณ 30 ซึ่งเท่ากับที่เล่นจริงอยู่แล้ว
- * จะปิดช่องนี้สนิทต้องย้ายการคำนวณไปเซิร์ฟเวอร์ในเฟส 4
- */
+// ─────────────────────────────────────────────────────────────
+// ค่าประสบการณ์ในเกมนี้มีสองสาย และตั้งใจให้ได้มาคนละทาง
+//
+// ตัวละคร — ได้จากทุกการต่อสู้ ฟาร์มลานฝึกได้ไม่จำกัด
+//           เพราะผู้เล่นควรดันตัวที่เพิ่งสุ่มได้ให้ทันทีมได้เสมอ
+//
+// ผู้เล่น  — ได้จากของที่จำกัดต่อวันเท่านั้น คือผ่านด่านครั้งแรก
+//           กับเหมืองคริสตัลที่มีโควตาวันละสามครั้ง
+//           ฟาร์มลานฝึกทั้งคืนก็ไม่ได้เลเวลผู้เล่นเพิ่มสักหน่วย
+//
+// ที่แยกแบบนี้เพราะถ้าเลเวลผู้เล่นฟาร์มได้ ตัวเลขจะบอกแค่ว่าใครนั่งกดนานกว่ากัน
+// พอผูกกับโควตารายวัน เลเวลผู้เล่นจึงบอกว่า "เล่นมากี่วัน" ซึ่งปลอมไม่ได้
+// ─────────────────────────────────────────────────────────────
+
+/** ผ่านด่านเนื้อเรื่องครั้งแรก ได้ค่าประสบการณ์ผู้เล่นสามเท่าของที่ตัวละครได้ */
+const FIRST_CLEAR_ACCOUNT_MULT = 3
+
 export async function saveStageResult(player, stage, stars, exp) {
   const stageId = stage.id
   const previous = player.stageProgress?.[stageId] ?? 0
-  const firstClear = !stage.training && previous === 0
+  const firstClear = !stage.training && !stage.gemStage && previous === 0
 
-  const account = gainPlayerExp(player.playerLevel ?? 1, player.playerExp ?? 0, exp)
-  const patch = {
-    playerLevel: account.level,
-    playerExp: account.exp,
-  }
-
-  // ด่านฝึกฝนไม่บันทึกความคืบหน้าและไม่ให้เพชร เล่นซ้ำได้ไม่จำกัด
+  // ───── ลานฝึก ─────
+  // ไม่บันทึกความคืบหน้า ไม่ให้เพชร และไม่ให้ค่าประสบการณ์ผู้เล่น
+  // เล่นซ้ำได้ไม่จำกัดเพื่อดันเลเวลตัวละครอย่างเดียว
   if (stage.training) {
-    await updateDoc(doc(db, 'users', player.uid), patch)
-    return { firstClear: false, gems: 0, account }
+    return { firstClear: false, gems: 0, account: null }
   }
 
-  // ด่านเก็บเพชร จ่ายตามโควตารายวัน
-  // ตัวนับรีเซ็ตเองเมื่อข้ามวัน โดยดูจากเวลาที่เซิร์ฟเวอร์ประทับไว้ครั้งก่อน
+  // ───── เหมืองคริสตัล ─────
   if (stage.gemStage) {
     const left = runsLeft(player, GEM_RUNS_PER_DAY)
-    if (left <= 0) {
-      await updateDoc(doc(db, 'users', player.uid), patch)
-      return { firstClear: false, gems: 0, account, quotaSpent: true }
-    }
+    if (left <= 0) return { firstClear: false, gems: 0, account: null, quotaSpent: true }
 
+    const account = gainPlayerExp(
+      player.playerLevel ?? 1,
+      player.playerExp ?? 0,
+      stage.accountExp ?? 0
+    )
     const sameDay = isSameThaiDay(player.gemRunAt)
+
     await updateDoc(doc(db, 'users', player.uid), {
-      ...patch,
+      playerLevel: account.level,
+      playerExp: account.exp,
       gems: player.gems + stage.gems,
       gemRunAt: serverTimestamp(),
       gemRunCount: sameDay ? (player.gemRunCount ?? 0) + 1 : 1,
     })
 
-    return { firstClear: false, gems: stage.gems, account, runsLeft: left - 1 }
+    return {
+      firstClear: false,
+      gems: stage.gems,
+      accountExp: stage.accountExp ?? 0,
+      account,
+      runsLeft: left - 1,
+    }
   }
+
+  // ───── ด่านเนื้อเรื่อง ─────
+  if (!firstClear && stars <= previous) return { firstClear: false, gems: 0, account: null }
+
+  const accountExp = firstClear ? exp * FIRST_CLEAR_ACCOUNT_MULT : 0
+  const account = gainPlayerExp(player.playerLevel ?? 1, player.playerExp ?? 0, accountExp)
 
   // เขียนทั้งก้อนแทนการใช้ field path แบบจุด
   // เพราะรหัสด่านอย่าง "1-1" ขึ้นต้นด้วยตัวเลขและมีขีดกลาง
   // ซึ่ง Firestore ไม่ยอมรับเป็น field path
-  patch.stageProgress = {
-    ...(player.stageProgress ?? {}),
-    [stageId]: Math.max(previous, stars),
+  const patch = {
+    playerLevel: account.level,
+    playerExp: account.exp,
+    stageProgress: {
+      ...(player.stageProgress ?? {}),
+      [stageId]: Math.max(previous, stars),
+    },
   }
 
-  if (firstClear) {
-    patch.gems = player.gems + FIRST_CLEAR_GEMS
-  }
+  if (firstClear) patch.gems = player.gems + FIRST_CLEAR_GEMS
 
   await updateDoc(doc(db, 'users', player.uid), patch)
-  return { firstClear, gems: firstClear ? FIRST_CLEAR_GEMS : 0, account }
+
+  return {
+    firstClear,
+    gems: firstClear ? FIRST_CLEAR_GEMS : 0,
+    accountExp,
+    account,
+  }
 }

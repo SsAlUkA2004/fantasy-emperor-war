@@ -204,7 +204,7 @@ export default function StageMap() {
                       ? `ผ่านด่าน ${g.requires} เพื่อปลดล็อก`
                       : left === 0
                         ? 'ครบโควตาวันนี้แล้ว'
-                        : `ได้ ${g.gems} เพชร และ ${g.exp} exp ต่อรอบ`}
+                        : `${g.gems} เพชร · ตัวละคร ${g.exp} exp · ผู้เล่น ${g.accountExp.toLocaleString('th-TH')} exp`}
                   </span>
                 </span>
                 <PowerTag mine={myPower} stage={g} ready={Boolean(roster) && unlocked} />
@@ -214,7 +214,10 @@ export default function StageMap() {
         </div>
 
         <h2 className="section-title">ลานฝึก</h2>
-        <p className="meta">เล่นซ้ำได้ไม่จำกัด ได้ค่าประสบการณ์อย่างเดียว ไม่มีเพชรและไม่มีดาว</p>
+        <p className="meta">
+          เล่นซ้ำได้ไม่จำกัด ให้ค่าประสบการณ์ตัวละครอย่างเดียว ไม่มีเพชร ไม่มีดาว
+          และไม่ขึ้นเลเวลผู้เล่น
+        </p>
 
         <div className="stage-list">
           {TRAINING.map((t) => {

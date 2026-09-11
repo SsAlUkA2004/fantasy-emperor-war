@@ -247,7 +247,14 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
       {won ? (
         <>
           {!training && !gemStage && <p className="stars">{'★'.repeat(reward?.stars ?? 0).padEnd(3, '☆')}</p>}
-          {reward?.exp > 0 && <p>ได้ค่าประสบการณ์ {reward.exp} หน่วย</p>}
+          {reward?.exp > 0 && (
+            <p>ตัวละครได้ค่าประสบการณ์ {reward.exp.toLocaleString('th-TH')} หน่วย</p>
+          )}
+          {reward?.accountExp > 0 && (
+            <p className="acct-exp">
+              เลเวลผู้เล่นได้ {reward.accountExp.toLocaleString('th-TH')} หน่วย
+            </p>
+          )}
           {reward?.levels
             ?.filter((l) => l.gained > 0)
             .map((l) => (

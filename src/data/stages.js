@@ -254,6 +254,16 @@ export const TRAINING = [
     training: true, exp: 1200, requires: '3-4',
     enemies: [e('efreet', 8), e('mummy', 9), e('scorpion', 10)],
   },
+  {
+    id: 't-5', name: 'ลานฝึกเพลิงนิทรา', intro: 'ซ้อมกับของจริงจากยอดเขา',
+    training: true, exp: 3000, requires: '4-4',
+    enemies: [e('lavahound', 9), e('ashmage', 9), e('rocdrake', 9)],
+  },
+  {
+    id: 't-6', name: 'ลานฝึกเงามืด', intro: 'ไม่มีอะไรให้ซ้อมนอกจากสิ่งที่เกือบฆ่าคุณได้',
+    training: true, exp: 8000, requires: '5-4',
+    enemies: [e('darkknight', 10), e('sentinel', 10), e('wraith', 11)],
+  },
 ]
 
 /**
@@ -269,22 +279,22 @@ export const GEM_RUNS_PER_DAY = 3
 
 export const GEM_STAGES = [
   {
-    id: 'g-1', name: 'เหมืองคริสตัลร้าง', intro: 'คริสตัลยังฝังอยู่ในผนัง แต่มีอะไรบางอย่างเฝ้าไว้',
+    id: 'g-1', accountExp: 600, name: 'เหมืองคริสตัลร้าง', intro: 'คริสตัลยังฝังอยู่ในผนัง แต่มีอะไรบางอย่างเฝ้าไว้',
     gemStage: true, gems: 60, exp: 60, requires: '1-3',
     enemies: [e('golem', 8), e('skeleton', 8), e('frostwolf', 8)],
   },
   {
-    id: 'g-2', name: 'เหมืองใต้รากไม้', intro: 'รากไม้ชอนไชจนผนังเหมืองแตก และมีอะไรตามเข้ามา',
+    id: 'g-2', accountExp: 2000, name: 'เหมืองใต้รากไม้', intro: 'รากไม้ชอนไชจนผนังเหมืองแตก และมีอะไรตามเข้ามา',
     gemStage: true, gems: 110, exp: 220, requires: '2-4',
     enemies: [e('treant', 2), e('mandrake', 10), e('direboar', 10)],
   },
   {
-    id: 'g-3', name: 'เหมืองแก้วทะเลทราย', intro: 'ทรายหลอมเป็นแก้วจากความร้อนใต้ดิน',
+    id: 'g-3', accountExp: 5000, name: 'เหมืองแก้วทะเลทราย', intro: 'ทรายหลอมเป็นแก้วจากความร้อนใต้ดิน',
     gemStage: true, gems: 180, exp: 620, requires: '3-4',
     enemies: [e('sandwyrm', 3), e('efreet', 10), e('mummy', 10)],
   },
   {
-    id: 'g-4', name: 'เหมืองแก่นภูเขาไฟ', intro: 'คริสตัลที่นี่ยังร้อนอยู่ และเจ้าของมันยังไม่ตาย',
+    id: 'g-4', accountExp: 12000, name: 'เหมืองแก่นภูเขาไฟ', intro: 'คริสตัลที่นี่ยังร้อนอยู่ และเจ้าของมันยังไม่ตาย',
     gemStage: true, gems: 280, exp: 1500, requires: '4-4',
     enemies: [e('emberlord', 4), e('ashmage', 10), e('rocdrake', 10)],
   },

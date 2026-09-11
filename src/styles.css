@@ -1764,3 +1764,11 @@ a {
 .power-tag[data-level='danger'] .power-label {
   color: var(--ember);
 }
+
+.acct-exp {
+  color: var(--rune);
+}
+
+.source-note {
+  color: rgba(167, 159, 140, 0.75);
+}
