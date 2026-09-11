@@ -17,10 +17,14 @@ export function isSameThaiDay(timestamp) {
   return thaiDayKey(date) === thaiDayKey(new Date())
 }
 
-/** เหลือกี่ครั้งในวันนี้ */
-export function runsLeft(player, perDay) {
-  if (!isSameThaiDay(player?.gemRunAt)) return perDay
-  return Math.max(0, perDay - (player.gemRunCount ?? 0))
+/**
+ * เหลือกี่ครั้งในวันนี้
+ * รับชื่อฟิลด์เข้ามา เพราะเกมมีโควตารายวันมากกว่าหนึ่งชุด
+ * (เหมืองคริสตัลใช้ gemRun* ส่วนด่านหาของใช้ matRun*)
+ */
+export function runsLeft(player, perDay, atField = 'gemRunAt', countField = 'gemRunCount') {
+  if (!isSameThaiDay(player?.[atField])) return perDay
+  return Math.max(0, perDay - (player[countField] ?? 0))
 }
 
 /** เที่ยงคืนไทยรอบถัดไป ไว้บอกผู้เล่นว่าอีกนานแค่ไหนจะรีเซ็ต */

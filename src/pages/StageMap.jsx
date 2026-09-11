@@ -13,6 +13,12 @@ import { effectiveStats } from '../lib/stats'
 import { stagePower, teamPower, matchup, formatPower, combatPower } from '../lib/power'
 import { loadCollection } from '../lib/player'
 import { runsLeft, hoursUntilReset } from '../lib/dayclock'
+import {
+  MATERIAL_STAGES,
+  MATERIAL_RUNS_PER_DAY,
+  MATERIALS,
+  MATERIAL_IDS,
+} from '../data/materials'
 import { usePlayer } from '../context/PlayerContext'
 import StatPeek from '../components/StatPeek'
 import TeamStrip from '../components/TeamStrip'
@@ -48,6 +54,7 @@ export default function StageMap() {
   const navigate = useNavigate()
   const progress = player.stageProgress ?? {}
   const left = runsLeft(player, GEM_RUNS_PER_DAY)
+  const matLeft = runsLeft(player, MATERIAL_RUNS_PER_DAY, 'matRunAt', 'matRunCount')
 
   const cleared = (id) => (progress[id] ?? 0) > 0
 
@@ -208,6 +215,42 @@ export default function StageMap() {
                   </span>
                 </span>
                 <PowerTag mine={myPower} stage={g} ready={Boolean(roster) && unlocked} />
+              </button>
+            )
+          })}
+        </div>
+
+        <h2 className="section-title">ด่านหาของ</h2>
+        <p className="meta">
+          ใช้โควตารวมกันวันละ {MATERIAL_RUNS_PER_DAY} ครั้ง วันนี้เหลือ {matLeft} ครั้ง
+          {matLeft === 0 && ` · รีเซ็ตอีก ${hoursUntilReset()} ชั่วโมง`}
+        </p>
+
+        <div className="stage-list">
+          {MATERIAL_STAGES.map((m) => {
+            const unlocked = cleared(m.requires)
+            return (
+              <button
+                key={m.id}
+                className="stage-row"
+                data-locked={!unlocked || matLeft === 0}
+                disabled={!unlocked || matLeft === 0}
+                onClick={() => navigate(`/battle/${m.id}`)}
+              >
+                <span className="stage-id mat">⛏</span>
+                <span className="stage-body">
+                  <span className="stage-name">{m.name}</span>
+                  <span className="meta">
+                    {!unlocked
+                      ? `ผ่านด่าน ${m.requires} เพื่อปลดล็อก`
+                      : matLeft === 0
+                        ? 'ครบโควตาวันนี้แล้ว'
+                        : MATERIAL_IDS.filter((id) => m.drops[id] > 0)
+                            .map((id) => `${MATERIALS[id].mark} ${m.drops[id]}`)
+                            .join(' · ')}
+                  </span>
+                </span>
+                <PowerTag mine={myPower} stage={m} ready={Boolean(roster) && unlocked} />
               </button>
             )
           })}

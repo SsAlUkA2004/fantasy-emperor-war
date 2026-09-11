@@ -89,7 +89,7 @@ export async function pull(player, count) {
     const ref = doc(db, 'users', uid, 'collection', id)
 
     if (!owned[id]) {
-      owned[id] = { level: 1, exp: 0, star: 1, shards: 0 }
+      owned[id] = { level: 1, exp: 0, star: 1, shards: 0, skillLevel: 1 }
       batch.set(ref, { ...owned[id], obtainedAt: serverTimestamp() })
       summary.push({ id, rarity, isNew: true })
     } else {

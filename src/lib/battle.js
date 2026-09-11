@@ -1,6 +1,7 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
 import { effectiveStats, skillScale } from './stats'
+import { skillLevelScale } from '../data/materials'
 
 // ─────────────────────────────────────────────────────────────
 // เครื่องยนต์การต่อสู้ ไม่รู้จัก React เลย รับสถานะเข้ามาแล้วคืนสถานะใหม่ออกไป
@@ -73,7 +74,8 @@ function makeUnit(base, opts) {
     name: base.name,
     level: opts.level,
     star: opts.star,
-    skillScale: skillScale(opts.star),
+    skillScale: skillScale(opts.star) * skillLevelScale(opts.skillLevel ?? 1),
+    skillLevel: opts.skillLevel ?? 1,
     element: base.element,
     elementName: ELEMENTS[base.element].name,
     mark: opts.mark,
@@ -101,6 +103,7 @@ export function createBattle(allyEntries, stage) {
         side: 'ally',
         level: e.level ?? 1,
         star: e.star ?? 1,
+        skillLevel: e.skillLevel ?? 1,
         mark: ELEMENTS[c.element].mark,
       })
     }),

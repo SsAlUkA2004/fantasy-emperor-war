@@ -10,6 +10,7 @@ import Friends from './pages/Friends'
 import Gacha from './pages/Gacha'
 import Team from './pages/Team'
 import Redeem from './pages/Redeem'
+import Shop from './pages/Shop'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/gacha" element={<Gate><Gacha /></Gate>} />
           <Route path="/team" element={<Gate><Team /></Gate>} />
           <Route path="/redeem" element={<Gate><Redeem /></Gate>} />
+          <Route path="/shop" element={<Gate><Shop /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

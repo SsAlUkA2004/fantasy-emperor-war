@@ -7,14 +7,68 @@ import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
 import { ascend, nextStarCost } from '../lib/gacha'
+import { upgradeSkill } from '../lib/crafting'
+import {
+  MATERIALS,
+  MATERIAL_IDS,
+  MAX_SKILL_LEVEL,
+  EMPTY_BAG,
+  canAfford,
+  skillUpgradeCost,
+  skillLevelScale,
+} from '../data/materials'
+
+function SkillUpgrade({ entry, player, busy, error, onUpgrade }) {
+  const level = entry.skillLevel ?? 1
+  const cost = skillUpgradeCost(level)
+  const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
+  const enough = cost ? canAfford(bag, cost) : false
+
+  return (
+    <div className="skill-box">
+      <div className="skill-line">
+        <span className="hero-level">
+          ระดับ {level} <span className="meta">/ {MAX_SKILL_LEVEL}</span>
+        </span>
+        <span className="meta">สกิลแรงขึ้น {Math.round((skillLevelScale(level) - 1) * 100)}%</span>
+      </div>
+
+      <div className="pip-track">
+        {[...Array(MAX_SKILL_LEVEL)].map((_, i) => (
+          <span className="pip" key={i} data-on={i < level} />
+        ))}
+      </div>
+
+      {cost === null ? (
+        <p className="meta">ถึงระดับสูงสุดแล้ว</p>
+      ) : (
+        <>
+          <div className="cost-row">
+            {MATERIAL_IDS.filter((id) => cost[id] > 0).map((id) => (
+              <span className="cost-item" key={id} data-short={(bag[id] ?? 0) < cost[id]}>
+                {MATERIALS[id].mark} {bag[id] ?? 0}/{cost[id]}
+              </span>
+            ))}
+          </div>
+          {error && <div className="trace">{error}</div>}
+          <button className="rune-link block" disabled={busy || !enough} onClick={onUpgrade}>
+            {enough ? `ยกระดับเป็น ${level + 1}` : 'วัสดุไม่พอ'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
 
 export default function Hero() {
   const { charId } = useParams()
   const navigate = useNavigate()
-  const { user } = usePlayer()
+  const { user, player, refresh } = usePlayer()
   const [entry, setEntry] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const [skillBusy, setSkillBusy] = useState(false)
+  const [skillError, setSkillError] = useState(null)
 
   const c = CHARACTERS[charId]
 
@@ -158,6 +212,31 @@ export default function Hero() {
         <p className="meta tiny">
           ชิ้นส่วนได้จากการสุ่มกาชาแล้วเจอตัวซ้ำ ตัวซ้ำระดับ R ให้ 5 ชิ้น SR ให้ 20 SSR ให้ 50
         </p>
+
+        <h2 className="section-title">ระดับสกิล</h2>
+        {entry ? (
+          <SkillUpgrade
+            entry={{ ...entry, id: charId }}
+            player={player}
+            uid={user.uid}
+            busy={skillBusy}
+            error={skillError}
+            onUpgrade={async () => {
+              setSkillBusy(true)
+              setSkillError(null)
+              try {
+                const r = await upgradeSkill({ ...player, uid: user.uid }, { ...entry, id: charId })
+                setEntry({ ...entry, skillLevel: r.skillLevel })
+                await refresh()
+              } catch (err) {
+                setSkillError(err.message || 'อัปเกรดไม่สำเร็จ')
+              }
+              setSkillBusy(false)
+            }}
+          />
+        ) : (
+          <p className="meta">ต้องมีตัวละครนี้ก่อนจึงจะอัปเกรดสกิลได้</p>
+        )}
 
         <h2 className="section-title">ท่าที่ใช้ได้</h2>
 

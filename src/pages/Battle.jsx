@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getStage, STAGES } from '../data/stages'
+import { STAGES } from '../data/stages'
+import { findStage } from '../data/materials'
 import { createBattle, currentUnit, movesFor, needsTarget, takeTurn, starsEarned } from '../lib/battle'
 import { loadCollection as reloadCollection } from '../lib/player'
 import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
+import { MATERIALS, MATERIAL_IDS } from '../data/materials'
 import { hasAdvantage } from '../lib/stats'
 import { ELEMENTS } from '../data/characters'
 import StatPeek from '../components/StatPeek'
@@ -26,7 +28,7 @@ export default function Battle() {
   const saved = useRef(false)
   const logEnd = useRef(null)
 
-  const stage = getStage(stageId)
+  const stage = findStage(stageId)
 
   // ด่านถัดไปในลำดับรวมทั้งเกม ข้ามบทได้เอง
   // ลานฝึกกับเหมืองไม่มีด่านถัดไป เพราะไม่ได้อยู่ในลำดับเนื้อเรื่อง
@@ -274,7 +276,15 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
               ได้เพชร {reward.gems} เม็ด · วันนี้เหลืออีก {reward.runsLeft} ครั้ง
             </p>
           )}
-          {reward?.quotaSpent && <p className="meta">ครบโควตาเพชรของวันนี้แล้ว รอบนี้ได้แต่ค่าประสบการณ์</p>}
+          {reward?.drops && (
+            <p className="levelup">
+              ได้{' '}
+              {MATERIAL_IDS.filter((id) => reward.drops[id] > 0)
+                .map((id) => `${MATERIALS[id].name} ${reward.drops[id]}`)
+                .join(' · ')}
+            </p>
+          )}
+          {reward?.quotaSpent && <p className="meta">ครบโควตาของวันนี้แล้ว รอบนี้ไม่ได้รางวัล</p>}
           {reward && !reward.firstClear && !reward.failed && !training && !gemStage && (
             <p className="meta">เคยผ่านด่านนี้แล้ว รอบนี้ไม่ได้เพชรเพิ่ม</p>
           )}

@@ -22,6 +22,7 @@ export async function chooseStarter(uid, charId) {
     exp: 0,
     star: 1,
     shards: 0,
+    skillLevel: 1,
     obtainedAt: serverTimestamp(),
   })
 
@@ -36,7 +37,8 @@ export async function chooseStarter(uid, charId) {
 export async function loadCollection(uid) {
   const snap = await getDocs(collection(db, 'users', uid, 'collection'))
   // ตัวละครที่สร้างไว้ก่อนมีระบบเลเวลจะไม่มีฟิลด์ exp จึงเติมศูนย์ให้
-  return snap.docs.map((d) => ({ id: d.id, exp: 0, ...d.data() }))
+  // ตัวละครที่ได้มาก่อนมีระบบเหล่านี้จะไม่มีฟิลด์ จึงเติมค่าเริ่มต้นให้
+  return snap.docs.map((d) => ({ id: d.id, exp: 0, skillLevel: 1, ...d.data() }))
 }
 
 /**

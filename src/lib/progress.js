@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import { FIRST_CLEAR_GEMS, GEM_RUNS_PER_DAY } from '../data/stages'
 import { gainPlayerExp } from './leveling'
 import { isSameThaiDay, runsLeft } from './dayclock'
+import { MATERIAL_IDS, MATERIAL_RUNS_PER_DAY, EMPTY_BAG } from '../data/materials'
 
 // ─────────────────────────────────────────────────────────────
 // ค่าประสบการณ์ในเกมนี้มีสองสาย และตั้งใจให้ได้มาคนละทาง
@@ -60,6 +61,28 @@ export async function saveStageResult(player, stage, stars, exp) {
       account,
       runsLeft: left - 1,
     }
+  }
+
+  // ───── ด่านหาของ ─────
+  // ของที่ดรอปเป็นจำนวนตายตัวตามด่าน ไม่สุ่ม เพื่อให้กฎตรวจได้
+  // ใช้โควตาคนละชุดกับเหมืองคริสตัล จะได้ไม่แย่งกัน
+  if (stage.materialStage) {
+    const left = runsLeft(player, MATERIAL_RUNS_PER_DAY, 'matRunAt', 'matRunCount')
+    if (left <= 0) return { firstClear: false, gems: 0, account: null, quotaSpent: true }
+
+    const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
+    MATERIAL_IDS.forEach((id) => {
+      bag[id] = (bag[id] ?? 0) + (stage.drops[id] ?? 0)
+    })
+
+    const sameDay = isSameThaiDay(player.matRunAt)
+    await updateDoc(doc(db, 'users', player.uid), {
+      materials: bag,
+      matRunAt: serverTimestamp(),
+      matRunCount: sameDay ? (player.matRunCount ?? 0) + 1 : 1,
+    })
+
+    return { firstClear: false, gems: 0, account: null, drops: stage.drops, runsLeft: left - 1 }
   }
 
   // ───── ด่านเนื้อเรื่อง ─────
