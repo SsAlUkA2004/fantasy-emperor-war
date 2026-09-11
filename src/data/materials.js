@@ -40,7 +40,7 @@ export const MATERIAL_STAGES = [
     exp: 1400,
     requires: '3-2',
     drops: { ore: 20, crystal: 4, scroll: 3 },
-    enemies: [e('mummy', 8), e('efreet', 8), e('scorpion', 9)],
+    enemies: [e('mummy', 6), e('efreet', 6), e('scorpion', 7)],
   },
   {
     id: 'm-3',

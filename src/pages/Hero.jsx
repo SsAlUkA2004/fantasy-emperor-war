@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
-import { heroStats, elementMatchup } from '../lib/stats'
-import { heroPower, formatPower } from '../lib/power'
+import { heroStats, entryStats, entryLevelCap, elementMatchup, entrySkillScale } from '../lib/stats'
+import { heroPower, entryPower, formatPower } from '../lib/power'
 import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
 import { ascend, nextStarCost } from '../lib/gacha'
-import { upgradeSkill } from '../lib/crafting'
+import { upgradeSkill, ascendTier, awaken as doAwaken } from '../lib/crafting'
+import {
+  MAX_AWAKEN,
+  awakenBlockers,
+  awakenCost,
+  effectiveRarity,
+  maxTierFor,
+  tierBlockers,
+  tierCost,
+} from '../data/ascension'
 import {
   MATERIALS,
   MATERIAL_IDS,
@@ -17,6 +26,65 @@ import {
   skillUpgradeCost,
   skillLevelScale,
 } from '../data/materials'
+
+/** กล่องงานคราฟที่มีเงื่อนไข ค่าใช้จ่าย และปุ่มลงมือ ใช้ร่วมกันสองระบบ */
+function CraftBox({ blockers, cost, player, label, note, onRun }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
+  const enough = cost ? canAfford(bag, cost) : false
+  const blocked = blockers.length > 0
+
+  return (
+    <div className="skill-box craft-box">
+      <p className="meta">{note}</p>
+
+      {label === null ? (
+        <p className="levelup">{blockers[0] ?? 'ทำครบแล้ว'}</p>
+      ) : (
+        <>
+          {blocked && (
+            <ul className="blockers">
+              {blockers.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+          )}
+
+          {cost && (
+            <div className="cost-row">
+              {MATERIAL_IDS.filter((id) => cost[id] > 0).map((id) => (
+                <span className="cost-item" key={id} data-short={(bag[id] ?? 0) < cost[id]}>
+                  {MATERIALS[id].mark} {(bag[id] ?? 0).toLocaleString('th-TH')}/
+                  {cost[id].toLocaleString('th-TH')}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {error && <div className="trace">{error}</div>}
+
+          <button
+            className="rune-link block"
+            disabled={busy || blocked || !enough}
+            onClick={async () => {
+              setBusy(true)
+              setError(null)
+              try {
+                await onRun()
+              } catch (err) {
+                setError(err.message || 'ทำไม่สำเร็จ')
+              }
+              setBusy(false)
+            }}
+          >
+            {blocked ? 'ยังไม่ครบเงื่อนไข' : enough ? label : 'วัสดุไม่พอ'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
 
 function SkillUpgrade({ entry, player, busy, error, onUpgrade }) {
   const level = entry.skillLevel ?? 1
@@ -88,12 +156,14 @@ export default function Hero() {
 
   const level = entry?.level ?? 1
   const star = entry?.star ?? 1
-  const stats = heroStats(charId, level, star)
+  const stats = entry ? entryStats(charId, entry) : heroStats(charId, level, star)
   const element = ELEMENTS[c.element]
   const { strongAgainst, weakTo } = elementMatchup(c.element)
-  const cap = levelCap(c.rarity, star)
+  const tier = entry?.tier ?? 0
+  const rarity = effectiveRarity(charId, tier)
+  const cap = entry ? entryLevelCap(charId, entry) : levelCap(c.rarity, star)
   const capped = level >= cap
-  const rarityCap = RARITY_CAPS[c.rarity]
+  const rarityCap = RARITY_CAPS[rarity]
 
   return (
     <main className="screen top">
@@ -113,7 +183,13 @@ export default function Hero() {
         <p className="meta chips">
           <span className="chip">ธาตุ{element.name}</span>
           <span className="chip">{ROLES[c.role]}</span>
-          <span className="chip gold">{c.rarity}</span>
+          <span className="chip gold">
+            {rarity}
+            {tier > 0 && ` (เดิม ${c.rarity})`}
+          </span>
+          {(entry?.awaken ?? 0) > 0 && (
+            <span className="chip good">ปลุกร่าง {entry.awaken}</span>
+          )}
           <span className="chip">{'★'.repeat(star)}</span>
         </p>
 
@@ -143,7 +219,9 @@ export default function Hero() {
 
         <div className="cp-banner">
           <span className="meta">ค่าพลังรวม</span>
-          <strong>⚔ {formatPower(heroPower(charId, level, star))}</strong>
+          <strong>
+            ⚔ {formatPower(entry ? entryPower({ ...entry, id: charId }) : heroPower(charId, level, star))}
+          </strong>
         </div>
 
         <h2 className="section-title">ค่าพลัง</h2>
@@ -162,6 +240,44 @@ export default function Hero() {
           ))}
         </dl>
         <p className="meta tiny">ค่าพลังเพิ่มขึ้น 8% ต่อเลเวล และ 15% ต่อดาว สกิลแรงขึ้น 10% ต่อดาว</p>
+
+        {entry && (
+          <>
+            <h2 className="section-title">ยกระดับความหายาก</h2>
+            <CraftBox
+              blockers={tierBlockers(charId, entry, cap)}
+              cost={tierCost(tier)}
+              player={player}
+              label={
+                tier >= maxTierFor(charId)
+                  ? null
+                  : `ยกระดับเป็น ${effectiveRarity(charId, tier + 1)}`
+              }
+              note={`ค่าพลังพื้นฐานคูณเพิ่ม 35% ต่อขั้น และเพดานเลเวลขยับตามความหายากใหม่ ดาวไม่รีเซ็ต (ขั้นที่ ${tier}/${maxTierFor(charId)})`}
+              onRun={async () => {
+                const r = await ascendTier({ ...player, uid: user.uid }, { ...entry, id: charId })
+                setEntry({ ...entry, tier: r.tier })
+                await refresh()
+              }}
+            />
+
+            <h2 className="section-title">ปลุกร่าง</h2>
+            <CraftBox
+              blockers={awakenBlockers(charId, entry)}
+              cost={awakenCost(entry.awaken ?? 0)}
+              player={player}
+              label={
+                (entry.awaken ?? 0) >= MAX_AWAKEN ? null : `ปลุกร่างขั้นที่ ${(entry.awaken ?? 0) + 1}`
+              }
+              note={`แต่ละขั้นเพิ่มค่าพลัง 12% และความแรงสกิล 5% (ขั้นที่ ${entry.awaken ?? 0}/${MAX_AWAKEN})`}
+              onRun={async () => {
+                const r = await doAwaken({ ...player, uid: user.uid }, { ...entry, id: charId })
+                setEntry({ ...entry, awaken: r.awaken })
+                await refresh()
+              }}
+            />
+          </>
+        )}
 
         <h2 className="section-title">การทะลุเลเวล</h2>
         <p className="meta">

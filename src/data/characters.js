@@ -309,6 +309,10 @@ export const BY_RARITY = RARITIES.reduce((acc, r) => {
 
 export const STARTING_GEMS = 500
 
+// ขนาดทีมประกาศไว้ที่เดียว หน้าอื่นนำเข้าจากที่นี่
+// ถ้าแยกกันถือเลข วันหนึ่งหน้าจัดทีมกับแถบทีมจะไม่ตรงกัน
+export const TEAM_SIZE = 5
+
 export function getCharacter(id) {
   return CHARACTERS[id] ?? null
 }

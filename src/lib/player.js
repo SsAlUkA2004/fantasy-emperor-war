@@ -1,7 +1,8 @@
 import { collection, doc, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
-import { CHARACTERS, STARTER_IDS } from '../data/characters'
-import { gainExp, levelCap } from './leveling'
+import { STARTER_IDS } from '../data/characters'
+import { gainExp } from './leveling'
+import { entryLevelCap } from './stats'
 
 /**
  * บันทึกตัวละครเริ่มต้นที่ผู้เล่นเลือก
@@ -23,6 +24,8 @@ export async function chooseStarter(uid, charId) {
     star: 1,
     shards: 0,
     skillLevel: 1,
+    tier: 0,
+    awaken: 0,
     obtainedAt: serverTimestamp(),
   })
 
@@ -38,7 +41,14 @@ export async function loadCollection(uid) {
   const snap = await getDocs(collection(db, 'users', uid, 'collection'))
   // ตัวละครที่สร้างไว้ก่อนมีระบบเลเวลจะไม่มีฟิลด์ exp จึงเติมศูนย์ให้
   // ตัวละครที่ได้มาก่อนมีระบบเหล่านี้จะไม่มีฟิลด์ จึงเติมค่าเริ่มต้นให้
-  return snap.docs.map((d) => ({ id: d.id, exp: 0, skillLevel: 1, ...d.data() }))
+  return snap.docs.map((d) => ({
+    id: d.id,
+    exp: 0,
+    skillLevel: 1,
+    tier: 0,
+    awaken: 0,
+    ...d.data(),
+  }))
 }
 
 /**
@@ -51,7 +61,7 @@ export async function awardExp(uid, entries, amount) {
   const results = []
 
   entries.forEach((entry) => {
-    const cap = levelCap(CHARACTERS[entry.id]?.rarity ?? 'R', entry.star ?? 1)
+    const cap = entryLevelCap(entry.id, entry)
     const next = gainExp(entry.level, entry.exp, amount, cap)
     results.push({ id: entry.id, from: entry.level, cap, ...next })
     batch.update(doc(db, 'users', uid, 'collection', entry.id), {

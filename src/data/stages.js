@@ -33,11 +33,11 @@ export const ENEMIES = {
   // ───────── บทที่ 2 ป่าหมอกนิรันดร์ ─────────
   sprite: {
     id: 'sprite', name: 'นางไม้จอมซน', element: 'wind', mark: '🧚',
-    stats: { hp: 988, atk: 224, def: 52, spd: 124, crit: 14 },
+    stats: { hp: 1136, atk: 258, def: 57, spd: 124, crit: 14 },
   },
   mandrake: {
     id: 'mandrake', name: 'รากแมนเดรก', element: 'earth', mark: '🌿',
-    stats: { hp: 1672, atk: 182, def: 108, spd: 54, crit: 5 },
+    stats: { hp: 1923, atk: 209, def: 117, spd: 54, crit: 5 },
     skill: {
       name: 'เสียงกรีดร้อง', mp: 3,
       effects: [{ kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.35 }],
@@ -45,11 +45,11 @@ export const ENEMIES = {
   },
   direboar: {
     id: 'direboar', name: 'หมูป่ายักษ์', element: 'earth', mark: '🐗',
-    stats: { hp: 1938, atk: 251, def: 85, spd: 76, crit: 8 },
+    stats: { hp: 2229, atk: 289, def: 92, spd: 76, crit: 8 },
   },
   treant: {
     id: 'treant', name: 'ทรีแอนต์เฒ่า', element: 'earth', mark: '🌳', boss: true,
-    stats: { hp: 6840, atk: 338, def: 163, spd: 52, crit: 8 },
+    stats: { hp: 7866, atk: 389, def: 177, spd: 52, crit: 8 },
     skill: {
       name: 'รากพันธนาการ', mp: 3,
       effects: [
@@ -62,15 +62,15 @@ export const ENEMIES = {
   // ───────── บทที่ 3 ทะเลทรายกระดูก ─────────
   scorpion: {
     id: 'scorpion', name: 'แมงป่องทราย', element: 'earth', mark: '🦂',
-    stats: { hp: 3008, atk: 538, def: 125, spd: 106, crit: 16 },
+    stats: { hp: 3910, atk: 699, def: 146, spd: 106, crit: 16 },
   },
   mummy: {
     id: 'mummy', name: 'มัมมี่คำสาป', element: 'dark', mark: '🧟',
-    stats: { hp: 4736, atk: 454, def: 186, spd: 62, crit: 6 },
+    stats: { hp: 6157, atk: 590, def: 218, spd: 62, crit: 6 },
   },
   efreet: {
     id: 'efreet', name: 'อิฟรีตทะเลทราย', element: 'fire', mark: '🕯️',
-    stats: { hp: 3776, atk: 627, def: 136, spd: 98, crit: 12 },
+    stats: { hp: 4909, atk: 815, def: 159, spd: 98, crit: 12 },
     skill: {
       name: 'ลมร้อนแผดเผา', mp: 3,
       effects: [
@@ -81,7 +81,7 @@ export const ENEMIES = {
   },
   sandwyrm: {
     id: 'sandwyrm', name: 'พญาหนอนทราย', element: 'earth', mark: '🪱', boss: true,
-    stats: { hp: 19840, atk: 762, def: 265, spd: 70, crit: 10 },
+    stats: { hp: 25792, atk: 991, def: 310, spd: 70, crit: 10 },
     skill: {
       name: 'กลืนทั้งเป็น', mp: 3,
       effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
@@ -91,11 +91,11 @@ export const ENEMIES = {
   // ───────── บทที่ 4 ยอดเขาเพลิงนิทรา ─────────
   lavahound: {
     id: 'lavahound', name: 'สุนัขลาวา', element: 'fire', mark: '🐕',
-    stats: { hp: 3440, atk: 456, def: 153, spd: 112, crit: 14 },
+    stats: { hp: 4472, atk: 593, def: 179, spd: 112, crit: 14 },
   },
   ashmage: {
     id: 'ashmage', name: 'นักเวทเถ้าถ่าน', element: 'fire', mark: '🌋',
-    stats: { hp: 3080, atk: 524, def: 124, spd: 94, crit: 10 },
+    stats: { hp: 4004, atk: 681, def: 145, spd: 94, crit: 10 },
     skill: {
       name: 'ฝนเถ้าถ่าน', mp: 3,
       effects: [
@@ -106,11 +106,11 @@ export const ENEMIES = {
   },
   rocdrake: {
     id: 'rocdrake', name: 'มังกรน้อยหินผา', element: 'wind', mark: '🐉',
-    stats: { hp: 4100, atk: 488, def: 178, spd: 120, crit: 15 },
+    stats: { hp: 5330, atk: 634, def: 208, spd: 120, crit: 15 },
   },
   emberlord: {
     id: 'emberlord', name: 'จอมเพลิงหลับใหล', element: 'fire', mark: '👹', boss: true,
-    stats: { hp: 21000, atk: 684, def: 277, spd: 100, crit: 14 },
+    stats: { hp: 27300, atk: 889, def: 324, spd: 100, crit: 14 },
     skill: {
       name: 'เปลวหมื่นปี', mp: 3,
       effects: [
@@ -123,11 +123,11 @@ export const ENEMIES = {
   // ───────── บทที่ 5 ปราการเงามืด ─────────
   wraith: {
     id: 'wraith', name: 'วิญญาณอาฆาต', element: 'dark', mark: '👻',
-    stats: { hp: 4560, atk: 636, def: 173, spd: 128, crit: 20 },
+    stats: { hp: 5928, atk: 827, def: 202, spd: 128, crit: 20 },
   },
   darkknight: {
     id: 'darkknight', name: 'อัศวินดำ', element: 'dark', mark: '⚔️',
-    stats: { hp: 6800, atk: 592, def: 294, spd: 92, crit: 12 },
+    stats: { hp: 8840, atk: 770, def: 344, spd: 92, crit: 12 },
     skill: {
       name: 'ดาบสาปแช่ง', mp: 3,
       effects: [{ kind: 'damage', mult: 2.2, target: 'one' }],
@@ -135,7 +135,7 @@ export const ENEMIES = {
   },
   sentinel: {
     id: 'sentinel', name: 'ผู้พิทักษ์แสงร้าง', element: 'light', mark: '🛡️',
-    stats: { hp: 7800, atk: 528, def: 334, spd: 80, crit: 8 },
+    stats: { hp: 10140, atk: 686, def: 391, spd: 80, crit: 8 },
     skill: {
       name: 'ปราการศักดิ์สิทธิ์', mp: 3,
       effects: [
@@ -146,7 +146,7 @@ export const ENEMIES = {
   },
   voidking: {
     id: 'voidking', name: 'ราชันสุญญากาศ', element: 'dark', mark: '🌑', boss: true,
-    stats: { hp: 36000, atk: 876, def: 385, spd: 116, crit: 18 },
+    stats: { hp: 46800, atk: 1139, def: 451, spd: 116, crit: 18 },
     skill: {
       name: 'กลืนกินแสงสุดท้าย', mp: 3,
       effects: [
@@ -202,7 +202,7 @@ export const CHAPTERS = [
     { name: 'ซากคาราวาน', intro: 'ของยังอยู่ครบ แต่คนหายไปหมด', exp: 460, enemies: [e('mummy', 3), e('scorpion', 4)] },
     { name: 'วิหารใต้ทราย', intro: 'อากาศร้อนจนหายใจลำบาก', exp: 500, enemies: [e('efreet', 4), e('mummy', 4)] },
     { name: 'ลานสุสานกษัตริย์', intro: 'มัมมี่ลุกขึ้นพร้อมกันทั้งลาน', exp: 560, enemies: [e('mummy', 5), e('mummy', 5), e('mummy', 5)] },
-    { name: 'ทะเลเพลิงกลางทราย', intro: 'อิฟรีตสองตัวเผาทั้งสนามได้ในเทิร์นเดียว', exp: 640, enemies: [e('efreet', 2), e('scorpion', 3), e('mummy', 3)] },
+    { name: 'ทะเลเพลิงกลางทราย', intro: 'อิฟรีตสองตัวเผาทั้งสนามได้ในเทิร์นเดียว', exp: 640, enemies: [e('efreet', 1), e('scorpion', 2), e('mummy', 2)] },
     { name: 'รังของพญาหนอน', intro: 'พื้นทรายสั่น แล้วมันก็โผล่ขึ้นมา', exp: 900, enemies: [e('sandwyrm', 4)] },
   ]),
 
@@ -291,7 +291,7 @@ export const GEM_STAGES = [
   {
     id: 'g-3', accountExp: 5000, name: 'เหมืองแก้วทะเลทราย', intro: 'ทรายหลอมเป็นแก้วจากความร้อนใต้ดิน',
     gemStage: true, gems: 180, exp: 620, requires: '3-4',
-    enemies: [e('sandwyrm', 3), e('efreet', 10), e('mummy', 10)],
+    enemies: [e('sandwyrm', 2), e('efreet', 7), e('mummy', 7)],
   },
   {
     id: 'g-4', accountExp: 12000, name: 'เหมืองแก่นภูเขาไฟ', intro: 'คริสตัลที่นี่ยังร้อนอยู่ และเจ้าของมันยังไม่ตาย',

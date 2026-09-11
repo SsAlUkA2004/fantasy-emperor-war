@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
-import { CHARACTERS, ELEMENTS } from '../data/characters'
+import { CHARACTERS, ELEMENTS, TEAM_SIZE } from '../data/characters'
 import { formatPower } from '../lib/power'
-
-export const TEAM_SIZE = 3
 
 /**
  * แถบทีมปัจจุบัน วางไว้ทั้งหน้าหลักและหน้าแผนที่

@@ -7,6 +7,7 @@ import {
   canAfford,
   skillUpgradeCost,
 } from '../data/materials'
+import { awakenCost, tierCost } from '../data/ascension'
 
 /**
  * ซื้อของจากร้าน
@@ -54,4 +55,51 @@ export async function upgradeSkill(player, entry) {
   await batch.commit()
 
   return { skillLevel: level + 1, bag, spent: cost }
+}
+
+/**
+ * ยกระดับความหายากหนึ่งขั้น R → SR → SSR
+ *
+ * ดาวไม่รีเซ็ต เพดานเลเวลจึงขยับขึ้นทันทีพร้อมค่าพลังที่คูณเพิ่ม
+ * ถ้ารีเซ็ตดาวด้วย เพดานจะตกลงต่ำกว่าเลเวลปัจจุบัน แล้วตัวเลขจะขัดกันเอง
+ */
+export async function ascendTier(player, entry) {
+  const tier = entry.tier ?? 0
+  const cost = tierCost(tier)
+  if (!cost) throw new Error('ถึงความหายากสูงสุดแล้ว')
+
+  const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
+  if (!canAfford(bag, cost)) throw new Error('วัสดุไม่พอ')
+
+  MATERIAL_IDS.forEach((id) => {
+    bag[id] = (bag[id] ?? 0) - (cost[id] ?? 0)
+  })
+
+  const batch = writeBatch(db)
+  batch.update(doc(db, 'users', player.uid), { materials: bag })
+  batch.update(doc(db, 'users', player.uid, 'collection', entry.id), { tier: tier + 1 })
+  await batch.commit()
+
+  return { tier: tier + 1 }
+}
+
+/** ปลุกร่างตัวที่ความหายากถึง SSR แล้ว ทำได้สามขั้น */
+export async function awaken(player, entry) {
+  const level = entry.awaken ?? 0
+  const cost = awakenCost(level)
+  if (!cost) throw new Error('ปลุกร่างครบทุกขั้นแล้ว')
+
+  const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
+  if (!canAfford(bag, cost)) throw new Error('วัสดุไม่พอ')
+
+  MATERIAL_IDS.forEach((id) => {
+    bag[id] = (bag[id] ?? 0) - (cost[id] ?? 0)
+  })
+
+  const batch = writeBatch(db)
+  batch.update(doc(db, 'users', player.uid), { materials: bag })
+  batch.update(doc(db, 'users', player.uid, 'collection', entry.id), { awaken: level + 1 })
+  await batch.commit()
+
+  return { awaken: level + 1 }
 }

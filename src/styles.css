@@ -1294,7 +1294,7 @@ a {
 
 .team-slots {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.6rem;
   margin-top: 1.5rem;
 }
@@ -1304,8 +1304,10 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  min-height: 5rem;
+  gap: 0.15rem;
+  min-height: 4.4rem;
+  padding: 0.3rem 0.15rem;
+  text-align: center;
   border: 1px dashed rgba(200, 164, 77, 0.3);
   background: rgba(20, 16, 43, 0.5);
 }
@@ -1317,13 +1319,14 @@ a {
 }
 
 .slot-mark {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   line-height: 1;
 }
 
 .slot-name {
   font-family: var(--display);
-  font-size: 0.92rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
   color: var(--gold-bright);
 }
 
@@ -1369,7 +1372,7 @@ a {
 
 .team-strip-slots {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.5rem;
 }
 
@@ -1378,8 +1381,10 @@ a {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  min-height: 3.6rem;
+  gap: 0.1rem;
+  min-height: 3.4rem;
+  padding: 0.25rem 0.1rem;
+  text-align: center;
   border: 1px dashed rgba(200, 164, 77, 0.28);
   background: rgba(11, 8, 24, 0.4);
 }
@@ -1391,13 +1396,14 @@ a {
 }
 
 .mini-mark {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   line-height: 1;
 }
 
 .mini-name {
   font-family: var(--display);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
   color: var(--gold-bright);
 }
 
@@ -1874,4 +1880,25 @@ a {
 .stage-id.mat {
   color: var(--parchment-dim);
   font-size: 1rem;
+}
+
+/* ───────── กล่องงานคราฟ ───────── */
+
+.craft-box {
+  border-left-color: var(--gold);
+}
+
+.craft-box > .meta:first-child {
+  margin-bottom: 0.75rem;
+}
+
+.blockers {
+  margin: 0 0 0.75rem;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--ember);
+}
+
+.blockers li {
+  margin-bottom: 0.15rem;
 }

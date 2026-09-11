@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
-import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
+import { CHARACTERS, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
 import { loadCollection } from '../lib/player'
-import { levelCap } from '../lib/leveling'
-import { heroPower, formatPower } from '../lib/power'
-
-export const TEAM_SIZE = 3
+import { entryLevelCap } from '../lib/stats'
+import { entryPower, formatPower } from '../lib/power'
+import { effectiveRarity } from '../data/ascension'
 
 export default function Team() {
   const { user, player, refresh } = usePlayer()
@@ -51,7 +50,7 @@ export default function Team() {
   const powerOf = (ids) =>
     ids.reduce((sum, id) => {
       const e = owned?.find((o) => o.id === id)
-      return e ? sum + heroPower(e.id, e.level, e.star) : sum
+      return e ? sum + entryPower(e) : sum
     }, 0)
 
   const current = powerOf(team)
@@ -112,10 +111,7 @@ export default function Team() {
 
         {owned
           ?.slice()
-          .sort(
-            (a, b) =>
-              heroPower(b.id, b.level, b.star) - heroPower(a.id, a.level, a.star)
-          )
+          .sort((a, b) => entryPower(b) - entryPower(a))
           .map((entry) => {
             const c = CHARACTERS[entry.id]
             if (!c) return null
@@ -127,13 +123,14 @@ export default function Team() {
                 <div className="card-body">
                   <h3>
                     {c.name}
-                    <span className="rarity">{c.rarity}</span>
+                    <span className="rarity">{effectiveRarity(entry.id, entry.tier)}</span>
                   </h3>
                   <p className="meta">
-                    {ROLES[c.role]} · เลเวล {entry.level}/{levelCap(c.rarity, entry.star)} ·{' '}
+                    {ROLES[c.role]} · เลเวล {entry.level}/{entryLevelCap(entry.id, entry)} ·{' '}
                     {'★'.repeat(entry.star)}
+                    {entry.awaken > 0 && ` · ปลุกร่าง ${entry.awaken}`}
                   </p>
-                  <p className="meta cp">⚔ {formatPower(heroPower(c.id, entry.level, entry.star))}</p>
+                  <p className="meta cp">⚔ {formatPower(entryPower(entry))}</p>
                 </div>
                 <div className="card-actions">
                   <button className="plain-link inline" onClick={() => toggle(entry.id)}>

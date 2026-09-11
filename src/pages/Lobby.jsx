@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { loadCollection } from '../lib/player'
-import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
-import { expToNext, levelCap, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
-import { heroStats } from '../lib/stats'
-import { heroPower, teamPower, formatPower } from '../lib/power'
+import { getCharacter, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
+import { expToNext, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
+import { entryStats, entryLevelCap } from '../lib/stats'
+import { entryPower, teamPower, formatPower } from '../lib/power'
+import { effectiveRarity } from '../data/ascension'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
 
-function statRows(charId, level, star) {
-  const s = heroStats(charId, level, star)
+function statRows(entry) {
+  const s = entryStats(entry.id, entry)
   return [
     ['พลังชีวิต', s.hp],
     ['โจมตี', s.atk],
@@ -110,13 +111,13 @@ export default function Lobby() {
                 <div className="card-body">
                   <h3>
                     {c.name}
-                    <span className="rarity">{c.rarity}</span>
+                    <span className="rarity">{effectiveRarity(entry.id, entry.tier)}</span>
                   </h3>
                   <p className="meta">
                     {ROLES[c.role]} · เลเวล {entry.level} · {'★'.repeat(entry.star)} ·{' '}
-                    <span className="cp">⚔ {formatPower(heroPower(c.id, entry.level, entry.star))}</span>
+                    <span className="cp">⚔ {formatPower(entryPower(entry))}</span>
                   </p>
-                  {entry.level < levelCap(c.rarity, entry.star) && (
+                  {entry.level < entryLevelCap(entry.id, entry) && (
                     <div className="bar thin">
                       <span
                         style={{ width: `${Math.round((entry.exp / expToNext(entry.level)) * 100)}%` }}
@@ -124,8 +125,8 @@ export default function Lobby() {
                     </div>
                   )}
                   <p className="meta tiny">
-                    {entry.level >= levelCap(c.rarity, entry.star)
-                      ? `ตันที่เพดาน ${levelCap(c.rarity, entry.star)}`
+                    {entry.level >= entryLevelCap(entry.id, entry)
+                      ? `ตันที่เพดาน ${entryLevelCap(entry.id, entry)}`
                       : `${entry.exp} / ${expToNext(entry.level)}`}
                   </p>
                 </div>
@@ -134,17 +135,17 @@ export default function Lobby() {
                   title={c.name}
                   subtitle={`เลเวล ${entry.level} · ${'★'.repeat(entry.star)}`}
                   element={c.element}
-                  power={heroPower(c.id, entry.level, entry.star)}
-                  stats={statRows(c.id, entry.level, entry.star)}
+                  power={entryPower(entry)}
+                  stats={statRows(entry)}
                   note={c.skill.name}
                 />
               </Link>
             )
           })}
 
-          {owned && active.length < 3 && (
+          {owned && active.length < TEAM_SIZE && (
             <p className="meta tiny">
-              ทีมยังว่างอีก {3 - active.length} ช่อง · มีตัวละครทั้งหมด {owned.length} ตัว
+              ทีมยังว่างอีก {TEAM_SIZE - active.length} ช่อง · มีตัวละครทั้งหมด {owned.length} ตัว
             </p>
           )}
         </section>

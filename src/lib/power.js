@@ -1,6 +1,6 @@
 import { CHARACTERS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
-import { effectiveStats, skillScale } from './stats'
+import { effectiveStats, entryStats, skillScale } from './stats'
 
 // ─────────────────────────────────────────────────────────────
 // ค่าพลังรวม (CP) ย่อค่าสถานะห้าอย่างให้เหลือตัวเลขเดียว
@@ -32,8 +32,15 @@ export function heroPower(charId, level = 1, star = 1) {
   return combatPower(effectiveStats(c.stats, level, star), star)
 }
 
+/** ค่าพลังของตัวละครที่ผู้เล่นมีจริง รวมการยกระดับและปลุกร่าง */
+export function entryPower(entry = {}) {
+  const stats = entryStats(entry.id, entry)
+  if (!stats) return 0
+  return combatPower(stats, entry.star ?? 1)
+}
+
 export function teamPower(entries = []) {
-  return entries.reduce((sum, e) => sum + heroPower(e.id, e.level, e.star), 0)
+  return entries.reduce((sum, e) => sum + entryPower(e), 0)
 }
 
 export function stagePower(stage) {

@@ -1,4 +1,12 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
+import { skillLevelScale } from '../data/materials'
+import {
+  awakenSkillBoost,
+  awakenStatBoost,
+  effectiveRarity,
+  tierBoost,
+} from '../data/ascension'
+import { levelCap } from './leveling'
 
 export const LEVEL_GROWTH = 0.08
 export const STAR_GROWTH = 0.15
@@ -36,6 +44,44 @@ export function effectiveStats(base, level = 1, star = 1) {
 export function heroStats(charId, level, star) {
   const c = CHARACTERS[charId]
   return c ? effectiveStats(c.stats, level, star) : null
+}
+
+// ─────────────────────────────────────────────────────────────
+// สามฟังก์ชันข้างล่างนี้คือแหล่งความจริงเดียวของ "ตัวละครตัวนี้เก่งแค่ไหน"
+//
+// ทั้งเครื่องยนต์การต่อสู้ หน้าจอข้อมูล และการคำนวณค่าพลังรวม เรียกชุดเดียวกันหมด
+// ถ้าปล่อยให้แต่ละที่คูณโบนัสเอง วันหนึ่งตัวเลขที่ผู้เล่นเห็นจะไม่ตรงกับที่ใช้สู้จริง
+// ─────────────────────────────────────────────────────────────
+
+/** ค่าสถานะสุดท้าย รวมเลเวล ดาว การยกระดับ และการปลุกร่าง */
+export function entryStats(charId, entry = {}) {
+  const c = CHARACTERS[charId]
+  if (!c) return null
+
+  const base = effectiveStats(c.stats, entry.level ?? 1, entry.star ?? 1)
+  const boost = tierBoost(entry.tier ?? 0) * awakenStatBoost(entry.awaken ?? 0)
+
+  return {
+    hp: Math.round(base.hp * boost),
+    atk: Math.round(base.atk * boost),
+    def: Math.round(base.def * boost),
+    spd: Math.round(base.spd * boost),
+    crit: base.crit,
+  }
+}
+
+/** ตัวคูณความแรงของสกิล รวมดาว ระดับสกิล และการปลุกร่าง */
+export function entrySkillScale(entry = {}) {
+  return (
+    skillScale(entry.star ?? 1) *
+    skillLevelScale(entry.skillLevel ?? 1) *
+    awakenSkillBoost(entry.awaken ?? 0)
+  )
+}
+
+/** เพดานเลเวลตามความหายากจริงหลังยกระดับ */
+export function entryLevelCap(charId, entry = {}) {
+  return levelCap(effectiveRarity(charId, entry.tier ?? 0), entry.star ?? 1)
 }
 
 /** ธาตุที่ตัวนี้ตีแรงใส่ และธาตุที่ตีแรงใส่ตัวนี้ */

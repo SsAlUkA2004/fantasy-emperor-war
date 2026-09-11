@@ -1,7 +1,6 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
-import { effectiveStats, skillScale } from './stats'
-import { skillLevelScale } from '../data/materials'
+import { effectiveStats, entryStats, entrySkillScale } from './stats'
 
 // ─────────────────────────────────────────────────────────────
 // เครื่องยนต์การต่อสู้ ไม่รู้จัก React เลย รับสถานะเข้ามาแล้วคืนสถานะใหม่ออกไป
@@ -66,7 +65,7 @@ function applyDamage(state, unit, amount) {
 // ───────── สร้างสนามรบ ─────────
 
 function makeUnit(base, opts) {
-  const s = effectiveStats(base.stats, opts.level, opts.star)
+  const s = opts.stats ?? effectiveStats(base.stats, opts.level, opts.star)
   return {
     key: opts.key,
     side: opts.side,
@@ -74,8 +73,10 @@ function makeUnit(base, opts) {
     name: base.name,
     level: opts.level,
     star: opts.star,
-    skillScale: skillScale(opts.star) * skillLevelScale(opts.skillLevel ?? 1),
+    skillScale: opts.skillScale ?? 1,
     skillLevel: opts.skillLevel ?? 1,
+    tier: opts.tier ?? 0,
+    awaken: opts.awaken ?? 0,
     element: base.element,
     elementName: ELEMENTS[base.element].name,
     mark: opts.mark,
@@ -104,6 +105,10 @@ export function createBattle(allyEntries, stage) {
         level: e.level ?? 1,
         star: e.star ?? 1,
         skillLevel: e.skillLevel ?? 1,
+        tier: e.tier ?? 0,
+        awaken: e.awaken ?? 0,
+        stats: entryStats(c.id, e),
+        skillScale: entrySkillScale(e),
         mark: ELEMENTS[c.element].mark,
       })
     }),
@@ -114,6 +119,7 @@ export function createBattle(allyEntries, stage) {
         side: 'enemy',
         level: e.level ?? 1,
         star: 1,
+        skillScale: 1,
         mark: m.mark,
       })
     }),
