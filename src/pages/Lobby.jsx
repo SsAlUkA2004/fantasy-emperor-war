@@ -7,6 +7,7 @@ import { expToNext, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { entryStats, entryLevelCap } from '../lib/stats'
 import { entryPower, teamPower, formatPower } from '../lib/power'
 import { effectiveRarity } from '../data/ascension'
+import { rankLabel, rankOf, titleName } from '../data/ranks'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
 
@@ -39,7 +40,11 @@ export default function Lobby() {
         <header className="lobby-head">
           <div>
             <h1>{player.username}</h1>
-            <p className="meta">ผู้ฝึกหัด · {player.pvpPoints ?? 0} แต้ม</p>
+            <p className="meta">
+              {rankOf(player.pvpPoints ?? 0).mark} {rankLabel(player.pvpPoints ?? 0)} ·{' '}
+              {player.pvpPoints ?? 0} แต้ม
+            </p>
+            <p className="meta title-line">{titleName(player.titleIndex ?? 0)}</p>
 
             <div className="level-block">
               <div className="level-line">
@@ -150,13 +155,12 @@ export default function Lobby() {
           )}
         </section>
 
-        <section className="soon">
-          <h2 className="section-title">ยังไม่เปิด</h2>
-          <p className="meta">การประลองจะเปิดในเฟสถัดไป</p>
-        </section>
-
         <Link className="rune-link block" to="/stages">
           ออกผจญภัย
+        </Link>
+
+        <Link className="rune-link block" to="/arena">
+          ประลอง
         </Link>
 
         <div className="gate">

@@ -1902,3 +1902,115 @@ a {
 .blockers li {
   margin-bottom: 0.15rem;
 }
+
+/* ───────── ประลองและกระดานอันดับ ───────── */
+
+.title-line {
+  color: var(--gold) !important;
+  font-family: var(--display);
+}
+
+.foe-card .card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.foe-card .rune-link {
+  flex: none;
+}
+
+.pvp-log {
+  margin-top: 1rem;
+  min-height: 0;
+  text-align: left;
+}
+
+.title-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.title-chip {
+  font-family: var(--display);
+  font-size: 0.88rem;
+  padding: 0.3rem 0.8rem;
+  color: var(--parchment-dim);
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.25);
+  cursor: pointer;
+}
+
+.title-chip[data-active='true'] {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(36, 27, 79, 0.9);
+}
+
+.board {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.board-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  background: rgba(20, 16, 43, 0.65);
+  border: 1px solid rgba(200, 164, 77, 0.15);
+}
+
+.board-row[data-me='true'] {
+  border-color: var(--gold);
+  background: rgba(36, 27, 79, 0.85);
+}
+
+.board-place {
+  flex: none;
+  width: 2rem;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--parchment-dim);
+}
+
+.board-place[data-top='true'] {
+  color: var(--gold-bright);
+  font-size: 1.25rem;
+}
+
+.board-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.board-name {
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold-bright);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.board-title {
+  font-family: var(--body);
+  font-size: 0.72rem;
+  color: var(--rune);
+  border: 1px solid rgba(111, 214, 200, 0.4);
+  padding: 0 0.35rem;
+}
+
+.board-points {
+  flex: none;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--parchment);
+}

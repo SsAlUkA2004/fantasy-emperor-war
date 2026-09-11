@@ -4,20 +4,7 @@ import { usePlayer } from '../context/PlayerContext'
 import { addFriend, findPlayer, loadFriends, removeFriend } from '../lib/friends'
 import { STAGES } from '../data/stages'
 import { PLAYER_MAX_LEVEL } from '../lib/leveling'
-
-const RANKS = [
-  { name: 'ผู้ฝึกหัด', min: 0 },
-  { name: 'นักผจญภัย', min: 600 },
-  { name: 'อัศวิน', min: 1200 },
-  { name: 'แชมเปี้ยน', min: 1800 },
-  { name: 'จอมทัพ', min: 2400 },
-  { name: 'ราชันย์', min: 3000 },
-  { name: 'กึ่งเทพ', min: 3600 },
-]
-
-export function rankOf(points = 0) {
-  return [...RANKS].reverse().find((r) => points >= r.min)?.name ?? RANKS[0].name
-}
+import { RANKS, rankLabel, titleName } from '../data/ranks'
 
 function furthestStage(progress = {}) {
   const cleared = STAGES.filter((s) => (progress[s.id] ?? 0) > 0)
@@ -95,7 +82,7 @@ export default function Friends() {
             <div className="card-body">
               <h3>{found.username}</h3>
               <p className="meta">
-                เลเวล {found.playerLevel ?? 1} · {rankOf(found.pvpPoints)}
+                เลเวล {found.playerLevel ?? 1} · {rankLabel(found.pvpPoints)}
               </p>
             </div>
             {already(found.uid) ? (
@@ -116,7 +103,10 @@ export default function Friends() {
         {friends?.map((f) => (
           <article className="friend" key={f.uid}>
             <header className="friend-head">
-              <h3>{f.username}</h3>
+              <h3>
+                {f.username}
+                <span className="board-title">{titleName(f.titleIndex ?? 0)}</span>
+              </h3>
               <button className="plain-link inline" onClick={() => drop(f.uid)}>
                 ลบ
               </button>
@@ -136,17 +126,17 @@ export default function Friends() {
               </div>
               <div className="ledger-row">
                 <dt>แรงค์ปัจจุบัน</dt>
-                <dd>{rankOf(f.pvpPoints)}</dd>
+                <dd>{rankLabel(f.pvpPoints)}</dd>
               </div>
               <div className="ledger-row">
                 <dt>แรงค์สูงสุด</dt>
-                <dd>{f.highestRank ?? rankOf(f.pvpPoints)}</dd>
+                <dd>{RANKS[f.highestRank ?? 0]?.name ?? RANKS[0].name}</dd>
               </div>
             </dl>
           </article>
         ))}
 
-        <p className="meta tiny">แรงค์จะเริ่มขยับจริงเมื่อเปิดระบบประลองในเฟสถัดไป</p>
+
 
         <div className="gate">
           <Link className="rune-link" to="/">
