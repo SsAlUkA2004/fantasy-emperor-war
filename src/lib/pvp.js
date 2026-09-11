@@ -13,6 +13,7 @@ import { db } from '../firebase'
 import { createBattle, takeTurn, currentUnit } from './battle'
 import { applyDelta, pointDelta, rankOf, MATCHES_PER_DAY } from '../data/ranks'
 import { isSameThaiDay, runsLeft } from './dayclock'
+import { makeBots } from '../data/bots'
 
 /**
  * หาคู่แข่งที่แต้มใกล้เคียงกัน
@@ -20,7 +21,7 @@ import { isSameThaiDay, runsLeft } from './dayclock'
  * ดึงคนที่แต้มต่ำกว่าเราลงมาและสูงกว่าเราขึ้นไปอย่างละชุด แล้วสุ่มเลือกสามคน
  * ที่ทำสองทิศเพราะถ้าดึงทางเดียว คนที่อยู่บนสุดของกระดานจะไม่เจอใครเลย
  */
-export async function findOpponents(me) {
+export async function findOpponents(me, myTeamCp = 0) {
   const points = me.pvpPoints ?? 0
   const base = collection(db, 'users')
 
@@ -33,12 +34,22 @@ export async function findOpponents(me) {
     .map((d) => ({ uid: d.id, ...d.data() }))
     .filter((u) => u.uid !== me.uid && u.starterChosen)
 
-  // สุ่มสามคนจากกลุ่มที่ได้ เพื่อไม่ให้เจอหน้าเดิมทุกครั้ง
+  // เอาเฉพาะคนที่ตั้งทีมรับไว้แล้ว คนที่ยังไม่ตั้งจะท้าไม่ได้อยู่ดี
+  const ready = pool.filter((u) => Array.isArray(u.defense) && u.defense.length)
+
   const picked = []
-  const copy = [...pool]
+  const copy = [...ready]
   while (picked.length < 3 && copy.length) {
     picked.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0])
   }
+
+  // เติมด้วยคู่ซ้อมจนครบสาม
+  // เกมนี้เล่นกันในกลุ่มเพื่อน ถ้ารอคนจริงอย่างเดียว
+  // ช่วงแรกหน้าประลองจะว่างเปล่าจนกดอะไรไม่ได้เลย
+  if (picked.length < 3) {
+    picked.push(...makeBots(me, 3 - picked.length, myTeamCp))
+  }
+
   return picked
 }
 
@@ -51,6 +62,22 @@ export async function findOpponents(me) {
  */
 export function defenseEntries(user) {
   return Array.isArray(user?.defense) ? user.defense : []
+}
+
+/**
+ * เพดานจำนวนรอบของการประลอง
+ *
+ * ถ้าไม่มีเพดาน ทีมที่มีหมอกับตัวดึงเป้าจะชนะทุกครั้งแม้ค่าพลังต่ำกว่ามาก
+ * เพราะฟื้นเลือดได้เร็วกว่าที่อีกฝ่ายตีเข้า การสู้จึงยืดไปจนกว่าฝ่ายบุกจะหมดแรง
+ * พอมีเพดานแล้วตัดสินด้วยเลือดที่เหลือ พลังโจมตีจึงมีความหมายกลับมา
+ */
+export const ROUND_LIMIT = 30
+
+function hpRatio(state, side) {
+  const units = state.units.filter((u) => u.side === side)
+  const now = units.reduce((s, u) => s + u.hp, 0)
+  const max = units.reduce((s, u) => s + u.maxHp, 0)
+  return max ? now / max : 0
 }
 
 /** จำลองการประลองจนจบ คืนผลพร้อมบันทึกการต่อสู้ */
@@ -81,9 +108,27 @@ export function simulate(myEntries, foeEntries, foeName) {
   state.cursor = 0
 
   let guard = 0
-  while (!state.outcome && guard++ < 900) {
+  while (!state.outcome && state.round <= ROUND_LIMIT && guard++ < 900) {
     if (!currentUnit(state)) break
     state = takeTurn(state, null)
+  }
+
+  // ครบเพดานแล้วยังไม่มีใครล้มหมด ตัดสินด้วยสัดส่วนเลือดที่เหลือของทั้งทีม
+  if (!state.outcome) {
+    const mine = hpRatio(state, 'ally')
+    const theirs = hpRatio(state, 'enemy')
+    state = {
+      ...state,
+      outcome: mine >= theirs ? 'won' : 'lost',
+      decidedByHp: true,
+      log: [
+        ...state.log,
+        {
+          text: `ครบ ${ROUND_LIMIT} รอบ ตัดสินด้วยเลือดที่เหลือ ${Math.round(mine * 100)}% ต่อ ${Math.round(theirs * 100)}%`,
+          kind: mine >= theirs ? 'win' : 'lose',
+        },
+      ],
+    }
   }
 
   return state

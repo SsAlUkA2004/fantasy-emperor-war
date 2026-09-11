@@ -9,7 +9,6 @@ import {
   defenseEntries,
   findOpponents,
   matchesLeft,
-  saveDefense,
   saveMatch,
   simulate,
 } from '../lib/pvp'
@@ -34,14 +33,16 @@ export default function Arena() {
   }, [user.uid])
 
   useEffect(() => {
-    findOpponents({ ...player, uid: user.uid })
+    if (!roster) return
+    findOpponents({ ...player, uid: user.uid }, teamPower(myTeam))
       .then(setFoes)
       .catch(() => setError('หาคู่แข่งไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
-  }, [player.pvpPoints])
+  }, [roster, player.pvpPoints])
 
-  const myTeam = roster
-    ? (player.team ?? []).map((id) => roster.find((o) => o.id === id)).filter(Boolean)
-    : []
+  // ใช้ทีมบุกของโหมดประลอง ถ้ายังไม่ได้ตั้งให้ถอยไปใช้ทีมผจญภัย
+  const attackIds = (player.pvpTeam?.length ? player.pvpTeam : player.team) ?? []
+  const myTeam = roster ? attackIds.map((id) => roster.find((o) => o.id === id)).filter(Boolean) : []
+  const usingFallback = !player.pvpTeam?.length
 
   async function fight(foe) {
     const defense = defenseEntries(foe)
@@ -62,21 +63,11 @@ export default function Arena() {
       const saved = await saveMatch({ ...player, uid: user.uid }, foe, won)
       setResult({ won, foe, log: state.log.slice(-8), ...saved })
       await refresh()
-      setFoes(await findOpponents({ ...player, uid: user.uid, pvpPoints: saved.points }))
+      setFoes(
+        await findOpponents({ ...player, uid: user.uid, pvpPoints: saved.points }, teamPower(myTeam))
+      )
     } catch (err) {
       setError('บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
-    }
-    setBusy(false)
-  }
-
-  async function useCurrentAsDefense() {
-    setBusy(true)
-    setError(null)
-    try {
-      await saveDefense(user.uid, myTeam)
-      await refresh()
-    } catch {
-      setError('บันทึกทีมรับไม่สำเร็จ')
     }
     setBusy(false)
   }
@@ -107,6 +98,29 @@ export default function Arena() {
 
         {error && <div className="trace">{error}</div>}
 
+        <h2 className="section-title">ทีมบุก</h2>
+        {myTeam.length ? (
+          <div className="team-strip-slots">
+            {myTeam.map((e, i) => {
+              const c = CHARACTERS[e.id]
+              return (
+                <div className="mini-slot" data-filled key={i}>
+                  <span className="mini-mark">{ELEMENTS[c.element].mark}</span>
+                  <span className="mini-name">{c.name}</span>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="meta">ยังไม่ได้จัดทีม</p>
+        )}
+        {usingFallback && (
+          <p className="meta tiny">ยังไม่ได้ตั้งทีมบุกแยก ตอนนี้ใช้ทีมผจญภัยไปก่อน</p>
+        )}
+        <Link className="plain-link" to="/team?mode=attack">
+          จัดทีมบุก
+        </Link>
+
         <h2 className="section-title">ทีมตั้งรับ</h2>
         {defense.length ? (
           <div className="team-strip-slots">
@@ -123,12 +137,12 @@ export default function Arena() {
         ) : (
           <p className="meta">ยังไม่ได้ตั้ง คนอื่นจึงท้าคุณไม่ได้ และคุณก็ไม่เสียแต้มจากการโดนท้า</p>
         )}
-        <button className="plain-link" onClick={useCurrentAsDefense} disabled={busy || !myTeam.length}>
-          ใช้ทีมปัจจุบันเป็นทีมตั้งรับ
-        </button>
+        <Link className="plain-link" to="/team?mode=defense">
+          จัดทีมตั้งรับ
+        </Link>
         <p className="meta tiny">
           ทีมตั้งรับเป็นสำเนา ณ ตอนที่บันทึก ถ้าดันเลเวลตัวละครเพิ่มแล้วอยากให้ทีมรับแข็งขึ้นด้วย
-          ต้องกดบันทึกใหม่
+          ต้องเข้าไปกดบันทึกใหม่
         </p>
 
         <h2 className="section-title">คู่แข่ง</h2>
@@ -144,7 +158,10 @@ export default function Arena() {
           return (
             <div className="card foe-card" key={foe.uid}>
               <div className="card-body">
-                <h3>{foe.username}</h3>
+                <h3>
+                  {foe.username}
+                  {foe.isBot && <span className="bot-tag">คู่ซ้อม</span>}
+                </h3>
                 <p className="meta">
                   {rankOf(foe.pvpPoints ?? 0).mark} {rankLabel(foe.pvpPoints ?? 0)} · เลเวล{' '}
                   {foe.playerLevel ?? 1}

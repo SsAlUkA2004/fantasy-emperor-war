@@ -1,18 +1,36 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
+import { effectiveRarity } from '../data/ascension'
 import { loadCollection } from '../lib/player'
 import { entryLevelCap } from '../lib/stats'
 import { entryPower, formatPower } from '../lib/power'
-import { effectiveRarity } from '../data/ascension'
+
+// ─────────────────────────────────────────────────────────────
+// ตัวจัดทีมตัวเดียว ใช้ได้กับสามโหมด
+//
+// ผจญภัย / บุก — เก็บแค่รหัสตัวละคร เพราะอ่านค่าสถานะสดจากกระเป๋าตอนเข้าด่านได้
+// ตั้งรับ      — เก็บสำเนาค่าสถานะทั้งก้อน เพราะคนอื่นต้องอ่านทีมนี้ได้
+//                โดยไม่ต้องเปิดสิทธิ์ให้อ่านกระเป๋าตัวละครของเรา
+// ─────────────────────────────────────────────────────────────
+
+const MODES = {
+  adventure: { key: 'team', label: 'ผจญภัย', note: 'ทีมที่ใช้ลงด่านเนื้อเรื่อง เหมือง ลานฝึก และด่านหาของ' },
+  attack: { key: 'pvpTeam', label: 'บุกประลอง', note: 'ทีมที่ใช้ท้าคนอื่นในสนามประลอง แยกจากทีมผจญภัย' },
+  defense: { key: 'defense', label: 'ตั้งรับ', note: 'ทีมที่คนอื่นต้องเจอเมื่อมาท้าคุณ เก็บเป็นสำเนา ณ ตอนบันทึก' },
+}
 
 export default function Team() {
   const { user, player, refresh } = usePlayer()
+  const [params, setParams] = useSearchParams()
+  const mode = MODES[params.get('mode')] ? params.get('mode') : 'adventure'
+  const config = MODES[mode]
+
   const [owned, setOwned] = useState(null)
-  const [team, setTeam] = useState(player.team ?? [])
+  const [picks, setPicks] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -20,9 +38,21 @@ export default function Team() {
     loadCollection(user.uid).then(setOwned)
   }, [user.uid])
 
+  // ทีมตั้งรับเก็บเป็นสำเนา จึงต้องดึงรหัสออกมาก่อน
+  function savedIds(m) {
+    const raw = player[MODES[m].key]
+    if (!Array.isArray(raw)) return []
+    return raw.map((x) => (typeof x === 'string' ? x : x.id)).filter(Boolean)
+  }
+
+  useEffect(() => {
+    setPicks(savedIds(mode))
+    setError(null)
+  }, [mode, player])
+
   function toggle(id) {
     setError(null)
-    setTeam((t) => {
+    setPicks((t) => {
       if (t.includes(id)) return t.filter((x) => x !== id)
       if (t.length >= TEAM_SIZE) return t
       return [...t, id]
@@ -30,14 +60,16 @@ export default function Team() {
   }
 
   async function save() {
-    if (!team.length) {
+    if (!picks.length) {
       setError('ต้องมีอย่างน้อยหนึ่งตัวในทีม')
       return
     }
     setSaving(true)
     setError(null)
     try {
-      await updateDoc(doc(db, 'users', user.uid), { team })
+      const entries = picks.map((id) => owned.find((o) => o.id === id)).filter(Boolean)
+      const value = mode === 'defense' ? entries : picks
+      await updateDoc(doc(db, 'users', user.uid), { [config.key]: value })
       await refresh()
     } catch {
       setError('บันทึกไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
@@ -45,28 +77,39 @@ export default function Team() {
     setSaving(false)
   }
 
-  const dirty = JSON.stringify(team) !== JSON.stringify(player.team ?? [])
-
   const powerOf = (ids) =>
     ids.reduce((sum, id) => {
       const e = owned?.find((o) => o.id === id)
       return e ? sum + entryPower(e) : sum
     }, 0)
 
-  const current = powerOf(team)
-  const saved_ = powerOf(player.team ?? [])
-  const delta = current - saved_
+  const current = powerOf(picks)
+  const delta = current - powerOf(savedIds(mode))
+  const dirty = JSON.stringify(picks) !== JSON.stringify(savedIds(mode))
 
   return (
     <main className="screen top">
       <div className="sheet">
         <h1>จัดทีม</h1>
-        <p className="meta">
-          เลือกได้สูงสุด {TEAM_SIZE} ตัว ลำดับในสนามรบเรียงตามความเร็ว ไม่ใช่ลำดับที่เลือก
-        </p>
+
+        <div className="mode-tabs">
+          {Object.entries(MODES).map(([key, m]) => (
+            <button
+              key={key}
+              className="mode-tab"
+              data-active={key === mode}
+              onClick={() => setParams({ mode: key })}
+            >
+              {m.label}
+              <span className="mode-count">{savedIds(key).length}</span>
+            </button>
+          ))}
+        </div>
+
+        <p className="meta">{config.note}</p>
 
         <div className="cp-banner">
-          <span className="meta">ค่าพลังรวมของทีม</span>
+          <span className="meta">ค่าพลังรวม</span>
           <strong>
             ⚔ {formatPower(current)}
             {dirty && delta !== 0 && (
@@ -80,8 +123,7 @@ export default function Team() {
 
         <div className="team-slots">
           {[...Array(TEAM_SIZE)].map((_, i) => {
-            const id = team[i]
-            const c = id ? CHARACTERS[id] : null
+            const c = picks[i] ? CHARACTERS[picks[i]] : null
             return (
               <div className="slot" key={i} data-filled={Boolean(c)}>
                 {c ? (
@@ -100,8 +142,8 @@ export default function Team() {
         {error && <div className="trace">{error}</div>}
 
         {dirty && (
-          <button className="rune-link block" onClick={save} disabled={saving}>
-            {saving ? 'กำลังบันทึก' : 'บันทึกทีม'}
+          <button className="rune-link block primary" onClick={save} disabled={saving}>
+            {saving ? 'กำลังบันทึก' : `บันทึกทีม${config.label}`}
           </button>
         )}
 
@@ -115,7 +157,7 @@ export default function Team() {
           .map((entry) => {
             const c = CHARACTERS[entry.id]
             if (!c) return null
-            const picked = team.includes(entry.id)
+            const picked = picks.includes(entry.id)
 
             return (
               <div className="card roster-card" key={entry.id} data-picked={picked}>
