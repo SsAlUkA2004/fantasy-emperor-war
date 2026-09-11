@@ -8,7 +8,7 @@ import { elementMatchup } from '../lib/stats'
  * เพราะบนมือถือไม่มีสถานะ "ชี้" การแตะคือการกดเข้าไปดูแบบเต็มอยู่แล้ว
  * ถ้าปล่อยไว้ กล่องจะเด้งค้างหลังแตะแล้วบังเนื้อหาข้างล่าง
  */
-export default function StatPeek({ title, subtitle, stats, element, note }) {
+export default function StatPeek({ title, subtitle, stats, element, note, power }) {
   const el = element ? ELEMENTS[element] : null
   const matchup = element ? elementMatchup(element) : null
 
@@ -27,6 +27,13 @@ export default function StatPeek({ title, subtitle, stats, element, note }) {
           </div>
         ))}
       </div>
+
+      {power !== undefined && (
+        <div className="peek-power">
+          <span>ค่าพลังรวม</span>
+          <strong>{power.toLocaleString('th-TH')}</strong>
+        </div>
+      )}
 
       {el && (
         <div className="peek-foot">

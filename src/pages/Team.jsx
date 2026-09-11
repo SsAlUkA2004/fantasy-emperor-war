@@ -6,6 +6,7 @@ import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { loadCollection } from '../lib/player'
 import { levelCap } from '../lib/leveling'
+import { heroPower, formatPower } from '../lib/power'
 
 export const TEAM_SIZE = 3
 
@@ -47,6 +48,16 @@ export default function Team() {
 
   const dirty = JSON.stringify(team) !== JSON.stringify(player.team ?? [])
 
+  const powerOf = (ids) =>
+    ids.reduce((sum, id) => {
+      const e = owned?.find((o) => o.id === id)
+      return e ? sum + heroPower(e.id, e.level, e.star) : sum
+    }, 0)
+
+  const current = powerOf(team)
+  const saved_ = powerOf(player.team ?? [])
+  const delta = current - saved_
+
   return (
     <main className="screen top">
       <div className="sheet">
@@ -54,6 +65,19 @@ export default function Team() {
         <p className="meta">
           เลือกได้สูงสุด {TEAM_SIZE} ตัว ลำดับในสนามรบเรียงตามความเร็ว ไม่ใช่ลำดับที่เลือก
         </p>
+
+        <div className="cp-banner">
+          <span className="meta">ค่าพลังรวมของทีม</span>
+          <strong>
+            ⚔ {formatPower(current)}
+            {dirty && delta !== 0 && (
+              <span className={delta > 0 ? 'delta up' : 'delta down'}>
+                {delta > 0 ? '+' : ''}
+                {formatPower(delta)}
+              </span>
+            )}
+          </strong>
+        </div>
 
         <div className="team-slots">
           {[...Array(TEAM_SIZE)].map((_, i) => {
@@ -88,12 +112,10 @@ export default function Team() {
 
         {owned
           ?.slice()
-          .sort((a, b) => {
-            const order = { SSR: 0, SR: 1, R: 2 }
-            const ra = order[CHARACTERS[a.id]?.rarity] ?? 3
-            const rb = order[CHARACTERS[b.id]?.rarity] ?? 3
-            return ra - rb || b.level - a.level
-          })
+          .sort(
+            (a, b) =>
+              heroPower(b.id, b.level, b.star) - heroPower(a.id, a.level, a.star)
+          )
           .map((entry) => {
             const c = CHARACTERS[entry.id]
             if (!c) return null
@@ -111,6 +133,7 @@ export default function Team() {
                     {ROLES[c.role]} · เลเวล {entry.level}/{levelCap(c.rarity, entry.star)} ·{' '}
                     {'★'.repeat(entry.star)}
                   </p>
+                  <p className="meta cp">⚔ {formatPower(heroPower(c.id, entry.level, entry.star))}</p>
                 </div>
                 <div className="card-actions">
                   <button className="plain-link inline" onClick={() => toggle(entry.id)}>

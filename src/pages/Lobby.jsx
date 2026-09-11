@@ -5,6 +5,7 @@ import { loadCollection } from '../lib/player'
 import { getCharacter, ELEMENTS, ROLES } from '../data/characters'
 import { expToNext, levelCap, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { heroStats } from '../lib/stats'
+import { heroPower, teamPower, formatPower } from '../lib/power'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
 
@@ -71,9 +72,17 @@ export default function Lobby() {
               )}
             </div>
           </div>
-          <div className="purse">
-            <span className="gem">◆</span>
-            {player.gems.toLocaleString('th-TH')}
+          <div className="purse-stack">
+            <div className="purse">
+              <span className="gem">◆</span>
+              {player.gems.toLocaleString('th-TH')}
+            </div>
+            {active && (
+              <div className="purse cp-big">
+                <span className="cp-mark">⚔</span>
+                {formatPower(teamPower(active))}
+              </div>
+            )}
           </div>
         </header>
 
@@ -101,7 +110,8 @@ export default function Lobby() {
                     <span className="rarity">{c.rarity}</span>
                   </h3>
                   <p className="meta">
-                    {ROLES[c.role]} · เลเวล {entry.level} · {'★'.repeat(entry.star)}
+                    {ROLES[c.role]} · เลเวล {entry.level} · {'★'.repeat(entry.star)} ·{' '}
+                    <span className="cp">⚔ {formatPower(heroPower(c.id, entry.level, entry.star))}</span>
                   </p>
                   {entry.level < levelCap(c.rarity, entry.star) && (
                     <div className="bar thin">
@@ -121,6 +131,7 @@ export default function Lobby() {
                   title={c.name}
                   subtitle={`เลเวล ${entry.level} · ${'★'.repeat(entry.star)}`}
                   element={c.element}
+                  power={heroPower(c.id, entry.level, entry.star)}
                   stats={statRows(c.id, entry.level, entry.star)}
                   note={c.skill.name}
                 />

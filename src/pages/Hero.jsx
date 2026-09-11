@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { heroStats, elementMatchup } from '../lib/stats'
+import { heroPower, formatPower } from '../lib/power'
 import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
@@ -85,6 +86,11 @@ export default function Hero() {
             )}
           </section>
         )}
+
+        <div className="cp-banner">
+          <span className="meta">ค่าพลังรวม</span>
+          <strong>⚔ {formatPower(heroPower(charId, level, star))}</strong>
+        </div>
 
         <h2 className="section-title">ค่าพลัง</h2>
         <dl className="ledger">

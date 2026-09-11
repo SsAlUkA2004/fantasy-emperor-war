@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   CHAPTERS,
@@ -10,13 +10,41 @@ import {
 } from '../data/stages'
 import { ELEMENTS } from '../data/characters'
 import { effectiveStats } from '../lib/stats'
+import { stagePower, teamPower, matchup, formatPower, combatPower } from '../lib/power'
+import { loadCollection } from '../lib/player'
 import { runsLeft, hoursUntilReset } from '../lib/dayclock'
 import { usePlayer } from '../context/PlayerContext'
 import StatPeek from '../components/StatPeek'
 import TeamStrip from '../components/TeamStrip'
 
+/** ป้ายเทียบพลังทีมกับพลังศัตรูของด่านนั้น */
+function PowerTag({ mine, stage, ready }) {
+  if (!ready) return null
+  const foe = stagePower(stage)
+  const m = matchup(mine, foe)
+
+  return (
+    <span className="power-tag" data-level={m.level}>
+      <span className="power-num">⚔ {formatPower(foe)}</span>
+      <span className="power-label">{m.label}</span>
+    </span>
+  )
+}
+
 export default function StageMap() {
-  const { player } = usePlayer()
+  const { user, player } = usePlayer()
+  const [roster, setRoster] = useState(null)
+
+  useEffect(() => {
+    loadCollection(user.uid).then(setRoster)
+  }, [user.uid])
+
+  // ค่าพลังของทีมที่จัดไว้ ใช้เทียบกับพลังศัตรูของแต่ละด่าน
+  const myPower = roster
+    ? teamPower(
+        (player.team ?? []).map((id) => roster.find((o) => o.id === id)).filter(Boolean)
+      )
+    : 0
   const navigate = useNavigate()
   const progress = player.stageProgress ?? {}
   const left = runsLeft(player, GEM_RUNS_PER_DAY)
@@ -48,7 +76,7 @@ export default function StageMap() {
   return (
     <main className="screen top">
       <div className="sheet">
-        <TeamStrip team={player.team} />
+        <TeamStrip team={player.team} power={roster ? myPower : undefined} />
 
         <div className="chapter-bar">
           <button
@@ -124,6 +152,7 @@ export default function StageMap() {
                                 title={foe.name}
                                 subtitle={foe.boss ? 'บอส' : `เลเวล ${x.level}`}
                                 element={foe.element}
+                                power={combatPower(st, 1)}
                                 stats={[
                                   ['พลังชีวิต', st.hp],
                                   ['โจมตี', st.atk],
@@ -140,7 +169,10 @@ export default function StageMap() {
                       <span className="meta">ผ่านด่านก่อนหน้าเพื่อปลดล็อก</span>
                     )}
                   </span>
-                  <span className="stage-stars">{stars ? '★'.repeat(stars) : ''}</span>
+                  <span className="stage-right">
+                    <PowerTag mine={myPower} stage={stage} ready={Boolean(roster)} />
+                    <span className="stage-stars">{stars ? '★'.repeat(stars) : ''}</span>
+                  </span>
                 </button>
               )
             })}
@@ -175,7 +207,7 @@ export default function StageMap() {
                         : `ได้ ${g.gems} เพชร และ ${g.exp} exp ต่อรอบ`}
                   </span>
                 </span>
-                <span className="stage-stars" />
+                <PowerTag mine={myPower} stage={g} ready={Boolean(roster) && unlocked} />
               </button>
             )
           })}
@@ -202,7 +234,7 @@ export default function StageMap() {
                     {unlocked ? `ได้ ${t.exp} หน่วยต่อรอบ` : `ผ่านด่าน ${t.requires} เพื่อปลดล็อก`}
                   </span>
                 </span>
-                <span className="stage-stars" />
+                <PowerTag mine={myPower} stage={t} ready={Boolean(roster) && unlocked} />
               </button>
             )
           })}

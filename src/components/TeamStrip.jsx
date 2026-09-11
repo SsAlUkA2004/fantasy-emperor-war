@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS } from '../data/characters'
+import { formatPower } from '../lib/power'
 
 export const TEAM_SIZE = 3
 
@@ -10,7 +11,7 @@ export const TEAM_SIZE = 3
  * จึงไม่รู้ว่าต้องไปใส่ทีมเอง แล้วเข้าด่านด้วยตัวเดียวตลอด
  * แถบนี้ทำให้ช่องว่างมองเห็นได้ทันทีก่อนกดเข้าด่าน
  */
-export default function TeamStrip({ team = [] }) {
+export default function TeamStrip({ team = [], power }) {
   const empty = TEAM_SIZE - team.length
 
   return (
@@ -35,7 +36,9 @@ export default function TeamStrip({ team = [] }) {
 
       <div className="team-strip-foot">
         <span className="meta">
-          {empty > 0 ? `ทีมยังว่างอีก ${empty} ช่อง` : 'ทีมเต็มแล้ว'}
+          {power !== undefined && <strong className="cp">⚔ {formatPower(power)}</strong>}
+          {power !== undefined && ' · '}
+          {empty > 0 ? `ว่างอีก ${empty} ช่อง` : 'ทีมเต็มแล้ว'}
         </span>
         <Link className="plain-link inline" to="/team">
           จัดทีม
