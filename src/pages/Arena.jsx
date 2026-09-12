@@ -8,6 +8,8 @@ import { entryLevelCap } from '../lib/stats'
 import { effectiveRarity, awakenName } from '../data/ascension'
 import { ROLES } from '../data/characters'
 import { loadCollection } from '../lib/player'
+import { UNLOCKS, chapterCleared } from '../data/stages'
+import Locked from '../components/Locked'
 import { teamPower, entryPower, formatPower } from '../lib/power'
 import {
   defenseEntries,
@@ -35,6 +37,7 @@ export default function Arena() {
 
   const left = matchesLeft(player)
   const rank = rankOf(player.pvpPoints ?? 0)
+  const unlocked = chapterCleared(player.stageProgress, UNLOCKS.arena.chapter)
 
   const [closed, setClosed] = useState(null)
 
@@ -52,7 +55,7 @@ export default function Arena() {
   }, [user.uid])
 
   useEffect(() => {
-    if (!roster) return
+    if (!roster || !unlocked) return
     findOpponents({ ...player, uid: user.uid }, teamPower(myTeam))
       .then(setFoes)
       .catch(() => setError('หาคู่แข่งไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
@@ -122,7 +125,11 @@ export default function Arena() {
   }
 
   const defense = defenseEntries(player)
-  const unlocked = titlesFor(player.highestRank ?? 0)
+  const myTitles = titlesFor(player.highestRank ?? 0)
+
+  if (!unlocked) {
+    return <Locked mode={UNLOCKS.arena} progress={player.stageProgress} />
+  }
 
   return (
     <main className="screen top">
@@ -266,9 +273,9 @@ export default function Arena() {
         })}
 
         <h2 className="section-title">ฉายา</h2>
-        <p className="meta">ปลดล็อกตามแรงค์สูงสุดที่เคยไปถึง ตอนนี้ได้ {unlocked.length} ฉายา</p>
+        <p className="meta">ปลดล็อกตามแรงค์สูงสุดที่เคยไปถึง ตอนนี้ได้ {myTitles.length} ฉายา</p>
         <div className="title-grid">
-          {unlocked.map((t) => (
+          {myTitles.map((t) => (
             <button
               key={t.index}
               className="title-chip"

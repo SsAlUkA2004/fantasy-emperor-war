@@ -12,6 +12,8 @@ import { ELEMENTS } from '../data/characters'
 import { POOL_MARKS } from '../data/exchange'
 import { claimTier, hitsLeft, loadBoss, loadMyDamage, loadRanking } from '../lib/worldboss'
 import { hoursUntilReset } from '../lib/dayclock'
+import { UNLOCKS, chapterCleared } from '../data/stages'
+import Locked from '../components/Locked'
 
 const fmt = (n) => Math.round(n).toLocaleString('th-TH')
 
@@ -25,7 +27,10 @@ export default function WorldBoss() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
 
+  const unlocked = chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter)
+
   useEffect(() => {
+    if (!unlocked) return
     loadBoss()
       .then(async (b) => {
         setBoss(b)
@@ -33,7 +38,11 @@ export default function WorldBoss() {
         setBoard(await loadRanking(30))
       })
       .catch(() => setError('อ่านข้อมูลบอสไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
-  }, [user.uid])
+  }, [user.uid, unlocked])
+
+  if (!unlocked) {
+    return <Locked mode={UNLOCKS.worldboss} progress={player.stageProgress} />
+  }
 
   if (!boss) {
     return (

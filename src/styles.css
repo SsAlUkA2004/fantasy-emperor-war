@@ -2481,3 +2481,16 @@ a {
   flex: 1;
   min-width: 0;
 }
+
+.rune-link.block[data-locked='true'] {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+.rank-title-h {
+  margin: 0 0 0.1rem;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--gold-bright);
+}

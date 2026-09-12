@@ -11,6 +11,7 @@ import { titlesFor, TITLES, claimableRanks } from '../data/ranks'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
+import { UNLOCKS, chapterCleared } from '../data/stages'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
 
@@ -216,12 +217,23 @@ export default function Lobby() {
           ดันเจี้ยน
         </Link>
 
-        <Link className="rune-link block" to="/boss">
+        <Link
+          className="rune-link block"
+          to="/boss"
+          data-locked={!chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter)}
+        >
           บอสโลก
+          {!chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter) &&
+            ' · ต้องผ่านบทที่ 3'}
         </Link>
 
-        <Link className="rune-link block" to="/arena">
+        <Link
+          className="rune-link block"
+          to="/arena"
+          data-locked={!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter)}
+        >
           ประลอง
+          {!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter) && ' · ต้องผ่านบทที่ 1'}
           {claimableRanks(player.highestRank ?? 0, player.claimedRanks ?? []).length > 0 &&
             ' · มีรางวัลรอรับ'}
         </Link>

@@ -309,6 +309,21 @@ export function getStage(id) {
   )
 }
 
+/**
+ * ผ่านบทนั้นครบทุกด่านหรือยัง
+ * ใช้เป็นเงื่อนไขปลดล็อกโหมดที่ไม่ควรเปิดตั้งแต่เริ่มเกม
+ */
+export function chapterCleared(progress = {}, number) {
+  const ch = CHAPTERS[number - 1]
+  return ch ? ch.stages.every((s) => (progress[s.id] ?? 0) > 0) : false
+}
+
+/** เงื่อนไขปลดล็อกของแต่ละโหมด */
+export const UNLOCKS = {
+  arena: { chapter: 1, label: 'ประลอง' },
+  worldboss: { chapter: 3, label: 'บอสโลก' },
+}
+
 export function getChapter(number) {
   return CHAPTERS.find((c) => c.number === number) ?? CHAPTERS[0]
 }

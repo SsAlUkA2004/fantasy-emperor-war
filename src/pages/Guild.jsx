@@ -253,9 +253,9 @@ export default function Guild() {
           </div>
         ))}
 
-        <p className="meta tiny">
-          กิลด์เรดกับร้านค้ากิลด์จะเปิดในเฟสถัดไป คะแนนกิลด์จะเริ่มขยับตอนนั้น
-        </p>
+        <Link className="rune-link block primary" to="/guild/raid">
+          กิลด์เรดและร้านค้ากิลด์
+        </Link>
 
         <button
           className="plain-link"

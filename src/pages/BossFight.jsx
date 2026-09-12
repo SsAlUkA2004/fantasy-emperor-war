@@ -4,7 +4,9 @@ import { usePlayer } from '../context/PlayerContext'
 import { createBattle, currentUnit, needsTarget, takeTurn } from '../lib/battle'
 import { loadCollection } from '../lib/player'
 import { bossForWeek, weekIndex } from '../data/worldboss'
+import { raidBossForWeek, raidWeek } from '../data/guildraid'
 import { submitDamage } from '../lib/worldboss'
+import { submitRaidDamage } from '../lib/guildraid'
 import { ROUND_LIMIT } from '../lib/pvp'
 import BattleStage from '../components/BattleStage'
 
@@ -23,8 +25,12 @@ export default function BossFight() {
   const location = useLocation()
   const { user, player } = usePlayer()
 
-  const week = location.state?.week ?? weekIndex()
-  const spec = bossForWeek(week)
+  // หน้านี้ใช้ได้ทั้งบอสโลกและบอสของกิลด์ ต่างกันที่ปลายทางของดาเมจเท่านั้น
+  const mode = location.state?.mode === 'raid' ? 'raid' : 'world'
+  const guildId = location.state?.guildId ?? null
+  const week = location.state?.week ?? (mode === 'raid' ? raidWeek() : weekIndex())
+  const spec = mode === 'raid' ? raidBossForWeek(week) : bossForWeek(week)
+  const backTo = mode === 'raid' ? '/guild/raid' : '/boss'
 
   const [state, setState] = useState(null)
   const [auto, setAuto] = useState(true)
@@ -76,7 +82,10 @@ export default function BossFight() {
     const dealt = Math.max(0, boss.maxHp - boss.hp)
 
     try {
-      const r = await submitDamage({ ...player, uid: user.uid }, week, dealt)
+      const r =
+        mode === 'raid'
+          ? await submitRaidDamage({ ...player, uid: user.uid }, guildId, week, dealt)
+          : await submitDamage({ ...player, uid: user.uid }, week, dealt)
       setDone({ dealt, ...r })
     } catch (err) {
       setDone({ dealt, failed: true, message: err.message })
@@ -110,7 +119,7 @@ export default function BossFight() {
     <main className="screen top battle">
       <div className="sheet">
         <header className="battle-head">
-          <button className="plain-link inline" onClick={() => navigate('/boss')}>
+          <button className="plain-link inline" onClick={() => navigate(backTo)}>
             ← ออก
           </button>
           <div className="battle-title">
@@ -152,7 +161,7 @@ export default function BossFight() {
               </>
             )}
 
-            <button className="rune-link block primary" onClick={() => navigate('/boss')}>
+            <button className="rune-link block primary" onClick={() => navigate(backTo)}>
               กลับหน้าบอส
             </button>
           </section>

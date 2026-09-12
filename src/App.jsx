@@ -22,6 +22,7 @@ import Mailbox from './pages/Mailbox'
 import Gear from './pages/Gear'
 import Dungeon from './pages/Dungeon'
 import Guild from './pages/Guild'
+import GuildRaid from './pages/GuildRaid'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="/gear" element={<Gate><Gear /></Gate>} />
           <Route path="/dungeon" element={<Gate><Dungeon /></Gate>} />
           <Route path="/guild" element={<Gate><Guild /></Gate>} />
+          <Route path="/guild/raid" element={<Gate><GuildRaid /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
