@@ -3,6 +3,8 @@ import { db } from '../firebase'
 import { FIRST_CLEAR_GEMS, GEM_RUNS_PER_DAY } from '../data/stages'
 import { gainPlayerExp } from './leveling'
 import { isSameThaiDay, runsLeft } from './dayclock'
+import { STAGE_DROP_CHANCE, coinsForStage } from '../data/gear'
+import { addDrop } from './gear'
 import { MATERIAL_IDS, MATERIAL_RUNS_PER_DAY, EMPTY_BAG } from '../data/materials'
 
 // ─────────────────────────────────────────────────────────────
@@ -88,6 +90,15 @@ export async function saveStageResult(player, stage, stars, exp) {
   // ───── ด่านเนื้อเรื่อง ─────
   if (!firstClear && stars <= previous) return { firstClear: false, gems: 0, account: null }
 
+  // เหรียญกับอุปกรณ์ได้ทุกครั้งที่ผ่าน ไม่ใช่เฉพาะครั้งแรก
+  // เพราะสองอย่างนี้คือเหตุผลให้กลับมาเล่นด่านเดิมซ้ำ
+  const chapter = stage.chapter ?? 1
+  const coins = coinsForStage(chapter)
+  let drop = null
+  if (Math.random() < STAGE_DROP_CHANCE) {
+    drop = await addDrop(player.uid, 'stage', chapter).catch(() => null)
+  }
+
   const accountExp = firstClear ? exp * FIRST_CLEAR_ACCOUNT_MULT : 0
   const account = gainPlayerExp(player.playerLevel ?? 1, player.playerExp ?? 0, accountExp)
 
@@ -97,6 +108,7 @@ export async function saveStageResult(player, stage, stars, exp) {
   const patch = {
     playerLevel: account.level,
     playerExp: account.exp,
+    coins: (player.coins ?? 0) + coins,
     stageProgress: {
       ...(player.stageProgress ?? {}),
       [stageId]: Math.max(previous, stars),
@@ -112,5 +124,7 @@ export async function saveStageResult(player, stage, stars, exp) {
     gems: firstClear ? FIRST_CLEAR_GEMS : 0,
     accountExp,
     account,
+    coins,
+    drop,
   }
 }

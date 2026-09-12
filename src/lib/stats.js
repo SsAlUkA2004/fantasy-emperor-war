@@ -7,6 +7,7 @@ import {
   tierBoost,
 } from '../data/ascension'
 import { levelCap } from './leveling'
+import { gearBonus } from '../data/gear'
 
 export const LEVEL_GROWTH = 0.08
 export const STAR_GROWTH = 0.15
@@ -53,20 +54,27 @@ export function heroStats(charId, level, star) {
 // ถ้าปล่อยให้แต่ละที่คูณโบนัสเอง วันหนึ่งตัวเลขที่ผู้เล่นเห็นจะไม่ตรงกับที่ใช้สู้จริง
 // ─────────────────────────────────────────────────────────────
 
-/** ค่าสถานะสุดท้าย รวมเลเวล ดาว การยกระดับ และการปลุกร่าง */
+/**
+ * ค่าสถานะสุดท้าย รวมเลเวล ดาว การยกระดับ การปลุกร่าง และอุปกรณ์
+ *
+ * อุปกรณ์บวกเป็นค่าคงที่ท้ายสุด ไม่ใช่ตัวคูณ
+ * ถ้าทำเป็นตัวคูณ ของชิ้นเดียวกันจะแรงต่างกันมหาศาลระหว่างตัวเลเวลต่ำกับสูง
+ * แล้วสมดุลจะควบคุมไม่ได้เลย
+ */
 export function entryStats(charId, entry = {}) {
   const c = CHARACTERS[charId]
   if (!c) return null
 
   const base = effectiveStats(c.stats, entry.level ?? 1, entry.star ?? 1)
   const boost = tierBoost(entry.tier ?? 0) * awakenStatBoost(entry.awaken ?? 0)
+  const gear = gearBonus(entry.gear ?? [])
 
   return {
-    hp: Math.round(base.hp * boost),
-    atk: Math.round(base.atk * boost),
-    def: Math.round(base.def * boost),
-    spd: Math.round(base.spd * boost),
-    crit: base.crit,
+    hp: Math.round(base.hp * boost) + gear.hp,
+    atk: Math.round(base.atk * boost) + gear.atk,
+    def: Math.round(base.def * boost) + gear.def,
+    spd: Math.round(base.spd * boost) + gear.spd,
+    crit: base.crit + gear.crit,
   }
 }
 

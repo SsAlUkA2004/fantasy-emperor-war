@@ -8,6 +8,7 @@ import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
+import { GRADES, SLOTS } from '../data/gear'
 import BattleStage from '../components/BattleStage'
 
 const STEP_DELAY = 750
@@ -172,6 +173,13 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
           )}
           {reward?.account?.gained > 0 && (
             <p className="levelup">เลเวลผู้เล่นขึ้นเป็น {reward.account.level}</p>
+          )}
+          {reward?.coins > 0 && <p>ได้เหรียญ {reward.coins.toLocaleString('th-TH')}</p>}
+          {reward?.drop && (
+            <p className="levelup" style={{ color: GRADES[reward.drop.grade].color }}>
+              ได้{SLOTS[reward.drop.slot].name}
+              {GRADES[reward.drop.grade].name} ระดับไอเทม {reward.drop.ilvl}
+            </p>
           )}
           {reward?.firstClear && <p>ผ่านครั้งแรก ได้เพชร {reward.gems} เม็ด</p>}
           {reward?.runsLeft !== undefined && (

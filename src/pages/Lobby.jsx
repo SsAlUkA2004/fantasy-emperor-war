@@ -93,6 +93,10 @@ export default function Lobby() {
               <span className="gem">◆</span>
               {player.gems.toLocaleString('th-TH')}
             </div>
+            <div className="purse coin">
+              <span className="coin-mark">⛁</span>
+              {(player.coins ?? 0).toLocaleString('th-TH')}
+            </div>
             {owned && (
               <div className="purse cp-big">
                 <span className="cp-mark">⚔</span>
@@ -224,6 +228,9 @@ export default function Lobby() {
           </Link>
           <Link className="rune-link" to="/team">
             จัดทีม
+          </Link>
+          <Link className="rune-link" to="/gear">
+            อุปกรณ์
           </Link>
           <Link className="rune-link" to="/mail">
             กล่องจดหมาย

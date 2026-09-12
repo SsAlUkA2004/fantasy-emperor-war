@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import { STARTER_IDS } from '../data/characters'
 import { gainExp } from './leveling'
 import { entryLevelCap } from './stats'
+import { byCharacter, loadGear } from './gear'
 
 /**
  * บันทึกตัวละครเริ่มต้นที่ผู้เล่นเลือก
@@ -38,9 +39,15 @@ export async function chooseStarter(uid, charId) {
 }
 
 export async function loadCollection(uid) {
-  const snap = await getDocs(collection(db, 'users', uid, 'collection'))
+  const [snap, gear] = await Promise.all([
+    getDocs(collection(db, 'users', uid, 'collection')),
+    loadGear(uid).catch(() => []),
+  ])
+  const equipped = byCharacter(gear)
   // ตัวละครที่สร้างไว้ก่อนมีระบบเลเวลจะไม่มีฟิลด์ exp จึงเติมศูนย์ให้
   // ตัวละครที่ได้มาก่อนมีระบบเหล่านี้จะไม่มีฟิลด์ จึงเติมค่าเริ่มต้นให้
+  // แนบอุปกรณ์ที่สวมอยู่มากับตัวละครเลย
+  // ทุกที่ที่คำนวณค่าพลังจึงได้ค่าที่รวมอุปกรณ์แล้วโดยไม่ต้องไปโหลดเพิ่มเอง
   return snap.docs.map((d) => ({
     id: d.id,
     exp: 0,
@@ -48,6 +55,7 @@ export async function loadCollection(uid) {
     tier: 0,
     awaken: 0,
     ...d.data(),
+    gear: equipped[d.id] ?? [],
   }))
 }
 

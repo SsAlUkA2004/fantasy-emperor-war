@@ -19,6 +19,7 @@ import PvpMatch from './pages/PvpMatch'
 import WorldBoss from './pages/WorldBoss'
 import BossFight from './pages/BossFight'
 import Mailbox from './pages/Mailbox'
+import Gear from './pages/Gear'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/boss" element={<Gate><WorldBoss /></Gate>} />
           <Route path="/boss/fight" element={<Gate><BossFight /></Gate>} />
           <Route path="/mail" element={<Gate><Mailbox /></Gate>} />
+          <Route path="/gear" element={<Gate><Gear /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
