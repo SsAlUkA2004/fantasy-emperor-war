@@ -2476,3 +2476,8 @@ a {
   background: rgba(20, 16, 43, 0.6);
   border-left: 3px solid var(--rune);
 }
+
+.guild-member .card-body {
+  flex: 1;
+  min-width: 0;
+}

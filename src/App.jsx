@@ -21,6 +21,7 @@ import BossFight from './pages/BossFight'
 import Mailbox from './pages/Mailbox'
 import Gear from './pages/Gear'
 import Dungeon from './pages/Dungeon'
+import Guild from './pages/Guild'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -67,6 +68,7 @@ export default function App() {
           <Route path="/mail" element={<Gate><Mailbox /></Gate>} />
           <Route path="/gear" element={<Gate><Gear /></Gate>} />
           <Route path="/dungeon" element={<Gate><Dungeon /></Gate>} />
+          <Route path="/guild" element={<Gate><Guild /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
