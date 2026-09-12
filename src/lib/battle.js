@@ -1,5 +1,6 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
+import { BOSSES } from '../data/worldboss'
 import { effectiveStats, entryStats, entrySkillScale } from './stats'
 
 // ─────────────────────────────────────────────────────────────
@@ -15,6 +16,7 @@ const SKILL_GAUGE = 15
 const MP_PER_TURN = 2
 const MAX_MP = 10
 const BURN_PERCENT = 0.05
+const BURN_ATK_MULT = 2.5
 
 function clone(state) {
   return JSON.parse(JSON.stringify(state))
@@ -91,7 +93,7 @@ function makeUnit(base, opts) {
     alive: true,
     skill: base.skill ?? null,
     ultimate: base.ultimate ?? null,
-    effects: { burn: 0, taunt: 0, defUp: 0, stun: 0, shield: false },
+    effects: { burn: 0, burnAtk: 0, taunt: 0, defUp: 0, stun: 0, shield: false },
   }
 }
 
@@ -113,7 +115,10 @@ export function createBattle(allyEntries, stage) {
       })
     }),
     ...stage.enemies.map((e, i) => {
-      const m = ENEMIES[e.id]
+      // บอสโลกไม่ได้อยู่ในตารางมอนสเตอร์ของด่าน ใช้รหัสนำหน้าแยกออกมา
+      const m = e.id.startsWith('boss:')
+        ? BOSSES.find((b) => b.id === e.id.slice(5))
+        : ENEMIES[e.id]
       return makeUnit(m, {
         key: `e${i}`,
         side: 'enemy',
@@ -262,6 +267,7 @@ function runEffects(state, actor, move, chosenKey) {
 
       if (effect.kind === 'cleanse') {
         target.effects.burn = 0
+        target.effects.burnAtk = 0
         target.effects.stun = 0
         log(state, `${target.name} หลุดจากสถานะติดลบ`, actor.side)
         return
@@ -271,6 +277,12 @@ function runEffects(state, actor, move, chosenKey) {
         if (effect.chance && Math.random() > effect.chance) return
         if (effect.status === 'shield') target.effects.shield = true
         else target.effects[effect.status] = effect.turns
+
+        // จำพลังโจมตีของคนที่จุดไฟไว้ด้วย
+        // เดิมไฟเผาคิดจากเปอร์เซ็นต์ของเลือดสูงสุดอย่างเดียว
+        // พอเจอศัตรูเลือดหลายสิบล้านอย่างบอสโลก ไฟจะกินทีละหลายล้านต่อเทิร์น
+        // แล้วละลายบอสทั้งตัวโดยที่ผู้เล่นแทบไม่ต้องทำอะไร
+        if (effect.status === 'burn') target.effects.burnAtk = actor.atk
 
         const label = {
           burn: 'ติดไฟ',
@@ -303,9 +315,14 @@ function basicAttack(state, actor, targetKey) {
 
 function endOfTurn(state, actor) {
   if (actor.effects.burn > 0 && actor.alive) {
-    const burn = Math.round(actor.maxHp * BURN_PERCENT)
+    // เอาค่าที่น้อยกว่าระหว่างเปอร์เซ็นต์เลือด กับพลังโจมตีของคนจุดไฟ
+    // ทำให้ไฟแรงตามคนจุด ไม่ใช่แรงตามขนาดของเป้าหมาย
+    const byPercent = actor.maxHp * BURN_PERCENT
+    const byPower = (actor.effects.burnAtk ?? 0) * BURN_ATK_MULT
+    const burn = Math.max(1, Math.round(byPower > 0 ? Math.min(byPercent, byPower) : byPercent))
     applyDamage(state, actor, burn)
     actor.effects.burn -= 1
+    if (actor.effects.burn === 0) actor.effects.burnAtk = 0
     log(state, `${actor.name} ถูกไฟเผา เสีย ${burn} หน่วย`, 'burn')
   }
   if (actor.effects.taunt > 0) actor.effects.taunt -= 1

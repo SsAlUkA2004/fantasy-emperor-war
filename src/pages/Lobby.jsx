@@ -208,6 +208,10 @@ export default function Lobby() {
           ออกผจญภัย
         </Link>
 
+        <Link className="rune-link block" to="/boss">
+          บอสโลก
+        </Link>
+
         <Link className="rune-link block" to="/arena">
           ประลอง
           {claimableRanks(player.highestRank ?? 0, player.claimedRanks ?? []).length > 0 &&

@@ -2263,3 +2263,74 @@ a {
   margin: 0;
   flex: 1;
 }
+
+/* ───────── บอสโลก ───────── */
+
+.boss-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.boss-mark {
+  font-size: 2.8rem;
+  line-height: 1;
+  flex: none;
+}
+
+.boss-head h1 {
+  margin-bottom: 0.1rem;
+}
+
+.boss-hp {
+  margin-top: 1.5rem;
+}
+
+.boss-hp-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+
+.bar.big {
+  height: 0.9rem;
+}
+
+.bar.big span {
+  background: linear-gradient(90deg, var(--ember), var(--gold));
+}
+
+.tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tier-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(20, 16, 43, 0.65);
+  border: 1px solid rgba(200, 164, 77, 0.18);
+  opacity: 0.55;
+}
+
+.tier-row[data-open='true'] {
+  opacity: 1;
+  border-color: var(--gold);
+}
+
+.tier-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tier-need {
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold-bright);
+}
