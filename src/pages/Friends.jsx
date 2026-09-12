@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { addFriend, findPlayer, loadFriends, removeFriend } from '../lib/friends'
 import { STAGES } from '../data/stages'
 import { PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { RANKS, rankLabel, titleName } from '../data/ranks'
+import DefensePeek from '../components/DefensePeek'
+import { defenseEntries } from '../lib/pvp'
+import { entryPower, formatPower } from '../lib/power'
 
 function furthestStage(progress = {}) {
   const cleared = STAGES.filter((s) => (progress[s.id] ?? 0) > 0)
@@ -22,6 +25,8 @@ function explain(what, err) {
 
 export default function Friends() {
   const { user, player } = usePlayer()
+  const navigate = useNavigate()
+  const [peek, setPeek] = useState(null)
   const [friends, setFriends] = useState(null)
   const [term, setTerm] = useState('')
   const [found, setFound] = useState(undefined)
@@ -163,9 +168,39 @@ export default function Friends() {
                 <dt>แรงค์สูงสุด</dt>
                 <dd>{RANKS[f.highestRank ?? 0]?.name ?? RANKS[0].name}</dd>
               </div>
+              <div className="ledger-row">
+                <dt>ค่าพลังทีมตั้งรับ</dt>
+                <dd>
+                  {defenseEntries(f).length
+                    ? `⚔ ${formatPower(defenseEntries(f).reduce((s, e) => s + entryPower(e), 0))}`
+                    : 'ยังไม่ได้ตั้ง'}
+                </dd>
+              </div>
             </dl>
+
+            <div className="friend-actions">
+              <button
+                className="plain-link inline"
+                disabled={!defenseEntries(f).length}
+                onClick={() => setPeek(f)}
+              >
+                ดูตัวละคร
+              </button>
+              <button
+                className="plain-link inline"
+                disabled={!defenseEntries(f).length}
+                onClick={() => navigate('/pvp', { state: { foe: f, friendly: true } })}
+              >
+                ประลองสนุก ๆ
+              </button>
+            </div>
           </article>
         ))}
+
+        <p className="meta tiny">
+          ประลองกับเพื่อนไม่นับแต้มและไม่ใช้โควตาประจำวัน
+          ฝั่งเพื่อนให้บอทคุมทีมตั้งรับที่เขาบันทึกไว้
+        </p>
 
 
 
@@ -175,6 +210,14 @@ export default function Friends() {
           </Link>
         </div>
       </div>
+
+      {peek && (
+        <DefensePeek
+          foe={peek}
+          title={`ตัวละครที่ ${peek.username} ใช้`}
+          onClose={() => setPeek(null)}
+        />
+      )}
     </main>
   )
 }

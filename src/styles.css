@@ -2251,3 +2251,15 @@ a {
   margin-top: 1rem;
   font-size: 0.78rem;
 }
+
+.friend-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.friend-actions .plain-link {
+  width: auto;
+  margin: 0;
+  flex: 1;
+}
