@@ -4,7 +4,7 @@ import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
-import { effectiveRarity } from '../data/ascension'
+import { effectiveRarity, awakenName } from '../data/ascension'
 import { loadCollection } from '../lib/player'
 import { entryLevelCap } from '../lib/stats'
 import { entryPower, formatPower } from '../lib/power'
@@ -165,12 +165,26 @@ export default function Team() {
                 <div className="card-body">
                   <h3>
                     {c.name}
-                    <span className="rarity">{effectiveRarity(entry.id, entry.tier)}</span>
+                    <span
+                      className="rarity"
+                      data-rarity={effectiveRarity(entry.id, entry.tier)}
+                      data-upgraded={(entry.tier ?? 0) > 0}
+                      title={
+                        (entry.tier ?? 0) > 0
+                          ? `ยกระดับมาจาก ${c.rarity}`
+                          : 'ระดับตั้งต้นจากกาชา'
+                      }
+                    >
+                      {effectiveRarity(entry.id, entry.tier)}
+                      {(entry.tier ?? 0) > 0 && <span className="up-mark">↑</span>}
+                    </span>
+                    {(entry.awaken ?? 0) > 0 && (
+                      <span className="awaken-tag">{awakenName(entry.awaken)}</span>
+                    )}
                   </h3>
                   <p className="meta">
                     {ROLES[c.role]} · เลเวล {entry.level}/{entryLevelCap(entry.id, entry)} ·{' '}
                     {'★'.repeat(entry.star)}
-                    {entry.awaken > 0 && ` · ปลุกร่าง ${entry.awaken}`}
                   </p>
                   <p className="meta cp">⚔ {formatPower(entryPower(entry))}</p>
                 </div>

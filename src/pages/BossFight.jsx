@@ -83,7 +83,7 @@ export default function BossFight() {
     }
   }
 
-  const actor = currentUnit(state ?? {})
+  const actor = state ? currentUnit(state) : null
 
   function act(type) {
     const move = { type }

@@ -164,9 +164,11 @@ function beginTurn(state) {
 }
 
 export function currentUnit(state) {
-  if (state.outcome) return null
+  // หน้าจอเรียกฟังก์ชันนี้ก่อนที่สนามรบจะถูกสร้างเสร็จได้
+  // ถ้าไม่กันไว้ การอ่าน state.order จะพังทั้งหน้าและกลายเป็นจอดำ
+  if (!state || !Array.isArray(state.order) || state.outcome) return null
   const key = state.order[state.cursor]
-  return state.units.find((u) => u.key === key) ?? null
+  return state.units?.find((u) => u.key === key) ?? null
 }
 
 // ───────── ท่าที่เลือกได้ ─────────

@@ -94,7 +94,7 @@ export default function PvpMatch() {
     )
   }
 
-  const actor = currentUnit(state ?? {})
+  const actor = state ? currentUnit(state) : null
   const foePower = defenseEntries(foe).reduce((s, e) => s + entryPower(e), 0)
 
   function act(type) {

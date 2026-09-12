@@ -11,6 +11,11 @@ function thaiDayKey(date) {
   return new Date(date.getTime() + OFFSET_MS).toISOString().slice(0, 10)
 }
 
+/** รหัสวันตามเวลาไทย เช่น 2026-09-13 ใช้เป็นรหัสจดหมายรายวัน */
+export function todayKey() {
+  return thaiDayKey(new Date())
+}
+
 export function isSameThaiDay(timestamp) {
   if (!timestamp) return false
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)

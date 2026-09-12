@@ -2334,3 +2334,45 @@ a {
   font-size: 1rem;
   color: var(--gold-bright);
 }
+
+/* ───────── กล่องจดหมาย ───────── */
+
+.mail-list {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mail-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.25);
+}
+
+.mail-row[data-read='true'] {
+  opacity: 0.5;
+  border-color: rgba(167, 159, 140, 0.25);
+}
+
+.mail-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mail-body h3 {
+  margin: 0 0 0.1rem;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--gold-bright);
+}
+
+.mail-row .rune-link,
+.mail-row .plain-link {
+  flex: none;
+  width: auto;
+  margin: 0;
+}
