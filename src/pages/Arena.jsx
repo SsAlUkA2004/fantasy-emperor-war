@@ -17,6 +17,8 @@ import {
   simulate,
 } from '../lib/pvp'
 import { hoursUntilReset } from '../lib/dayclock'
+import { SEASON_DAYS, daysLeft, seasonIndex } from '../data/season'
+import { closeSeasonIfNeeded } from '../lib/season'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
@@ -34,8 +36,19 @@ export default function Arena() {
   const left = matchesLeft(player)
   const rank = rankOf(player.pvpPoints ?? 0)
 
+  const [closed, setClosed] = useState(null)
+
   useEffect(() => {
     loadCollection(user.uid).then(setRoster)
+    // ปิดฤดูกาลเก่าให้เองถ้าเปลี่ยนฤดูกาลแล้ว รางวัลส่งเข้ากล่องจดหมาย
+    closeSeasonIfNeeded({ ...player, uid: user.uid })
+      .then(async (r) => {
+        if (r) {
+          setClosed(r)
+          await refresh()
+        }
+      })
+      .catch(() => {})
   }, [user.uid])
 
   useEffect(() => {
@@ -133,6 +146,20 @@ export default function Arena() {
         </header>
 
         {error && <div className="trace">{error}</div>}
+
+        {closed && (
+          <p className="levelup">
+            ฤดูกาลที่ {closed.season} จบแล้ว · แต้มรีเซ็ตจาก {closed.from} เหลือ {closed.to} ·
+            รางวัลส่งเข้ากล่องจดหมายแล้ว
+          </p>
+        )}
+
+        <div className="season-bar">
+          <span className="meta">ฤดูกาลที่ {seasonIndex()}</span>
+          <span className="meta">
+            เหลืออีก {daysLeft()} วัน จาก {SEASON_DAYS}
+          </span>
+        </div>
 
         <h2 className="section-title">ทีมบุก</h2>
         {myTeam.length ? (

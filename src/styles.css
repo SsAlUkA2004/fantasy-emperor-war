@@ -2465,3 +2465,14 @@ a {
   font-family: var(--display);
   font-size: 1.02rem;
 }
+
+.season-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(20, 16, 43, 0.6);
+  border-left: 3px solid var(--rune);
+}

@@ -168,16 +168,18 @@ export async function saveMatch(player, foe, won) {
   const delta = pointDelta(player.pvpPoints ?? 0, foe.pvpPoints ?? 0, won)
   const points = applyDelta(player.pvpPoints ?? 0, delta)
   const highest = Math.max(player.highestRank ?? 0, rankOf(points).index)
+  const seasonHighest = Math.max(player.seasonHighest ?? 0, rankOf(points).index)
   const sameDay = isSameThaiDay(player.pvpRunAt)
 
   await updateDoc(doc(db, 'users', player.uid), {
     pvpPoints: points,
     highestRank: highest,
+    seasonHighest,
     pvpRunAt: serverTimestamp(),
     pvpRunCount: sameDay ? (player.pvpRunCount ?? 0) + 1 : 1,
   })
 
-  return { delta, points, highest }
+  return { delta, points, highest, seasonHighest }
 }
 
 export async function saveDefense(uid, entries) {

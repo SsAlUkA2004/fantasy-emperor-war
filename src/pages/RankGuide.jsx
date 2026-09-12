@@ -11,6 +11,7 @@ import {
   rewardFor,
 } from '../data/ranks'
 import { POOL_MARKS, POOL_NAMES } from '../data/exchange'
+import { SEASON_DAYS, daysLeft, seasonIndex, seasonRewardFor } from '../data/season'
 import { claimRankReward } from '../lib/rankrewards'
 
 export default function RankGuide() {
@@ -93,6 +94,15 @@ export default function RankGuide() {
                     <dd>{TITLES.find((t) => t.requires === r.index)?.name ?? '—'}</dd>
                   </div>
                   <div className="ledger-row">
+                    <dt>รางวัลปลายฤดูกาล</dt>
+                    <dd>
+                      ◆ {seasonRewardFor(r.index).gems.toLocaleString('th-TH')}
+                      {Object.entries(seasonRewardFor(r.index).pool).map(([k, n]) => (
+                        <span key={k}> · {POOL_MARKS[k]} {n}</span>
+                      ))}
+                    </dd>
+                  </div>
+                  <div className="ledger-row">
                     <dt>รางวัลครั้งแรกที่ไปถึง</dt>
                     <dd>
                       {reward ? (
@@ -127,6 +137,11 @@ export default function RankGuide() {
             )
           })}
         </div>
+
+        <p className="meta">
+          ฤดูกาลที่ {seasonIndex()} · เหลืออีก {daysLeft()} วันจาก {SEASON_DAYS} ·
+          จบแล้วแต้มจะเหลือ 45% ของเดิม และรางวัลปลายฤดูกาลส่งเข้ากล่องจดหมายตามแรงค์สูงสุดที่ไปถึง
+        </p>
 
         <p className="meta tiny">
           แต่ละแรงค์มีพื้นกันตก ร่วงต่ำกว่าพื้นของแรงค์ตัวเองไม่ได้
