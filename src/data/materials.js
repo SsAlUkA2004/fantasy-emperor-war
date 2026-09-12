@@ -1,4 +1,5 @@
 import { ENEMIES, getStage as getBaseStage } from './stages'
+import { FLOORS, floorStage } from './dungeon'
 
 const e = (id, level) => ({ id, level })
 
@@ -97,6 +98,10 @@ export function canAfford(bag, cost) {
  * ทุกหน้าจึงเรียกฟังก์ชันนี้แทน getStage เดิม
  */
 export function findStage(id) {
+  if (typeof id === 'string' && id.startsWith('d-')) {
+    const floor = Number(id.slice(2))
+    return floor >= 1 && floor <= FLOORS ? floorStage(floor) : null
+  }
   return getBaseStage(id) ?? MATERIAL_STAGES.find((s) => s.id === id) ?? null
 }
 

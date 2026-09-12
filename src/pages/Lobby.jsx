@@ -212,6 +212,10 @@ export default function Lobby() {
           ออกผจญภัย
         </Link>
 
+        <Link className="rune-link block" to="/dungeon">
+          ดันเจี้ยน
+        </Link>
+
         <Link className="rune-link block" to="/boss">
           บอสโลก
         </Link>

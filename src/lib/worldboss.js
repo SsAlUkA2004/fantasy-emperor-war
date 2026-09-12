@@ -22,6 +22,7 @@ import {
 } from '../data/worldboss'
 import { EMPTY_POOL } from '../data/exchange'
 import { isSameThaiDay, runsLeft } from './dayclock'
+import { addDrop } from './gear'
 
 const BOSS_DOC = () => doc(db, 'worldboss', 'current')
 
@@ -106,7 +107,10 @@ export async function submitDamage(player, week, rawDamage) {
     bossRunCount: sameDay ? (player.bossRunCount ?? 0) + 1 : 1,
   })
 
-  return result
+  // บอสโลกดรอปของสีม่วงถึงแดง เป็นแหล่งเดียวของสองสีนั้นนอกจากดันเจี้ยน
+  const drop = await addDrop(player.uid, 'worldboss', 5).catch(() => null)
+
+  return { ...result, drop }
 }
 
 export async function loadRanking(count = 30) {

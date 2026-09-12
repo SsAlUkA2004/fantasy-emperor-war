@@ -5,6 +5,7 @@ import { gainPlayerExp } from './leveling'
 import { isSameThaiDay, runsLeft } from './dayclock'
 import { STAGE_DROP_CHANCE, coinsForStage } from '../data/gear'
 import { addDrop } from './gear'
+import { RUNS_PER_DAY as DUNGEON_RUNS, ilvlForFloor } from '../data/dungeon'
 import { MATERIAL_IDS, MATERIAL_RUNS_PER_DAY, EMPTY_BAG } from '../data/materials'
 
 // ─────────────────────────────────────────────────────────────
@@ -61,6 +62,38 @@ export async function saveStageResult(player, stage, stars, exp) {
       gems: stage.gems,
       accountExp: stage.accountExp ?? 0,
       account,
+      runsLeft: left - 1,
+    }
+  }
+
+  // ───── ดันเจี้ยน ─────
+  // ผ่านชั้นใหม่ครั้งแรกได้อุปกรณ์แน่นอนหนึ่งชิ้น เล่นซ้ำได้เหรียญกับโอกาสดรอป
+  if (stage.dungeon) {
+    const left = runsLeft(player, DUNGEON_RUNS, 'dunRunAt', 'dunRunCount')
+    if (left <= 0) return { firstClear: false, gems: 0, account: null, quotaSpent: true }
+
+    const best = player.dungeonFloor ?? 0
+    const newFloor = stage.floor > best
+    const ilvl = ilvlForFloor(stage.floor)
+    const drop = newFloor || Math.random() < 0.5
+      ? await addDrop(player.uid, 'dungeon', ilvl).catch(() => null)
+      : null
+
+    const sameDay = isSameThaiDay(player.dunRunAt)
+    await updateDoc(doc(db, 'users', player.uid), {
+      coins: (player.coins ?? 0) + stage.coins,
+      dungeonFloor: Math.max(best, stage.floor),
+      dunRunAt: serverTimestamp(),
+      dunRunCount: sameDay ? (player.dunRunCount ?? 0) + 1 : 1,
+    })
+
+    return {
+      firstClear: newFloor,
+      gems: 0,
+      account: null,
+      coins: stage.coins,
+      drop,
+      newFloor,
       runsLeft: left - 1,
     }
   }

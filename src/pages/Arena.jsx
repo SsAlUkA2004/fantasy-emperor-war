@@ -13,6 +13,8 @@ import {
   defenseEntries,
   findOpponents,
   matchesLeft,
+  saveMatch,
+  simulate,
 } from '../lib/pvp'
 import { hoursUntilReset } from '../lib/dayclock'
 import { doc, updateDoc } from 'firebase/firestore'
@@ -25,6 +27,7 @@ export default function Arena() {
   const [foes, setFoes] = useState(null)
   const [peek, setPeek] = useState(null)
   const [rerolling, setRerolling] = useState(false)
+  const [quick, setQuick] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -56,6 +59,40 @@ export default function Arena() {
       setError('หาคู่แข่งใหม่ไม่สำเร็จ')
     }
     setRerolling(false)
+  }
+
+  /**
+   * ท้าแบบข้าม ตัดสินผลทันทีโดยไม่เข้าสนาม
+   *
+   * ใช้เครื่องยนต์ตัวเดียวกับการเข้าไปเล่นเอง ต่างกันแค่ไม่วาดหน้าจอระหว่างทาง
+   * มีไว้สำหรับคนที่ต้องการเก็บโควตาสิบครั้งต่อวันให้ครบโดยไม่ต้องนั่งดู
+   */
+  async function quickFight(foe) {
+    const defense = defenseEntries(foe)
+    if (!defense.length) {
+      setError(`${foe.username} ยังไม่ได้ตั้งทีมรับ ยังท้าไม่ได้`)
+      return
+    }
+    if (!myTeam.length) {
+      setError('ต้องจัดทีมบุกก่อนจึงจะประลองได้')
+      return
+    }
+
+    setBusy(true)
+    setError(null)
+    try {
+      const state = simulate(myTeam, defense, foe.username)
+      const won = state.outcome === 'won'
+      const saved = await saveMatch({ ...player, uid: user.uid }, foe, won)
+      setQuick({ won, foe, log: state.log.slice(-6), decidedByHp: state.decidedByHp, ...saved })
+      await refresh()
+      setFoes(
+        await findOpponents({ ...player, uid: user.uid, pvpPoints: saved.points }, teamPower(myTeam))
+      )
+    } catch {
+      setError('บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
+    }
+    setBusy(false)
   }
 
   // เข้าแมตช์แล้วเล่นเองหรือกดออโต้ก็ได้ ผลบันทึกที่หน้านั้น
@@ -180,7 +217,14 @@ export default function Arena() {
                   disabled={busy || left === 0 || !d.length}
                   onClick={() => fight(foe)}
                 >
-                  ท้า
+                  เข้าสู้
+                </button>
+                <button
+                  className="rune-link"
+                  disabled={busy || left === 0 || !d.length}
+                  onClick={() => quickFight(foe)}
+                >
+                  ข้าม
                 </button>
                 <button
                   className="plain-link inline"
@@ -227,7 +271,43 @@ export default function Arena() {
       </div>
 
       {peek && <DefensePeek foe={peek} onClose={() => setPeek(null)} />}
+      {quick && <QuickResult result={quick} onClose={() => setQuick(null)} />}
 
     </main>
+  )
+}
+
+/** สรุปผลของการท้าแบบข้าม */
+function QuickResult({ result, onClose }) {
+  return (
+    <div className="veil" role="dialog" aria-modal="true">
+      <section className="panel popup" data-outcome={result.won ? 'won' : 'lost'}>
+        <div className="panel-head">{result.won ? 'ชนะการประลอง' : 'พ่ายแพ้'}</div>
+        <p className="meta">คู่แข่ง {result.foe.username}</p>
+        {result.decidedByHp && <p className="meta">ตัดสินด้วยเลือดที่เหลือเมื่อครบรอบ</p>}
+
+        <p className="stars">
+          <span className={result.delta > 0 ? 'delta up' : 'delta down'}>
+            {result.delta > 0 ? '+' : ''}
+            {result.delta}
+          </span>
+        </p>
+        <p>
+          ตอนนี้ {rankLabel(result.points)} · {result.points} แต้ม
+        </p>
+
+        <div className="log pvp-log">
+          {result.log.map((line, i) => (
+            <p key={i} data-kind={line.kind}>
+              {line.text}
+            </p>
+          ))}
+        </div>
+
+        <button className="rune-link block primary" onClick={onClose}>
+          ปิด
+        </button>
+      </section>
+    </div>
   )
 }

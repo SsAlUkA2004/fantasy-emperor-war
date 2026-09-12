@@ -174,6 +174,7 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
           {reward?.account?.gained > 0 && (
             <p className="levelup">เลเวลผู้เล่นขึ้นเป็น {reward.account.level}</p>
           )}
+          {reward?.newFloor && <p className="levelup">พิชิตชั้นใหม่ได้แล้ว</p>}
           {reward?.coins > 0 && <p>ได้เหรียญ {reward.coins.toLocaleString('th-TH')}</p>}
           {reward?.drop && (
             <p className="levelup" style={{ color: GRADES[reward.drop.grade].color }}>
