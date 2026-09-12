@@ -32,6 +32,33 @@ export const TITLES = [
   { index: 6, name: 'ผู้ก้าวข้ามมนุษย์', requires: 6 },
 ]
 
+/**
+ * รางวัลที่ได้ครั้งเดียวเมื่อไต่ถึงแรงค์นั้นเป็นครั้งแรก
+ *
+ * ผูกกับแรงค์สูงสุดที่เคยไปถึง ไม่ใช่แรงค์ปัจจุบัน
+ * ตกลงมาแล้วรางวัลไม่ถูกยึดคืน และไต่ขึ้นไปใหม่ก็ไม่ได้ซ้ำ
+ */
+export const RANK_REWARDS = {
+  1: { gems: 300, pool: {} },
+  2: { gems: 600, pool: { SR: 20 } },
+  3: { gems: 1000, pool: { SR: 40 } },
+  4: { gems: 1500, pool: { SSR: 50 } },
+  5: { gems: 2200, pool: { SSR: 100 } },
+  6: { gems: 3000, pool: { SSR: 150 } },
+}
+
+export function rewardFor(rankIndex) {
+  return RANK_REWARDS[rankIndex] ?? null
+}
+
+/** แรงค์ที่ไปถึงแล้วแต่ยังไม่ได้กดรับรางวัล */
+export function claimableRanks(highestRank = 0, claimed = []) {
+  return Object.keys(RANK_REWARDS)
+    .map(Number)
+    .filter((i) => i <= highestRank && !claimed.includes(i))
+    .sort((a, b) => a - b)
+}
+
 export function rankOf(points = 0) {
   return [...RANKS].reverse().find((r) => points >= r.min) ?? RANKS[0]
 }

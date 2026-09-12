@@ -14,6 +14,7 @@ import Shop from './pages/Shop'
 import Arena from './pages/Arena'
 import Leaderboard from './pages/Leaderboard'
 import Exchange from './pages/Exchange'
+import RankGuide from './pages/RankGuide'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/arena" element={<Gate><Arena /></Gate>} />
           <Route path="/leaderboard" element={<Gate><Leaderboard /></Gate>} />
           <Route path="/exchange" element={<Gate><Exchange /></Gate>} />
+          <Route path="/ranks" element={<Gate><RankGuide /></Gate>} />
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

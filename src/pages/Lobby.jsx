@@ -7,7 +7,7 @@ import { expToNext, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { entryStats, entryLevelCap } from '../lib/stats'
 import { entryPower, teamPower, formatPower } from '../lib/power'
 import { effectiveRarity, awakenName } from '../data/ascension'
-import { titlesFor, TITLES } from '../data/ranks'
+import { titlesFor, TITLES, claimableRanks } from '../data/ranks'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
@@ -210,6 +210,8 @@ export default function Lobby() {
 
         <Link className="rune-link block" to="/arena">
           ประลอง
+          {claimableRanks(player.highestRank ?? 0, player.claimedRanks ?? []).length > 0 &&
+            ' · มีรางวัลรอรับ'}
         </Link>
 
         <div className="gate">

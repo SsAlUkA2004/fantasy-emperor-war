@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS, TEAM_SIZE } from '../data/characters'
-import { MATCHES_PER_DAY, rankLabel, rankOf, titleName, titlesFor } from '../data/ranks'
+import { MATCHES_PER_DAY, claimableRanks, rankLabel, rankOf, titleName, titlesFor } from '../data/ranks'
+import { entryLevelCap } from '../lib/stats'
+import { effectiveRarity, awakenName } from '../data/ascension'
+import { ROLES } from '../data/characters'
 import { loadCollection } from '../lib/player'
 import { teamPower, entryPower, formatPower } from '../lib/power'
 import {
@@ -22,6 +25,8 @@ export default function Arena() {
   const [roster, setRoster] = useState(null)
   const [foes, setFoes] = useState(null)
   const [result, setResult] = useState(null)
+  const [peek, setPeek] = useState(null)
+  const [rerolling, setRerolling] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -43,6 +48,17 @@ export default function Arena() {
   const attackIds = (player.pvpTeam?.length ? player.pvpTeam : player.team) ?? []
   const myTeam = roster ? attackIds.map((id) => roster.find((o) => o.id === id)).filter(Boolean) : []
   const usingFallback = !player.pvpTeam?.length
+
+  async function reroll() {
+    setRerolling(true)
+    setError(null)
+    try {
+      setFoes(await findOpponents({ ...player, uid: user.uid }, teamPower(myTeam)))
+    } catch {
+      setError('หาคู่แข่งใหม่ไม่สำเร็จ')
+    }
+    setRerolling(false)
+  }
 
   async function fight(foe) {
     const defense = defenseEntries(foe)
@@ -145,7 +161,12 @@ export default function Arena() {
           ต้องเข้าไปกดบันทึกใหม่
         </p>
 
-        <h2 className="section-title">คู่แข่ง</h2>
+        <div className="roster-head">
+          <h2 className="section-title flush">คู่แข่ง</h2>
+          <button className="plain-link inline" onClick={reroll} disabled={rerolling || busy}>
+            {rerolling ? 'กำลังหา' : '↻ หาคู่ใหม่'}
+          </button>
+        </div>
         {left === 0 && (
           <p className="meta">ครบโควตาวันนี้แล้ว รีเซ็ตอีก {hoursUntilReset()} ชั่วโมง</p>
         )}
@@ -170,13 +191,22 @@ export default function Arena() {
                   {d.length ? `⚔ ${formatPower(power)} · ตั้งรับ ${d.length} ตัว` : 'ยังไม่ได้ตั้งทีมรับ'}
                 </p>
               </div>
-              <button
-                className="rune-link"
-                disabled={busy || left === 0 || !d.length}
-                onClick={() => fight(foe)}
-              >
-                ท้า
-              </button>
+              <div className="card-actions">
+                <button
+                  className="rune-link"
+                  disabled={busy || left === 0 || !d.length}
+                  onClick={() => fight(foe)}
+                >
+                  ท้า
+                </button>
+                <button
+                  className="plain-link inline"
+                  disabled={!d.length}
+                  onClick={() => setPeek(foe)}
+                >
+                  ดูทีม
+                </button>
+              </div>
             </div>
           )
         })}
@@ -201,6 +231,9 @@ export default function Arena() {
         </div>
 
         <div className="gate">
+          <Link className="rune-link" to="/ranks">
+            แรงค์และรางวัล
+          </Link>
           <Link className="rune-link" to="/leaderboard">
             กระดานอันดับ
           </Link>
@@ -210,8 +243,63 @@ export default function Arena() {
         </div>
       </div>
 
+      {peek && <DefensePeek foe={peek} onClose={() => setPeek(null)} />}
       {result && <MatchResult result={result} onClose={() => setResult(null)} />}
     </main>
+  )
+}
+
+/** ดูทีมตั้งรับของคู่แข่งก่อนตัดสินใจท้า */
+function DefensePeek({ foe, onClose }) {
+  const team = defenseEntries(foe)
+  const total = team.reduce((s, e) => s + entryPower(e), 0)
+
+  return (
+    <div className="veil" role="dialog" aria-modal="true">
+      <section className="panel popup peek-popup">
+        <div className="panel-head">ทีมตั้งรับของ {foe.username}</div>
+        <p className="meta">
+          {rankOf(foe.pvpPoints ?? 0).mark} {rankLabel(foe.pvpPoints ?? 0)} · ⚔{' '}
+          {formatPower(total)}
+        </p>
+
+        <div className="peek-team">
+          {team.map((e, i) => {
+            const c = CHARACTERS[e.id]
+            if (!c) return null
+            return (
+              <div className="card peek-unit" key={i}>
+                <span className="card-mark">{ELEMENTS[c.element].mark}</span>
+                <div className="card-body">
+                  <h3>
+                    {c.name}
+                    <span
+                      className="rarity"
+                      data-rarity={effectiveRarity(e.id, e.tier)}
+                      data-upgraded={(e.tier ?? 0) > 0}
+                    >
+                      {effectiveRarity(e.id, e.tier)}
+                    </span>
+                    {(e.awaken ?? 0) > 0 && (
+                      <span className="awaken-tag">{awakenName(e.awaken)}</span>
+                    )}
+                  </h3>
+                  <p className="meta">
+                    {ROLES[c.role]} · เลเวล {e.level}/{entryLevelCap(e.id, e)} ·{' '}
+                    {'★'.repeat(e.star ?? 1)}
+                  </p>
+                  <p className="meta cp">⚔ {formatPower(entryPower(e))}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <button className="rune-link block primary" onClick={onClose}>
+          ปิด
+        </button>
+      </section>
+    </div>
   )
 }
 

@@ -2167,3 +2167,82 @@ a {
   border-color: var(--gold);
   background: rgba(36, 27, 79, 0.9);
 }
+
+/* ───────── หน้าแรงค์และรางวัล ───────── */
+
+.rank-list {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.rank-row {
+  padding: 1rem 1.1rem;
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.2);
+}
+
+.rank-row[data-now='true'] {
+  border-color: var(--gold);
+  background: rgba(36, 27, 79, 0.9);
+}
+
+.rank-row[data-locked='true'] {
+  opacity: 0.55;
+}
+
+.rank-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.rank-mark {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex: none;
+}
+
+.rank-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.rank-title h3 {
+  margin: 0 0 0.1rem;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+}
+
+.rank-ledger {
+  margin-top: 0.75rem;
+  border-top: none;
+}
+
+.rank-ledger .ledger-row {
+  padding: 0.5rem 0;
+}
+
+/* ดูทีมคู่แข่ง */
+
+.peek-popup {
+  max-width: 26rem;
+  text-align: left;
+}
+
+.peek-popup .panel-head {
+  justify-content: flex-start;
+}
+
+.peek-team {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.peek-unit {
+  margin-bottom: 0;
+}
