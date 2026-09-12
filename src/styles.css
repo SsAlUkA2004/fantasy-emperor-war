@@ -2061,3 +2061,109 @@ a {
   padding: 0 0.35rem;
   margin-left: 0.45rem;
 }
+
+/* ───────── เฟส 9: ฉายา ระดับ และค่าพลังรวม ───────── */
+
+.title-line {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: var(--display);
+  font-size: 0.95rem;
+  color: var(--gold);
+  cursor: pointer;
+}
+
+.title-edit {
+  font-family: var(--body);
+  font-size: 0.68rem;
+  color: var(--rune);
+  border: 1px solid rgba(111, 214, 200, 0.4);
+  padding: 0 0.35rem;
+}
+
+.title-picker {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.25);
+}
+
+.title-chip:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cp-team {
+  font-family: var(--body);
+  font-size: 0.72rem;
+  color: var(--parchment-dim);
+  margin-left: 0.35rem;
+}
+
+/* ระดับหายาก แยกสีตามระดับ และแยกตัวที่ยกระดับขึ้นมา */
+
+.rarity[data-rarity='R'] {
+  color: var(--parchment-dim);
+  border-color: rgba(167, 159, 140, 0.45);
+}
+
+.rarity[data-rarity='SR'] {
+  color: var(--rune);
+  border-color: rgba(111, 214, 200, 0.5);
+}
+
+.rarity[data-rarity='SSR'] {
+  color: var(--gold-bright);
+  border-color: rgba(200, 164, 77, 0.65);
+}
+
+/* ตัวที่ยกระดับมาใช้สีม่วงอมชมพู ต่างจากตัวที่เกิดมาเป็นระดับนั้นชัดเจน */
+.rarity[data-upgraded='true'] {
+  color: #d79ae0;
+  border-color: rgba(215, 154, 224, 0.6);
+  background: rgba(215, 154, 224, 0.1);
+}
+
+.up-mark {
+  margin-left: 0.15rem;
+  font-size: 0.85em;
+}
+
+.awaken-tag {
+  font-family: var(--body);
+  font-size: 0.68rem;
+  color: #e8cE85;
+  border: 1px solid rgba(232, 206, 133, 0.5);
+  background: rgba(232, 206, 133, 0.1);
+  padding: 0 0.35rem;
+}
+
+/* ร้านค้า เลือกจำนวน */
+
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.9rem;
+}
+
+.qty-chip {
+  font-family: var(--display);
+  font-size: 0.9rem;
+  padding: 0.3rem 0.8rem;
+  color: var(--parchment-dim);
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.25);
+  cursor: pointer;
+}
+
+.qty-chip[data-active='true'] {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(36, 27, 79, 0.9);
+}

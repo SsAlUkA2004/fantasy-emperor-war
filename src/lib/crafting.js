@@ -13,20 +13,23 @@ import { awakenCost, tierCost } from '../data/ascension'
  * ซื้อของจากร้าน
  * ราคาทั้งหมดอ่านจากรายการ SHOP ซึ่งกฎฝั่งเซิร์ฟเวอร์ก็ตรวจตัวเลขชุดเดียวกัน
  */
-export async function buy(player, skuId) {
+export async function buy(player, skuId, qty = 1) {
   const sku = SHOP.find((s) => s.id === skuId)
   if (!sku) throw new Error('ไม่พบสินค้านี้')
-  if (player.gems < sku.price) throw new Error('เพชรไม่พอ')
+
+  const count = Math.max(1, Math.min(99, Math.floor(qty)))
+  const price = sku.price * count
+  if (player.gems < price) throw new Error('เพชรไม่พอ')
 
   const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
-  bag[sku.material] = (bag[sku.material] ?? 0) + sku.amount
+  bag[sku.material] = (bag[sku.material] ?? 0) + sku.amount * count
 
   await updateDoc(doc(db, 'users', player.uid), {
-    gems: player.gems - sku.price,
+    gems: player.gems - price,
     materials: bag,
   })
 
-  return { material: sku.material, amount: sku.amount, price: sku.price }
+  return { material: sku.material, amount: sku.amount * count, price, count }
 }
 
 /**

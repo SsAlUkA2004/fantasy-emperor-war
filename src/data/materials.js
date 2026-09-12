@@ -58,6 +58,8 @@ export const MATERIAL_STAGES = [
  * สินค้าในร้าน ราคาตายตัวทั้งหมด
  * กฎอ่านราคาจากรายการเดียวกันนี้ ผู้เล่นจึงตั้งราคาเองไม่ได้
  */
+export const BULK_OPTIONS = [1, 10, 99]
+
 export const SHOP = [
   { id: 'ore50', material: 'ore', amount: 50, price: 200 },
   { id: 'scroll10', material: 'scroll', amount: 10, price: 400 },

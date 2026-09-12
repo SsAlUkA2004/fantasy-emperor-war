@@ -6,7 +6,10 @@ import { getCharacter, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
 import { expToNext, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { entryStats, entryLevelCap } from '../lib/stats'
 import { entryPower, teamPower, formatPower } from '../lib/power'
-import { effectiveRarity } from '../data/ascension'
+import { effectiveRarity, awakenName } from '../data/ascension'
+import { titlesFor, TITLES } from '../data/ranks'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '../firebase'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
@@ -22,7 +25,8 @@ function statRows(entry) {
 }
 
 export default function Lobby() {
-  const { user, player } = usePlayer()
+  const [pickingTitle, setPickingTitle] = useState(false)
+  const { user, player, refresh } = usePlayer()
   const [owned, setOwned] = useState(null)
 
   useEffect(() => {
@@ -44,7 +48,10 @@ export default function Lobby() {
               {rankOf(player.pvpPoints ?? 0).mark} {rankLabel(player.pvpPoints ?? 0)} ·{' '}
               {player.pvpPoints ?? 0} แต้ม
             </p>
-            <p className="meta title-line">{titleName(player.titleIndex ?? 0)}</p>
+            <button className="title-line" onClick={() => setPickingTitle((v) => !v)}>
+              {titleName(player.titleIndex ?? 0)}
+              <span className="title-edit">เปลี่ยน</span>
+            </button>
 
             <div className="level-block">
               <div className="level-line">
@@ -86,14 +93,41 @@ export default function Lobby() {
               <span className="gem">◆</span>
               {player.gems.toLocaleString('th-TH')}
             </div>
-            {active && (
+            {owned && (
               <div className="purse cp-big">
                 <span className="cp-mark">⚔</span>
-                {formatPower(teamPower(active))}
+                {formatPower(teamPower(owned))}
+                <span className="cp-team">(ทีม {formatPower(teamPower(active ?? []))})</span>
               </div>
             )}
           </div>
         </header>
+
+        {pickingTitle && (
+          <div className="title-picker">
+            <p className="meta tiny">ปลดล็อกตามแรงค์สูงสุดที่เคยไปถึง</p>
+            <div className="title-grid">
+              {TITLES.map((t) => {
+                const open = t.requires <= (player.highestRank ?? 0)
+                return (
+                  <button
+                    key={t.index}
+                    className="title-chip"
+                    data-active={(player.titleIndex ?? 0) === t.index}
+                    disabled={!open}
+                    onClick={async () => {
+                      await updateDoc(doc(db, 'users', user.uid), { titleIndex: t.index })
+                      await refresh()
+                      setPickingTitle(false)
+                    }}
+                  >
+                    {open ? t.name : 'ยังไม่ปลดล็อก'}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         <section className="roster">
           <div className="roster-head">
@@ -116,7 +150,22 @@ export default function Lobby() {
                 <div className="card-body">
                   <h3>
                     {c.name}
-                    <span className="rarity">{effectiveRarity(entry.id, entry.tier)}</span>
+                    <span
+                      className="rarity"
+                      data-rarity={effectiveRarity(entry.id, entry.tier)}
+                      data-upgraded={(entry.tier ?? 0) > 0}
+                      title={
+                        (entry.tier ?? 0) > 0
+                          ? `ยกระดับมาจาก ${c.rarity}`
+                          : 'ระดับตั้งต้นจากกาชา'
+                      }
+                    >
+                      {effectiveRarity(entry.id, entry.tier)}
+                      {(entry.tier ?? 0) > 0 && <span className="up-mark">↑</span>}
+                    </span>
+                    {(entry.awaken ?? 0) > 0 && (
+                      <span className="awaken-tag">{awakenName(entry.awaken)}</span>
+                    )}
                   </h3>
                   <p className="meta">
                     {ROLES[c.role]} · เลเวล {entry.level} · {'★'.repeat(entry.star)} ·{' '}

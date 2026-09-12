@@ -53,12 +53,16 @@ export async function removeFriend(uid, friendUid) {
 export async function loadFriends(uid) {
   const snap = await getDocs(collection(db, 'users', uid, 'friends'))
 
-  const profiles = await Promise.all(
+  // ใช้ allSettled ไม่ใช่ all
+  // ถ้าอ่านข้อมูลเพื่อนคนหนึ่งไม่สำเร็จ รายชื่อทั้งหมดไม่ควรหายไปด้วย
+  const results = await Promise.allSettled(
     snap.docs.map(async (d) => {
       const live = await getDoc(doc(db, 'users', d.id))
-      return live.exists() ? { uid: d.id, ...live.data() } : null
+      return live.exists()
+        ? { uid: d.id, ...live.data() }
+        : { uid: d.id, username: d.data().username ?? 'ไม่พบข้อมูล', missing: true }
     })
   )
 
-  return profiles.filter(Boolean)
+  return results.filter((r) => r.status === 'fulfilled').map((r) => r.value)
 }

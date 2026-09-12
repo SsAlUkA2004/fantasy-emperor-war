@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
-import { MATERIALS, MATERIAL_IDS, SHOP, EMPTY_BAG } from '../data/materials'
+import { MATERIALS, MATERIAL_IDS, SHOP, EMPTY_BAG, BULK_OPTIONS } from '../data/materials'
 import { buy } from '../lib/crafting'
 
 export default function Shop() {
   const { user, player, refresh } = usePlayer()
+  const [qty, setQty] = useState(1)
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [done, setDone] = useState(null)
@@ -17,7 +18,7 @@ export default function Shop() {
     setError(null)
     setDone(null)
     try {
-      const r = await buy({ ...player, uid: user.uid }, sku.id)
+      const r = await buy({ ...player, uid: user.uid }, sku.id, qty)
       setDone(r)
       await refresh()
     } catch (err) {
@@ -59,15 +60,30 @@ export default function Shop() {
         )}
 
         <h2 className="section-title">สินค้า</h2>
+
+        <div className="qty-row">
+          <span className="meta">ซื้อครั้งละ</span>
+          {BULK_OPTIONS.map((n) => (
+            <button
+              key={n}
+              className="qty-chip"
+              data-active={qty === n}
+              onClick={() => setQty(n)}
+            >
+              ×{n}
+            </button>
+          ))}
+        </div>
         {SHOP.map((sku) => {
           const m = MATERIALS[sku.material]
-          const poor = player.gems < sku.price
+          const total = sku.price * qty
+          const poor = player.gems < total
           return (
             <div className="card shop-row" key={sku.id}>
               <span className="card-mark">{m.mark}</span>
               <div className="card-body">
                 <h3>
-                  {m.name} ×{sku.amount}
+                  {m.name} ×{(sku.amount * qty).toLocaleString('th-TH')}
                 </h3>
                 <p className="meta">{m.desc}</p>
               </div>
@@ -76,7 +92,7 @@ export default function Shop() {
                 disabled={busy === sku.id || poor}
                 onClick={() => purchase(sku)}
               >
-                ◆ {sku.price}
+                ◆ {total.toLocaleString('th-TH')}
               </button>
             </div>
           )

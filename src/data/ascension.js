@@ -17,6 +17,13 @@ import { CHARACTERS, RARITIES } from './characters'
 export const MAX_TIER = 2
 export const MAX_AWAKEN = 3
 
+/** ชื่อของแต่ละขั้นปลุกร่าง ใช้แสดงแทนตัวเลขเปล่า ๆ */
+export const AWAKEN_NAMES = ['', 'ตื่นรู้', 'แปรสภาพ', 'อุบัติใหม่']
+
+export function awakenName(level = 0) {
+  return AWAKEN_NAMES[level] ?? ''
+}
+
 /** ยกระดับหนึ่งขั้น ค่าพลังพื้นฐานคูณเพิ่มเท่านี้ */
 export const TIER_BOOST = 1.35
 

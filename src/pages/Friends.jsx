@@ -11,6 +11,15 @@ function furthestStage(progress = {}) {
   return cleared.length ? cleared[cleared.length - 1].id : 'ยังไม่ผ่านด่านใด'
 }
 
+/** บอกสาเหตุจริงออกมา ไม่ใช่ข้อความกว้าง ๆ ที่ตามต่อไม่ได้ */
+function explain(what, err) {
+  if (err?.code === 'permission-denied') {
+    return `${what} เพราะกฎความปลอดภัยปฏิเสธคำขอ ให้เอาไฟล์ firestore.rules ล่าสุดไปวางใน Firebase Console แล้วกด Publish`
+  }
+  if (err?.code === 'unavailable') return `${what} เพราะต่ออินเทอร์เน็ตไม่ได้`
+  return `${what} (${err?.code || 'ไม่ทราบสาเหตุ'})`
+}
+
 export default function Friends() {
   const { user, player } = usePlayer()
   const [friends, setFriends] = useState(null)
@@ -20,7 +29,12 @@ export default function Friends() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    loadFriends(user.uid).then(setFriends)
+    loadFriends(user.uid)
+      .then(setFriends)
+      .catch((err) => {
+        setFriends([])
+        setError(explain('อ่านรายชื่อเพื่อนไม่สำเร็จ', err))
+      })
   }, [user.uid])
 
   async function search() {
@@ -35,20 +49,37 @@ export default function Friends() {
     setBusy(false)
   }
 
+  // เดิมฟังก์ชันนี้ไม่มีการดักข้อผิดพลาดเลย
+  // เวลากฎปฏิเสธคำขอ หน้าจอจึงเงียบสนิท กดแล้วไม่มีอะไรเกิดขึ้น
+  // และไม่มีทางรู้ว่าติดตรงไหน ซึ่งคืออาการที่เจอ
   async function add(target) {
     if (target.uid === user.uid) {
       setError('เพิ่มตัวเองเป็นเพื่อนไม่ได้')
       return
     }
-    await addFriend(user.uid, target)
-    setFound(undefined)
-    setTerm('')
-    setFriends(await loadFriends(user.uid))
+    setBusy(true)
+    setError(null)
+    try {
+      await addFriend(user.uid, target)
+      setFound(undefined)
+      setTerm('')
+      setFriends(await loadFriends(user.uid))
+    } catch (err) {
+      setError(explain('เพิ่มเพื่อนไม่สำเร็จ', err))
+    }
+    setBusy(false)
   }
 
   async function drop(uid) {
-    await removeFriend(user.uid, uid)
-    setFriends(await loadFriends(user.uid))
+    setBusy(true)
+    setError(null)
+    try {
+      await removeFriend(user.uid, uid)
+      setFriends(await loadFriends(user.uid))
+    } catch (err) {
+      setError(explain('ลบเพื่อนไม่สำเร็จ', err))
+    }
+    setBusy(false)
   }
 
   const already = (uid) => friends?.some((f) => f.uid === uid)
