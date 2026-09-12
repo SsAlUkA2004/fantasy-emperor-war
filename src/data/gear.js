@@ -111,6 +111,42 @@ export function coinsForStage(chapter = 1) {
   return 40 + (chapter - 1) * 55
 }
 
+/**
+ * เพดานตีบวกผูกกับเลเวลผู้เล่น
+ *
+ * ผู้เล่นเลเวล 10 ตีบวกได้สูงสุด +10 จึงเป็นเหตุผลให้ดันเลเวลผู้เล่นต่อ
+ * ซึ่งขึ้นจากของที่จำกัดต่อวันเท่านั้น อุปกรณ์แรง ๆ จึงเร่งด้วยการนั่งฟาร์มไม่ได้
+ */
+export const HARD_PLUS_CAP = 30
+
+export function maxPlus(playerLevel = 1) {
+  return Math.min(HARD_PLUS_CAP, Math.max(0, playerLevel))
+}
+
+/**
+ * ค่าตีบวกขั้นถัดไป
+ *
+ * แพงขึ้นแบบเร่ง ไม่ใช่เชิงเส้น เพราะของชิ้นดีที่บวกสูงควรเป็นเป้าหมายระยะยาว
+ * และผูกกับสีและระดับไอเทม ของดีจึงแพงกว่าของธรรมดาที่บวกเท่ากัน
+ */
+export const ENHANCE_BASE = 45
+
+export function enhanceCost(gear) {
+  if (!gear) return 0
+  const next = (gear.plus ?? 0) + 1
+  const grade = GRADES[gear.grade]?.mult ?? 1
+  return Math.round(ENHANCE_BASE * Math.pow(next, 1.6) * grade * (gear.ilvl ?? 1))
+}
+
+/** หีบอุปกรณ์ในร้าน ซื้อด้วยเหรียญ ระดับไอเทมต้องผ่านบทนั้นมาก่อน */
+export const GEAR_BOXES = [
+  { id: 'box1', name: 'หีบอุปกรณ์ชายแดน', ilvl: 1, price: 600, requires: '1-6' },
+  { id: 'box2', name: 'หีบอุปกรณ์ป่าหมอก', ilvl: 2, price: 1600, requires: '2-6' },
+  { id: 'box3', name: 'หีบอุปกรณ์ทะเลทราย', ilvl: 3, price: 3400, requires: '3-6' },
+  { id: 'box4', name: 'หีบอุปกรณ์ยอดเขา', ilvl: 4, price: 6200, requires: '4-6' },
+  { id: 'box5', name: 'หีบอุปกรณ์ปราการเงา', ilvl: 5, price: 10500, requires: '5-6' },
+]
+
 export function gearName(gear) {
   if (!gear) return ''
   return `${SLOTS[gear.slot].name}${GRADES[gear.grade].name}`

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS } from '../data/characters'
-import { GRADES, SLOTS, SLOT_IDS, gearStat } from '../data/gear'
+import { GRADES, SLOTS, SLOT_IDS, enhanceCost, gearStat, maxPlus } from '../data/gear'
 import { loadCollection } from '../lib/player'
-import { equip, loadGear, sell, sellAll, unequip } from '../lib/gear'
+import { enhance, equip, loadGear, sell, sellAll, unequip } from '../lib/gear'
 import { entryPower, formatPower } from '../lib/power'
 
 export default function Gear() {
@@ -29,6 +29,7 @@ export default function Gear() {
     reload().catch(() => setError('อ่านอุปกรณ์ไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
   }, [user.uid])
 
+  const cap = maxPlus(player.playerLevel ?? 1)
   const target = roster?.find((c) => c.id === who) ?? null
   const wearing = gear?.filter((g) => g.equippedBy === who) ?? []
 
@@ -60,9 +61,12 @@ export default function Gear() {
             <h1>อุปกรณ์</h1>
             <p className="meta">มีทั้งหมด {gear?.length ?? 0} ชิ้น</p>
           </div>
-          <div className="purse coin">
-            <span className="coin-mark">⛁</span>
-            {(player.coins ?? 0).toLocaleString('th-TH')}
+          <div className="purse-stack">
+            <div className="purse coin">
+              <span className="coin-mark">⛁</span>
+              {(player.coins ?? 0).toLocaleString('th-TH')}
+            </div>
+            <span className="meta tiny">ตีบวกได้ถึง +{cap}</span>
           </div>
         </header>
 
@@ -178,6 +182,19 @@ export default function Gear() {
                   {owner && <p className="meta cp">สวมอยู่กับ {owner.name}</p>}
                 </div>
                 <div className="card-actions">
+                  <button
+                    className="plain-link inline"
+                    disabled={
+                      busy === g.id ||
+                      (g.plus ?? 0) >= cap ||
+                      (player.coins ?? 0) < enhanceCost(g)
+                    }
+                    onClick={() => run(g.id, () => enhance({ ...player, uid: user.uid }, g))}
+                  >
+                    {(g.plus ?? 0) >= cap
+                      ? `สุด +${cap}`
+                      : `+1 · ⛁${enhanceCost(g).toLocaleString('th-TH')}`}
+                  </button>
                   {who && !g.equippedBy && (
                     <button
                       className="plain-link inline"

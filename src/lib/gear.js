@@ -9,7 +9,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { GRADES, SLOT_IDS, rollGear } from '../data/gear'
+import { GEAR_BOXES, GRADES, SLOT_IDS, enhanceCost, maxPlus, rollGear } from '../data/gear'
 
 const bag = (uid) => collection(db, 'users', uid, 'gear')
 
@@ -86,6 +86,50 @@ export async function sellAll(player, list) {
   await batch.commit()
 
   return { count: sellable.length, gained }
+}
+
+/**
+ * ตีบวกอุปกรณ์หนึ่งขั้น
+ *
+ * สำเร็จเสมอ ไม่มีการสุ่มล้มเหลว ราคาที่จ่ายคือความชันของค่าใช้จ่ายแทน
+ * ระบบสุ่มล้มเหลวทำให้ผู้เล่นเสียของโดยไม่ได้อะไรกลับมา ซึ่งน่าหงุดหงิดกว่าที่มันคุ้ม
+ */
+export async function enhance(player, gear) {
+  const cap = maxPlus(player.playerLevel ?? 1)
+  const now = gear.plus ?? 0
+  if (now >= cap) throw new Error(`ตีบวกได้สูงสุด +${cap} ตามเลเวลผู้เล่น`)
+
+  const cost = enhanceCost(gear)
+  if ((player.coins ?? 0) < cost) throw new Error('เหรียญไม่พอ')
+
+  const batch = writeBatch(db)
+  batch.update(doc(bag(player.uid), gear.id), { plus: now + 1 })
+  batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) - cost })
+  await batch.commit()
+
+  return { plus: now + 1, cost }
+}
+
+/** ซื้อหีบอุปกรณ์ด้วยเหรียญ ได้ของสุ่มหนึ่งชิ้นตามระดับของหีบ */
+export async function buyBox(player, boxId) {
+  const box = GEAR_BOXES.find((b) => b.id === boxId)
+  if (!box) throw new Error('ไม่พบหีบนี้')
+  if ((player.coins ?? 0) < box.price) throw new Error('เหรียญไม่พอ')
+
+  const gear = rollGear('stage', box.ilvl)
+  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+
+  const batch = writeBatch(db)
+  batch.set(doc(bag(player.uid), id), {
+    ...gear,
+    source: 'shop',
+    equippedBy: null,
+    obtainedAt: serverTimestamp(),
+  })
+  batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) - box.price })
+  await batch.commit()
+
+  return { id, ...gear }
 }
 
 export { SLOT_IDS }
