@@ -2,6 +2,7 @@ import { doc, getDoc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { BY_RARITY, CHARACTERS } from '../data/characters'
 import { MAX_STAR } from './leveling'
+import { EMPTY_POOL, SHARDS_PER_DUPE } from '../data/exchange'
 
 export const PULL_COST = 100
 export const TEN_PULL_COST = 900
@@ -11,7 +12,8 @@ export const RATES = { R: 0.79, SR: 0.18, SSR: 0.03 }
 export const PITY_SR = 10 // ครบ 10 ครั้งได้ SR ขึ้นไปแน่นอน
 export const PITY_SSR = 60 // ครบ 60 ครั้งได้ SSR แน่นอน
 
-export const SHARDS_PER_DUPE = { R: 5, SR: 20, SSR: 50 }
+export { SHARDS_PER_DUPE }
+
 export const STAR_COST = { 2: 15, 3: 30, 4: 60, 5: 120 }
 
 /**
@@ -84,6 +86,7 @@ export async function pull(player, count) {
 
   const batch = writeBatch(db)
   const summary = []
+  const pool = { ...EMPTY_POOL, ...(player.shardPool ?? {}) }
 
   results.forEach(({ id, rarity }) => {
     const ref = doc(db, 'users', uid, 'collection', id)
@@ -93,8 +96,11 @@ export async function pull(player, count) {
       batch.set(ref, { ...owned[id], obtainedAt: serverTimestamp() })
       summary.push({ id, rarity, isNew: true })
     } else {
+      // ตัวซ้ำให้ทั้งชิ้นส่วนของตัวเอง (ไว้หลอมดาว)
+      // และเศษวิญญาณกลาง (ไว้แลกตัวที่ยังไม่มีในหอแลกเปลี่ยน)
       const gain = SHARDS_PER_DUPE[rarity]
       owned[id].shards += gain
+      pool[rarity] = (pool[rarity] ?? 0) + gain
       batch.update(ref, { shards: owned[id].shards })
       summary.push({ id, rarity, isNew: false, shards: gain })
     }
@@ -104,6 +110,7 @@ export async function pull(player, count) {
     gems: player.gems - cost,
     pitySR: pity.sinceSR,
     pitySSR: pity.sinceSSR,
+    shardPool: pool,
   })
 
   await batch.commit()
