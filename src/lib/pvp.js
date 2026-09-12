@@ -80,26 +80,29 @@ function hpRatio(state, side) {
   return max ? now / max : 0
 }
 
-/** จำลองการประลองจนจบ คืนผลพร้อมบันทึกการต่อสู้ */
-export function simulate(myEntries, foeEntries, foeName) {
+/**
+ * สร้างสนามรบสำหรับการประลอง
+ *
+ * ใช้ createBattle สองครั้งแล้วเอาฝั่งพันธมิตรของอีกชุดมาพลิกเป็นฝ่ายตรงข้าม
+ * เพราะฝั่งตรงข้ามเป็นตัวละครผู้เล่น ไม่ใช่มอนสเตอร์ จึงสร้างจากข้อมูลคนละชุดกัน
+ */
+export function createPvpBattle(myEntries, foeEntries, foeName) {
   const pseudoStage = {
     id: 'pvp',
     intro: `เริ่มการประลองกับ ${foeName}`,
     enemies: [],
   }
 
-  const state0 = createBattle(myEntries, pseudoStage)
-
-  // ใส่ฝั่งตรงข้ามเข้าไปเองด้วยข้อมูลตัวละครผู้เล่น ไม่ใช่มอนสเตอร์
+  const mine = createBattle(myEntries, pseudoStage)
   const foes = createBattle(foeEntries, pseudoStage).units.map((u, i) => ({
     ...u,
     key: `e${i}`,
     side: 'enemy',
   }))
 
-  let state = {
-    ...state0,
-    units: [...state0.units.filter((u) => u.side === 'ally'), ...foes],
+  const state = {
+    ...mine,
+    units: [...mine.units.filter((u) => u.side === 'ally'), ...foes],
   }
   state.order = state.units
     .filter((u) => u.alive)
@@ -107,30 +110,47 @@ export function simulate(myEntries, foeEntries, foeName) {
     .map((u) => u.key)
   state.cursor = 0
 
+  // createBattle เติมพลังเวทให้ตัวแรกของสนามเดิมไปแล้วตอนสร้าง
+  // แต่พอรวมสองฝั่งเข้าด้วยกัน ลำดับเปลี่ยน ตัวที่ได้ไปจึงอาจไม่ใช่ตัวที่จะลงมือจริง
+  // ล้างให้เป็นศูนย์ทั้งหมดก่อน แล้วค่อยเติมให้ตัวแรกของลำดับใหม่
+  state.units.forEach((u) => {
+    u.mp = 0
+  })
+  const first = currentUnit(state)
+  if (first) first.mp = 2
+
+  return state
+}
+
+/** ตัดสินผลเมื่อครบเพดานรอบแล้วยังไม่มีใครล้มหมด */
+export function decideByHp(state) {
+  const mine = hpRatio(state, 'ally')
+  const theirs = hpRatio(state, 'enemy')
+  return {
+    ...state,
+    outcome: mine >= theirs ? 'won' : 'lost',
+    decidedByHp: true,
+    log: [
+      ...state.log,
+      {
+        text: `ครบ ${ROUND_LIMIT} รอบ ตัดสินด้วยเลือดที่เหลือ ${Math.round(mine * 100)}% ต่อ ${Math.round(theirs * 100)}%`,
+        kind: mine >= theirs ? 'win' : 'lose',
+      },
+    ],
+  }
+}
+
+/** จำลองการประลองจนจบ ใช้ตอนที่ผู้เล่นไม่ได้ลงมือเอง */
+export function simulate(myEntries, foeEntries, foeName) {
+  let state = createPvpBattle(myEntries, foeEntries, foeName)
+
   let guard = 0
   while (!state.outcome && state.round <= ROUND_LIMIT && guard++ < 900) {
     if (!currentUnit(state)) break
     state = takeTurn(state, null)
   }
 
-  // ครบเพดานแล้วยังไม่มีใครล้มหมด ตัดสินด้วยสัดส่วนเลือดที่เหลือของทั้งทีม
-  if (!state.outcome) {
-    const mine = hpRatio(state, 'ally')
-    const theirs = hpRatio(state, 'enemy')
-    state = {
-      ...state,
-      outcome: mine >= theirs ? 'won' : 'lost',
-      decidedByHp: true,
-      log: [
-        ...state.log,
-        {
-          text: `ครบ ${ROUND_LIMIT} รอบ ตัดสินด้วยเลือดที่เหลือ ${Math.round(mine * 100)}% ต่อ ${Math.round(theirs * 100)}%`,
-          kind: mine >= theirs ? 'win' : 'lose',
-        },
-      ],
-    }
-  }
-
+  if (!state.outcome) state = decideByHp(state)
   return state
 }
 

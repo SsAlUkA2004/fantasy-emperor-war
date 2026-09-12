@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS, TEAM_SIZE } from '../data/characters'
 import { MATCHES_PER_DAY, claimableRanks, rankLabel, rankOf, titleName, titlesFor } from '../data/ranks'
@@ -12,19 +12,16 @@ import {
   defenseEntries,
   findOpponents,
   matchesLeft,
-  saveMatch,
-  simulate,
 } from '../lib/pvp'
-import { starsEarned } from '../lib/battle'
 import { hoursUntilReset } from '../lib/dayclock'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
 export default function Arena() {
   const { user, player, refresh } = usePlayer()
+  const navigate = useNavigate()
   const [roster, setRoster] = useState(null)
   const [foes, setFoes] = useState(null)
-  const [result, setResult] = useState(null)
   const [peek, setPeek] = useState(null)
   const [rerolling, setRerolling] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -60,32 +57,17 @@ export default function Arena() {
     setRerolling(false)
   }
 
-  async function fight(foe) {
-    const defense = defenseEntries(foe)
-    if (!defense.length) {
+  // เข้าแมตช์แล้วเล่นเองหรือกดออโต้ก็ได้ ผลบันทึกที่หน้านั้น
+  function fight(foe) {
+    if (!defenseEntries(foe).length) {
       setError(`${foe.username} ยังไม่ได้ตั้งทีมรับ ยังท้าไม่ได้`)
       return
     }
     if (!myTeam.length) {
-      setError('ต้องจัดทีมก่อนจึงจะประลองได้')
+      setError('ต้องจัดทีมบุกก่อนจึงจะประลองได้')
       return
     }
-
-    setBusy(true)
-    setError(null)
-    try {
-      const state = simulate(myTeam, defense, foe.username)
-      const won = state.outcome === 'won'
-      const saved = await saveMatch({ ...player, uid: user.uid }, foe, won)
-      setResult({ won, foe, log: state.log.slice(-8), ...saved })
-      await refresh()
-      setFoes(
-        await findOpponents({ ...player, uid: user.uid, pvpPoints: saved.points }, teamPower(myTeam))
-      )
-    } catch (err) {
-      setError('บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
-    }
-    setBusy(false)
+    navigate('/pvp', { state: { foe } })
   }
 
   const defense = defenseEntries(player)
@@ -244,7 +226,7 @@ export default function Arena() {
       </div>
 
       {peek && <DefensePeek foe={peek} onClose={() => setPeek(null)} />}
-      {result && <MatchResult result={result} onClose={() => setResult(null)} />}
+
     </main>
   )
 }
@@ -293,37 +275,6 @@ function DefensePeek({ foe, onClose }) {
               </div>
             )
           })}
-        </div>
-
-        <button className="rune-link block primary" onClick={onClose}>
-          ปิด
-        </button>
-      </section>
-    </div>
-  )
-}
-
-function MatchResult({ result, onClose }) {
-  return (
-    <div className="veil" role="dialog" aria-modal="true">
-      <section className="panel popup" data-outcome={result.won ? 'won' : 'lost'}>
-        <div className="panel-head">{result.won ? 'ชนะการประลอง' : 'พ่ายแพ้'}</div>
-        <p className="meta">คู่แข่ง {result.foe.username}</p>
-
-        <p className="stars">
-          <span className={result.delta > 0 ? 'delta up' : 'delta down'}>
-            {result.delta > 0 ? '+' : ''}
-            {result.delta}
-          </span>
-        </p>
-        <p>ตอนนี้ {rankLabel(result.points)} · {result.points} แต้ม</p>
-
-        <div className="log pvp-log">
-          {result.log.map((line, i) => (
-            <p key={i} data-kind={line.kind}>
-              {line.text}
-            </p>
-          ))}
         </div>
 
         <button className="rune-link block primary" onClick={onClose}>

@@ -2,15 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { STAGES } from '../data/stages'
 import { findStage } from '../data/materials'
-import { createBattle, currentUnit, movesFor, needsTarget, takeTurn, starsEarned } from '../lib/battle'
+import { createBattle, currentUnit, needsTarget, takeTurn, starsEarned } from '../lib/battle'
 import { loadCollection as reloadCollection } from '../lib/player'
 import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
-import { hasAdvantage } from '../lib/stats'
-import { ELEMENTS } from '../data/characters'
-import StatPeek from '../components/StatPeek'
+import BattleStage from '../components/BattleStage'
 
 const STEP_DELAY = 750
 
@@ -26,7 +24,6 @@ export default function Battle() {
   const [round, setRound] = useState(0)
   const roster = useRef([])
   const saved = useRef(false)
-  const logEnd = useRef(null)
 
   const stage = findStage(stageId)
 
@@ -64,10 +61,6 @@ export default function Battle() {
     const t = setTimeout(() => setState((s) => takeTurn(s, null)), STEP_DELAY)
     return () => clearTimeout(t)
   }, [state, auto])
-
-  useEffect(() => {
-    logEnd.current?.scrollIntoView({ block: 'nearest' })
-  }, [state?.log.length])
 
   // บันทึกผลครั้งเดียวเมื่อจบ
   useEffect(() => {
@@ -123,53 +116,14 @@ export default function Battle() {
           </button>
         </header>
 
-        <section className="field-side">
-          {foes.map((u) => (
-            <Combatant
-              key={u.key}
-              unit={u}
-              active={actor?.key === u.key}
-              selected={target === u.key}
-              favoured={actor?.side === 'ally' && hasAdvantage(actor.element, u.element)}
-              onSelect={() => u.alive && setTarget(u.key)}
-            />
-          ))}
-        </section>
-
-        <div className="log" role="log">
-          {state.log.slice(-6).map((line, i) => (
-            <p key={i} data-kind={line.kind}>
-              {line.text}
-            </p>
-          ))}
-          <div ref={logEnd} />
-        </div>
-
-        <section className="field-side">
-          {allies.map((u) => (
-            <Combatant key={u.key} unit={u} active={actor?.key === u.key} ally />
-          ))}
-        </section>
-
-        <div className="moves">
-            {state.outcome ? null : yourTurn ? (
-              movesFor(actor).map((m) => (
-                <button
-                  key={m.type}
-                  className="move-btn"
-                  disabled={!m.ready}
-                  onClick={() => act(m.type)}
-                >
-                  <span className="move-name">{m.name}</span>
-                  <span className="move-hint">{m.hint}</span>
-                </button>
-              ))
-            ) : (
-              <p className="meta center">
-                {auto ? 'ออโต้กำลังเล่นให้' : `รอ ${actor?.name ?? ''} ลงมือ`}
-              </p>
-            )}
-        </div>
+        <BattleStage
+          state={state}
+          actor={actor}
+          auto={auto}
+          target={target}
+          setTarget={setTarget}
+          onAct={act}
+        />
       </div>
 
       {state.outcome && (
@@ -185,57 +139,6 @@ export default function Battle() {
         />
       )}
     </main>
-  )
-}
-
-function Combatant({ unit, active, selected, favoured, ally, onSelect }) {
-  const pct = Math.round((unit.hp / unit.maxHp) * 100)
-  const element = ELEMENTS[unit.element]
-
-  return (
-    <button
-      className="combatant peek-host"
-      data-active={active}
-      data-selected={selected}
-      data-down={!unit.alive}
-      onClick={onSelect}
-      disabled={!onSelect}
-    >
-      <span className="combatant-mark">{unit.mark}</span>
-      <div className="combatant-body">
-        <div className="combatant-name">
-          {unit.name}
-          <span className="tag element">
-            {element.mark} {element.name}
-          </span>
-          {favoured && <span className="tag good">แพ้ทางเรา</span>}
-          {unit.effects.burn > 0 && <span className="tag burn">ติดไฟ</span>}
-          {unit.effects.taunt > 0 && <span className="tag">ดึงเป้า</span>}
-          {unit.effects.stun > 0 && <span className="tag">สตัน</span>}
-          {unit.effects.shield && <span className="tag">เกราะ</span>}
-        </div>
-        <div className="bar">
-          <span style={{ width: `${pct}%` }} />
-        </div>
-        <div className="combatant-meta">
-          {unit.hp} / {unit.maxHp}
-          {ally && ` · เลเวล ${unit.level} · เวท ${unit.mp} · เกจ ${unit.gauge}`}
-        </div>
-      </div>
-
-      <StatPeek
-        title={unit.name}
-        subtitle={`เลเวล ${unit.level}`}
-        element={unit.element}
-        stats={[
-          ['พลังชีวิต', `${unit.hp}/${unit.maxHp}`],
-          ['โจมตี', unit.atk],
-          ['ป้องกัน', unit.def],
-          ['ความเร็ว', unit.spd],
-        ]}
-        note={ally ? `พลังเวท ${unit.mp} · เกจไม้ตาย ${unit.gauge}/100` : null}
-      />
-    </button>
   )
 }
 

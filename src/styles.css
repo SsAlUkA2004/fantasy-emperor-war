@@ -2246,3 +2246,8 @@ a {
 .peek-unit {
   margin-bottom: 0;
 }
+
+.round-note {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+}
