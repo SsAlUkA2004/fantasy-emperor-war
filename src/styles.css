@@ -2883,3 +2883,12 @@ a {
 .friend-team {
   margin-top: 0.75rem;
 }
+
+.diff-tabs {
+  margin: 1rem 0 0.5rem;
+}
+
+.mode-tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

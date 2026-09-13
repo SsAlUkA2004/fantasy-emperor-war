@@ -155,6 +155,81 @@ export const ENEMIES = {
       ],
     },
   },
+
+  // ───────── บทที่ 6 หุบเหวเสียงกรีดร้อง ─────────
+  banshee: {
+    id: 'banshee', name: 'แบนชีคร่ำครวญ', element: 'dark', mark: '👤',
+    stats: { hp: 23920, atk: 1612, def: 426, spd: 132, crit: 20 },
+    skill: {
+      name: 'เสียงกรีดสลายขวัญ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.3 },
+      ],
+    },
+  },
+  gargoyle: {
+    id: 'gargoyle', name: 'การ์กอยล์เฝ้าผา', element: 'earth', mark: '🗿',
+    stats: { hp: 37700, atk: 1425, def: 763, spd: 88, crit: 10 },
+  },
+  harpy: {
+    id: 'harpy', name: 'ฮาร์ปีล่าเหยื่อ', element: 'wind', mark: '🦅',
+    stats: { hp: 22360, atk: 1747, def: 387, spd: 148, crit: 24 },
+  },
+  abysswing: {
+    id: 'abysswing', name: 'ปีกเหวลึก', element: 'dark', mark: '🕷️', boss: true,
+    stats: { hp: 187200, atk: 2548, def: 994, spd: 128, crit: 20 },
+    skill: {
+      name: 'ปีกคลุมเหว', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.0, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'allFoes' },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 7 นครลอยฟ้าที่ร้างไป ─────────
+  automaton: {
+    id: 'automaton', name: 'จักรกลผู้พิทักษ์', element: 'light', mark: '🤖',
+    stats: { hp: 117000, atk: 4230, def: 1775, spd: 96, crit: 12 },
+    skill: {
+      name: 'ลำแสงตัดสิน', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
+    },
+  },
+  stormcaller: {
+    id: 'stormcaller', name: 'ผู้เรียกพายุ', element: 'wind', mark: '⚡',
+    stats: { hp: 87750, atk: 5310, def: 1036, spd: 156, crit: 22 },
+    skill: {
+      name: 'สายฟ้าซัดทั่วฟ้า', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.8, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.35 },
+      ],
+    },
+  },
+  seraph: {
+    id: 'seraph', name: 'เซราฟตกสวรรค์', element: 'light', mark: '👼',
+    stats: { hp: 103500, atk: 4770, def: 1381, spd: 120, crit: 18 },
+    skill: {
+      name: 'ปีกหกคู่', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.9, target: 'allFoes' },
+        { kind: 'heal', percent: 0.15, target: 'self' },
+      ],
+    },
+  },
+  skylord: {
+    id: 'skylord', name: 'เจ้าแห่งนภาที่ถูกลืม', element: 'light', mark: '☀️', boss: true,
+    stats: { hp: 742500, atk: 7740, def: 2416, spd: 140, crit: 22 },
+    skill: {
+      name: 'คำสั่งจากเบื้องบน', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.3, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.4 },
+      ],
+    },
+  },
 }
 
 export const FIRST_CLEAR_GEMS = 30
@@ -223,9 +298,81 @@ export const CHAPTERS = [
     { name: 'ประตูสุดท้าย', intro: 'ด่านก่อนถึงบัลลังก์ อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 3200, enemies: [e('sentinel', 8), e('darkknight', 8), e('darkknight', 8)] },
     { name: 'บัลลังก์สุญญากาศ', intro: 'ไม่มีเสียง ไม่มีแสง มีแต่สิ่งที่นั่งอยู่ตรงนั้น', exp: 5000, enemies: [e('voidking', 6)] },
   ]),
+
+  chapter(6, 'หุบเหวเสียงกรีดร้อง', 'ที่ที่เสียงไม่เคยหยุด', [
+    { name: 'ปากเหว', intro: 'เสียงกรีดร้องดังขึ้นก่อนที่จะเห็นตัว', exp: 5400, enemies: [e('harpy', 2), e('harpy', 2)] },
+    { name: 'หน้าผาการ์กอยล์', intro: 'รูปปั้นที่ขยับได้ และมันหนามาก', exp: 5800, enemies: [e('gargoyle', 2), e('harpy', 3)] },
+    { name: 'ถ้ำคร่ำครวญ', intro: 'แบนชีทำให้ทั้งทีมขยับไม่ได้ ระวังโดนซ้ำ', exp: 6200, enemies: [e('banshee', 3), e('gargoyle', 3)] },
+    { name: 'สะพานหินแตก', intro: 'ทั้งสามตัวเร็วกว่าทีมส่วนใหญ่', exp: 6800, enemies: [e('harpy', 4), e('banshee', 4), e('gargoyle', 4)] },
+    { name: 'ก้นเหว', intro: 'แสงส่องไม่ถึงตรงนี้แล้ว', exp: 7400, enemies: [e('banshee', 5), e('banshee', 5), e('gargoyle', 6)] },
+    { name: 'รังของปีกเหวลึก', intro: 'อะไรบางอย่างกางปีกคลุมทั้งหุบเหว', exp: 11000, enemies: [e('abysswing', 3)] },
+  ]),
+
+  chapter(7, 'นครลอยฟ้าที่ร้างไป', 'เมืองที่คนทิ้งไปแต่เครื่องจักรยังทำงาน', [
+    { name: 'ท่าเทียบเรือลม', intro: 'จักรกลยังตรวจตราอยู่เหมือนไม่มีอะไรเกิดขึ้น', exp: 12000, enemies: [e('automaton', 2), e('automaton', 2)] },
+    { name: 'ถนนลอยฟ้า', intro: 'ลมแรงจนยืนแทบไม่อยู่', exp: 12800, enemies: [e('stormcaller', 2), e('automaton', 3)] },
+    { name: 'หอสังเกตการณ์', intro: 'เซราฟตัวนี้ฟื้นพลังตัวเองได้ ต้องเร่งเก็บ', exp: 13600, enemies: [e('seraph', 3), e('stormcaller', 3)] },
+    { name: 'ลานพิธีกลางเมือง', intro: 'สามตัวนี้ไม่มีตัวไหนอ่อนเลย', exp: 14800, enemies: [e('automaton', 4), e('seraph', 4), e('stormcaller', 4)] },
+    { name: 'บันไดสู่ยอดหอ', intro: 'ด่านสุดท้ายก่อนถึงยอด อย่าขึ้นไปด้วยทีมที่บาดเจ็บ', exp: 16000, enemies: [e('seraph', 5), e('seraph', 5), e('stormcaller', 6)] },
+    { name: 'ยอดหอแห่งนภา', intro: 'สิ่งที่เฝ้าเมืองนี้มาตลอดหันมามองคุณ', exp: 24000, enemies: [e('skylord', 4)] },
+  ]),
+]
+export const STAGES = CHAPTERS.flatMap((c) => c.stages)
+
+// ─────────────────────────────────────────────────────────────
+// ระดับความยาก
+//
+// ใช้ด่านชุดเดิมแล้วคูณค่าพลังศัตรูกับรางวัลขึ้นไป แทนการเขียนด่านใหม่อีกสองชุด
+// เพราะถ้าเขียนแยก การปรับสมดุลทีหนึ่งต้องไล่แก้สามที่ แล้ววันหนึ่งจะไม่ตรงกัน
+//
+// รหัสด่านต่อท้ายด้วย @hard หรือ @demon ความคืบหน้าจึงแยกกันเองโดยไม่ต้องทำอะไรเพิ่ม
+// ─────────────────────────────────────────────────────────────
+
+export const DIFFICULTIES = [
+  { id: 'normal', name: 'ปกติ', suffix: '', enemy: 1, reward: 1, gems: 30, ilvlBonus: 0 },
+  { id: 'hard', name: 'ยาก', suffix: '@hard', enemy: 3.2, reward: 2.5, gems: 60, ilvlBonus: 1 },
+  { id: 'demon', name: 'ปีศาจ', suffix: '@demon', enemy: 4.2, reward: 6, gems: 100, ilvlBonus: 2 },
 ]
 
-export const STAGES = CHAPTERS.flatMap((c) => c.stages)
+export function difficultyOf(id) {
+  const at = typeof id === 'string' ? id.indexOf('@') : -1
+  if (at < 0) return DIFFICULTIES[0]
+  return DIFFICULTIES.find((d) => d.suffix === id.slice(at)) ?? DIFFICULTIES[0]
+}
+
+export function baseIdOf(id) {
+  const at = typeof id === 'string' ? id.indexOf('@') : -1
+  return at < 0 ? id : id.slice(0, at)
+}
+
+/** ประกอบด่านตามระดับความยาก โดยคูณค่าพลังศัตรูด้วยเลเวลที่สูงขึ้น */
+export function stageAt(baseId, difficultyId = 'normal') {
+  const base = STAGES.find((s) => s.id === baseId)
+  if (!base) return null
+  const d = DIFFICULTIES.find((x) => x.id === difficultyId) ?? DIFFICULTIES[0]
+  if (d.id === 'normal') return base
+
+  return {
+    ...base,
+    id: base.id + d.suffix,
+    difficulty: d.id,
+    name: `${base.name} · ${d.name}`,
+    exp: Math.round(base.exp * d.reward),
+    // ดันเลเวลศัตรูแทนการแก้ค่าพลังโดยตรง ใช้สูตรเติบโตเดียวกับตัวละคร
+    enemies: base.enemies.map((x) => ({
+      ...x,
+      level: Math.max(1, Math.round(((x.level ?? 1) - 1 + (d.enemy - 1) / 0.08) + 1)),
+    })),
+  }
+}
+
+/** ผ่านบทนั้นครบทุกด่านในระดับความยากที่กำหนดหรือยัง */
+export function chapterClearedAt(progress = {}, number, difficultyId = 'normal') {
+  const ch = CHAPTERS[number - 1]
+  if (!ch) return false
+  const d = DIFFICULTIES.find((x) => x.id === difficultyId) ?? DIFFICULTIES[0]
+  return ch.stages.every((s) => (progress[s.id + d.suffix] ?? 0) > 0)
+}
 
 /**
  * ลานฝึก เล่นซ้ำได้ไม่จำกัด ให้ค่าประสบการณ์อย่างเดียว ไม่มีเพชร

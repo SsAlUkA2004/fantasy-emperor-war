@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   CHAPTERS,
+  DIFFICULTIES,
+  chapterClearedAt,
+  stageAt,
   STAGES,
   TRAINING,
   GEM_STAGES,
@@ -42,6 +45,7 @@ export default function StageMap() {
   const { user, player } = usePlayer()
   const [roster, setRoster] = useState(null)
   const [brief, setBrief] = useState(null)
+  const [diff, setDiff] = useState('normal')
 
   useEffect(() => {
     loadCollection(user.uid).then(setRoster)
@@ -59,6 +63,14 @@ export default function StageMap() {
   const matLeft = runsLeft(player, MATERIAL_RUNS_PER_DAY, 'matRunAt', 'matRunCount')
 
   const cleared = (id) => (progress[id] ?? 0) > 0
+  const suffix = DIFFICULTIES.find((d) => d.id === diff)?.suffix ?? ''
+
+  // โหมดยากเปิดเมื่อผ่านบทนั้นในโหมดก่อนหน้าครบแล้ว
+  function diffOpen(id, chapterNumber) {
+    if (id === 'normal') return true
+    if (id === 'hard') return chapterClearedAt(progress, chapterNumber, 'normal')
+    return chapterClearedAt(progress, chapterNumber, 'hard')
+  }
 
   // บทถัดไปเปิดเมื่อผ่านด่านสุดท้ายของบทก่อนหน้า
   function chapterOpen(number) {
@@ -126,15 +138,40 @@ export default function StageMap() {
           ))}
         </div>
 
+        <div className="mode-tabs diff-tabs">
+          {DIFFICULTIES.map((d) => {
+            const ok = diffOpen(d.id, view)
+            return (
+              <button
+                key={d.id}
+                className="mode-tab"
+                data-active={diff === d.id}
+                disabled={!ok}
+                onClick={() => setDiff(d.id)}
+              >
+                {d.name}
+                {!ok && <span className="mode-count">ล็อก</span>}
+              </button>
+            )
+          })}
+        </div>
+        {diff !== 'normal' && (
+          <p className="meta tiny">
+            ศัตรูแข็งขึ้นมาก แลกกับรางวัลคูณ{' '}
+            {DIFFICULTIES.find((d) => d.id === diff)?.reward} เท่า และของที่ดรอปมีระดับไอเทมสูงขึ้น
+          </p>
+        )}
+
         {!open ? (
           <p className="meta center locked-note">
             ผ่านด่านสุดท้ายของบทที่ {view - 1} เพื่อเปิดบทนี้
           </p>
         ) : (
           <div className="stage-list">
-            {chapter.stages.map((stage) => {
+            {chapter.stages.map((base) => {
+              const stage = stageAt(base.id, diff) ?? base
               const stars = progress[stage.id] ?? 0
-              const unlocked = stageOpen(stage.id)
+              const unlocked = stageOpen(base.id) && diffOpen(diff, view)
               const boss = stage.enemies.some((x) => ENEMIES[x.id]?.boss)
 
               return (
@@ -146,7 +183,7 @@ export default function StageMap() {
                   disabled={!unlocked}
                   onClick={() => setBrief(stage)}
                 >
-                  <span className="stage-id">{stage.id}</span>
+                  <span className="stage-id">{base.id}</span>
                   <span className="stage-body">
                     <span className="stage-name">{stage.name}</span>
                     {unlocked ? (

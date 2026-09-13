@@ -1,6 +1,6 @@
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
-import { FIRST_CLEAR_GEMS, GEM_RUNS_PER_DAY } from '../data/stages'
+import { DIFFICULTIES, FIRST_CLEAR_GEMS, GEM_RUNS_PER_DAY } from '../data/stages'
 import { gainPlayerExp } from './leveling'
 import { isSameThaiDay, runsLeft } from './dayclock'
 import { STAGE_DROP_CHANCE, coinsForStage } from '../data/gear'
@@ -126,10 +126,15 @@ export async function saveStageResult(player, stage, stars, exp) {
   // ผลคือเล่นซ้ำแล้วไม่ได้อะไรเลยแม้แต่เหรียญ ซึ่งขัดกับที่ตั้งใจไว้
   // ตอนนี้เหรียญกับอุปกรณ์ได้ทุกครั้งที่ผ่าน ส่วนดาวกับเพชรยังให้เฉพาะตอนทำได้ดีขึ้น
   const chapter = stage.chapter ?? 1
-  const coins = coinsForStage(chapter)
+  const diff =
+    DIFFICULTIES.find((d) => d.id === (stage.difficulty ?? 'normal')) ?? DIFFICULTIES[0]
+
+  const coins = Math.round(coinsForStage(chapter) * diff.reward)
   let drop = null
   if (Math.random() < STAGE_DROP_CHANCE) {
-    drop = await addDrop(player.uid, 'stage', chapter).catch(() => null)
+    // โหมดยากขึ้นให้ของระดับไอเทมสูงขึ้นด้วย ไม่ใช่แค่จำนวนมากขึ้น
+    const ilvl = Math.min(5, chapter + diff.ilvlBonus)
+    drop = await addDrop(player.uid, 'stage', ilvl).catch(() => null)
   }
 
   const accountExp = firstClear ? exp * FIRST_CLEAR_ACCOUNT_MULT : 0
@@ -148,13 +153,13 @@ export async function saveStageResult(player, stage, stars, exp) {
     },
   }
 
-  if (firstClear) patch.gems = player.gems + FIRST_CLEAR_GEMS
+  if (firstClear) patch.gems = player.gems + diff.gems
 
   await updateDoc(doc(db, 'users', player.uid), patch)
 
   return {
     firstClear,
-    gems: firstClear ? FIRST_CLEAR_GEMS : 0,
+    gems: firstClear ? diff.gems : 0,
     accountExp,
     account,
     coins,

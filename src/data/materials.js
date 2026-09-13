@@ -1,4 +1,4 @@
-import { ENEMIES, getStage as getBaseStage } from './stages'
+import { ENEMIES, baseIdOf, difficultyOf, getStage as getBaseStage, stageAt } from './stages'
 import { FLOORS, floorStage } from './dungeon'
 import { roundFor, slotStage } from './chardungeon'
 
@@ -99,6 +99,10 @@ export function canAfford(bag, cost) {
  * ทุกหน้าจึงเรียกฟังก์ชันนี้แทน getStage เดิม
  */
 export function findStage(id) {
+  // ด่านเนื้อเรื่องที่มีระดับความยากต่อท้าย ประกอบขึ้นจากด่านพื้นฐาน
+  if (typeof id === 'string' && id.includes('@')) {
+    return stageAt(baseIdOf(id), difficultyOf(id).id)
+  }
   // ด่านรอยอดีตใช้รหัส c-<ชั่วโมง>-<ช่อง> เพราะเนื้อหาเปลี่ยนทุกชั่วโมง
   // จึงประกอบขึ้นจากรหัสแทนการเก็บรายการไว้
   if (typeof id === 'string' && id.startsWith('c-')) {
