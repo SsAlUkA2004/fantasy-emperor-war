@@ -4,6 +4,7 @@ import { STARTER_IDS } from '../data/characters'
 import { gainExp } from './leveling'
 import { entryLevelCap } from './stats'
 import { byCharacter, loadGear } from './gear'
+import { invalidateRoster, readCache, writeCache } from './rostercache'
 
 /**
  * บันทึกตัวละครเริ่มต้นที่ผู้เล่นเลือก
@@ -36,9 +37,19 @@ export async function chooseStarter(uid, charId) {
   })
 
   await batch.commit()
+
+  invalidateRoster()
 }
 
-export async function loadCollection(uid) {
+export async function loadCollection(uid, { fresh = false } = {}) {
+  if (!fresh) {
+    const hit = readCache(uid)
+    if (hit) return hit
+  }
+  return writeCache(uid, await readCollection(uid))
+}
+
+async function readCollection(uid) {
   const [snap, gear] = await Promise.all([
     getDocs(collection(db, 'users', uid, 'collection')),
     loadGear(uid).catch(() => []),
@@ -79,5 +90,7 @@ export async function awardExp(uid, entries, amount) {
   })
 
   await batch.commit()
+
+  invalidateRoster()
   return results
 }

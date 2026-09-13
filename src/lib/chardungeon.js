@@ -1,3 +1,4 @@
+import { invalidateRoster } from './rostercache'
 import { doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { RUNS_PER_SLOT, dropRateFor, hourIndex } from '../data/chardungeon'
@@ -70,6 +71,7 @@ export async function runCharDungeon(player, stage, owned) {
 
   batch.update(doc(db, 'users', player.uid), patch)
   await batch.commit()
+  invalidateRoster()
 
   return {
     got,

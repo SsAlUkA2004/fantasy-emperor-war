@@ -1,3 +1,4 @@
+import { invalidateRoster } from './rostercache'
 import { doc, updateDoc, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import {
@@ -56,6 +57,7 @@ export async function upgradeSkill(player, entry) {
     skillLevel: level + 1,
   })
   await batch.commit()
+  invalidateRoster()
 
   return { skillLevel: level + 1, bag, spent: cost }
 }
@@ -82,6 +84,7 @@ export async function ascendTier(player, entry) {
   batch.update(doc(db, 'users', player.uid), { materials: bag })
   batch.update(doc(db, 'users', player.uid, 'collection', entry.id), { tier: tier + 1 })
   await batch.commit()
+  invalidateRoster()
 
   return { tier: tier + 1 }
 }
@@ -103,6 +106,7 @@ export async function awaken(player, entry) {
   batch.update(doc(db, 'users', player.uid), { materials: bag })
   batch.update(doc(db, 'users', player.uid, 'collection', entry.id), { awaken: level + 1 })
   await batch.commit()
+  invalidateRoster()
 
   return { awaken: level + 1 }
 }

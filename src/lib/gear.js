@@ -1,3 +1,4 @@
+import { invalidateRoster } from './rostercache'
 import {
   collection,
   deleteDoc,
@@ -64,10 +65,12 @@ export async function equip(uid, gear, charId, current = []) {
   }
   batch.update(doc(bag(uid), gear.id), { equippedBy: charId })
   await batch.commit()
+  invalidateRoster()
 }
 
 export async function unequip(uid, gearId) {
   await updateDoc(doc(bag(uid), gearId), { equippedBy: null })
+  invalidateRoster()
 }
 
 /** ถอดทุกชิ้นที่ตัวละครนี้ใส่อยู่ */
@@ -78,6 +81,7 @@ export async function unequipAll(uid, charId, all = []) {
   const batch = writeBatch(db)
   worn.forEach((g) => batch.update(doc(bag(uid), g.id), { equippedBy: null }))
   await batch.commit()
+  invalidateRoster()
   return { count: worn.length }
 }
 
@@ -89,6 +93,7 @@ export async function unequipAll(uid, charId, all = []) {
  */
 export async function toggleLock(uid, gear) {
   await updateDoc(doc(bag(uid), gear.id), { locked: !gear.locked })
+  invalidateRoster()
 }
 
 /** ขายอุปกรณ์เป็นเหรียญ ของที่สวมอยู่ขายไม่ได้ */
@@ -101,6 +106,7 @@ export async function sell(player, gear) {
   batch.delete(doc(bag(player.uid), gear.id))
   batch.update(doc(db, 'users', player.uid), { coins })
   await batch.commit()
+  invalidateRoster()
 
   return { coins, gained: GRADES[gear.grade].sell }
 }
@@ -120,6 +126,7 @@ export async function sellAll(player, list, grades = null) {
   sellable.forEach((g) => batch.delete(doc(bag(player.uid), g.id)))
   batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) + gained })
   await batch.commit()
+  invalidateRoster()
 
   return { count: sellable.length, gained }
 }
@@ -142,6 +149,7 @@ export async function enhance(player, gear) {
   batch.update(doc(bag(player.uid), gear.id), { plus: now + 1 })
   batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) - cost })
   await batch.commit()
+  invalidateRoster()
 
   return { plus: now + 1, cost }
 }
@@ -164,6 +172,7 @@ export async function buyBox(player, boxId) {
   })
   batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) - box.price })
   await batch.commit()
+  invalidateRoster()
 
   return { id, ...gear }
 }
@@ -198,6 +207,7 @@ export async function equipBest(uid, charId, all = []) {
 
   if (!changed) throw new Error('ใส่ของที่ดีที่สุดอยู่แล้ว')
   await batch.commit()
+  invalidateRoster()
   return { changed }
 }
 

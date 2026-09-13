@@ -1,3 +1,4 @@
+import { invalidateRoster } from './rostercache'
 import { doc, getDoc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { BANNERS, CHARACTERS, bannerPool } from '../data/characters'
@@ -220,6 +221,8 @@ export async function pull(player, count, bannerId = 'origin') {
   batch.update(doc(db, 'users', uid), userPatch)
 
   await batch.commit()
+
+  invalidateRoster()
   return { summary, spent: cost, pity, bannerId, discounted: useDiscount }
 }
 
@@ -239,6 +242,7 @@ export async function ascend(uid, entry) {
     shards: entry.shards - cost,
   })
   await batch.commit()
+  invalidateRoster()
 
   return { star: entry.star + 1, shards: entry.shards - cost }
 }

@@ -1,3 +1,4 @@
+import { invalidateRoster } from './rostercache'
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { CHARACTERS, RARITIES } from '../data/characters'
@@ -34,6 +35,7 @@ export async function exchangeFor(player, charId, owned) {
   })
   batch.update(doc(db, 'users', player.uid), { shardPool: pool })
   await batch.commit()
+  invalidateRoster()
 
   return { charId, rarity, cost, pool }
 }
