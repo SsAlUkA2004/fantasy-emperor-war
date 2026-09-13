@@ -1,6 +1,6 @@
 import { doc, getDoc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
-import { BY_RARITY, CHARACTERS } from '../data/characters'
+import { BANNERS, CHARACTERS, bannerPool } from '../data/characters'
 import { MAX_STAR } from './leveling'
 import { EMPTY_POOL, SHARDS_PER_DUPE } from '../data/exchange'
 
@@ -22,7 +22,7 @@ export const STAR_COST = { 2: 15, 3: 30, 4: 60, 5: 120 }
  * ตัวนับสองตัวทำงานแยกกัน sinceSR รีเซ็ตเมื่อได้ SR ขึ้นไป
  * ส่วน sinceSSR รีเซ็ตเฉพาะเมื่อได้ SSR
  */
-function rollOne(pity) {
+function rollOne(pity, pool) {
   let rarity
 
   if (pity.sinceSSR + 1 >= PITY_SSR) {
@@ -34,8 +34,8 @@ function rollOne(pity) {
     rarity = r < RATES.SSR ? 'SSR' : r < RATES.SSR + RATES.SR ? 'SR' : 'R'
   }
 
-  const pool = BY_RARITY[rarity]
-  const id = pool[Math.floor(Math.random() * pool.length)]
+  const list = pool[rarity]
+  const id = list[Math.floor(Math.random() * list.length)]
 
   if (rarity === 'SSR') {
     pity.sinceSSR = 0
@@ -61,7 +61,7 @@ function rollOne(pity) {
  * ไฟล์ functions/index.js มีโค้ดฝั่งเซิร์ฟเวอร์เตรียมไว้แล้ว
  * เมื่อเปิดใช้ ให้เปลี่ยนฟังก์ชันนี้ไปเรียก httpsCallable แทน ส่วนอื่นไม่ต้องแก้
  */
-export async function pull(player, count) {
+export async function pull(player, count, bannerId = 'origin') {
   const cost = count === 10 ? TEN_PULL_COST : PULL_COST * count
   if (player.gems < cost) throw new Error('เพชรไม่พอ')
 
@@ -70,8 +70,10 @@ export async function pull(player, count) {
     sinceSSR: player.pitySSR ?? 0,
   }
 
+  // แต่ละตู้มีกองตัวละครของตัวเอง ตัวนับการันตีใช้ร่วมกันทั้งสองตู้
+  const charPool = bannerPool(bannerId)
   const results = []
-  for (let i = 0; i < count; i++) results.push(rollOne(pity))
+  for (let i = 0; i < count; i++) results.push(rollOne(pity, charPool))
 
   const uid = player.uid
   const owned = {}
@@ -114,7 +116,7 @@ export async function pull(player, count) {
   })
 
   await batch.commit()
-  return { summary, spent: cost, pity }
+  return { summary, spent: cost, pity, bannerId }
 }
 
 /** ชิ้นส่วนที่ต้องใช้เพื่อขึ้นดาวถัดไป คืน null ถ้าเต็มแล้ว */

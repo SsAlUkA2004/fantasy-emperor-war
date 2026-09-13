@@ -34,12 +34,18 @@ export default function Gear() {
   const target = roster?.find((c) => c.id === who) ?? null
   const wearing = gear?.filter((g) => g.equippedBy === who) ?? []
 
+  // ของที่ตัวละครที่เลือกใส่อยู่ ขึ้นก่อนเสมอ
+  // ไม่งั้นพอของเยอะต้องเลื่อนหาว่าชิ้นไหนใส่อยู่ ซึ่งเป็นสิ่งที่อยากรู้ที่สุด
   const shown = (gear ?? [])
     .filter((g) => (filter === 'all' ? true : g.slot === filter))
-    .sort(
-      (a, b) =>
+    .sort((a, b) => {
+      const aMine = a.equippedBy === who ? 1 : 0
+      const bMine = b.equippedBy === who ? 1 : 0
+      if (aMine !== bMine) return bMine - aMine
+      return (
         GRADES[b.grade].order - GRADES[a.grade].order || (b.ilvl ?? 1) - (a.ilvl ?? 1)
-    )
+      )
+    })
 
   async function run(label, fn) {
     setBusy(label)
@@ -179,7 +185,12 @@ export default function Gear() {
           {shown.map((g) => {
             const owner = g.equippedBy ? CHARACTERS[g.equippedBy] : null
             return (
-              <div className="gear-row" key={g.id} data-worn={Boolean(g.equippedBy)}>
+              <div
+              className="gear-row"
+              key={g.id}
+              data-worn={Boolean(g.equippedBy)}
+              data-mine={g.equippedBy === who}
+            >
                 <span className="gear-mark">{SLOTS[g.slot].mark}</span>
                 <div className="gear-body">
                   <h3 style={{ color: GRADES[g.grade].color }}>
@@ -239,11 +250,25 @@ export default function Gear() {
         </div>
 
         <div className="gate">
+          <button
+            className="rune-link"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            ↑ กลับขึ้นบน
+          </button>
           <Link className="rune-link" to="/">
             กลับหน้าหลัก
           </Link>
         </div>
       </div>
+
+      <button
+        className="to-top"
+        aria-label="กลับขึ้นบน"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      >
+        ↑
+      </button>
     </main>
   )
 }

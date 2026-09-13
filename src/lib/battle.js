@@ -1,7 +1,7 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
 import { BOSSES } from '../data/worldboss'
-import { effectiveStats, entryStats, entrySkillScale } from './stats'
+import { effectiveStats, entryStats, entrySkillScale, skillScale } from './stats'
 
 // ─────────────────────────────────────────────────────────────
 // เครื่องยนต์การต่อสู้ ไม่รู้จัก React เลย รับสถานะเข้ามาแล้วคืนสถานะใหม่ออกไป
@@ -67,7 +67,9 @@ function applyDamage(state, unit, amount) {
 // ───────── สร้างสนามรบ ─────────
 
 function makeUnit(base, opts) {
-  const s = opts.stats ?? effectiveStats(base.stats, opts.level, opts.star)
+  const raw = opts.stats ?? effectiveStats(base.stats, opts.level, opts.star)
+  // ตัวเดียวสู้กับทีมห้าคนย่อมแพ้ทุกครั้ง ถ้าไม่คูณเลือดให้
+  const s = opts.hpScale ? { ...raw, hp: Math.round(raw.hp * opts.hpScale) } : raw
   return {
     key: opts.key,
     side: opts.side,
@@ -115,17 +117,23 @@ export function createBattle(allyEntries, stage) {
       })
     }),
     ...stage.enemies.map((e, i) => {
-      // บอสโลกไม่ได้อยู่ในตารางมอนสเตอร์ของด่าน ใช้รหัสนำหน้าแยกออกมา
+      // ศัตรูมีสามแบบ มอนสเตอร์ปกติ บอสโลก และตัวละครผู้เล่นที่ถูกใช้เป็นบอส
+      // แยกด้วยรหัสนำหน้า เพราะสามอย่างนี้อยู่คนละตารางกัน
       const m = e.id.startsWith('boss:')
         ? BOSSES.find((b) => b.id === e.id.slice(5))
-        : ENEMIES[e.id]
+        : e.id.startsWith('hero:')
+          ? CHARACTERS[e.id.slice(5)]
+          : ENEMIES[e.id]
+      const isHero = e.id.startsWith('hero:')
       return makeUnit(m, {
         key: `e${i}`,
         side: 'enemy',
         level: e.level ?? 1,
-        star: 1,
-        skillScale: 1,
-        mark: m.mark,
+        star: e.star ?? 1,
+        skillScale: isHero ? skillScale(e.star ?? 1) : 1,
+        stats: isHero ? effectiveStats(m.stats, e.level ?? 1, e.star ?? 1) : undefined,
+        hpScale: e.hpScale,
+        mark: isHero ? ELEMENTS[m.element].mark : m.mark,
       })
     }),
   ]

@@ -1,5 +1,6 @@
 import { ENEMIES, getStage as getBaseStage } from './stages'
 import { FLOORS, floorStage } from './dungeon'
+import { roundFor, slotStage } from './chardungeon'
 
 const e = (id, level) => ({ id, level })
 
@@ -98,6 +99,14 @@ export function canAfford(bag, cost) {
  * ทุกหน้าจึงเรียกฟังก์ชันนี้แทน getStage เดิม
  */
 export function findStage(id) {
+  // ด่านรอยอดีตใช้รหัส c-<ชั่วโมง>-<ช่อง> เพราะเนื้อหาเปลี่ยนทุกชั่วโมง
+  // จึงประกอบขึ้นจากรหัสแทนการเก็บรายการไว้
+  if (typeof id === 'string' && id.startsWith('c-')) {
+    const [, h, slot] = id.split('-')
+    const round = roundFor(Number(h))
+    const entry = round.slots[Number(slot)]
+    return entry ? slotStage(entry, Number(h)) : null
+  }
   if (typeof id === 'string' && id.startsWith('d-')) {
     const floor = Number(id.slice(2))
     return floor >= 1 && floor <= FLOORS ? floorStage(floor) : null

@@ -217,6 +217,10 @@ export default function Lobby() {
           ดันเจี้ยน
         </Link>
 
+        <Link className="rune-link block" to="/hunt">
+          ดันเจี้ยนรอยอดีต · หาตัวละคร
+        </Link>
+
         <Link
           className="rune-link block"
           to="/boss"

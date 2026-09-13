@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
-import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
+import { BANNERS, CHARACTERS, ELEMENTS, FOCUS, ROLES, bannerPool } from '../data/characters'
 import { PULL_COST, TEN_PULL_COST, PITY_SR, PITY_SSR, RATES, pull } from '../lib/gacha'
 
 export default function Gacha() {
   const { user, player, refresh } = usePlayer()
   const [results, setResults] = useState(null)
   const [lastCount, setLastCount] = useState(1)
+  const [banner, setBanner] = useState(BANNERS[0].id)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -27,7 +28,7 @@ export default function Gacha() {
     setResults(null)
     setLastCount(count)
     try {
-      const r = await pull({ ...player, uid: user.uid }, count)
+      const r = await pull({ ...player, uid: user.uid }, count, banner)
       setResults(r.summary)
       await refresh()
     } catch (err) {
@@ -52,6 +53,25 @@ export default function Gacha() {
             {player.gems.toLocaleString('th-TH')}
           </div>
         </header>
+
+        <div className="mode-tabs banner-tabs">
+          {BANNERS.map((b) => (
+            <button
+              key={b.id}
+              className="mode-tab"
+              data-active={banner === b.id}
+              onClick={() => setBanner(b.id)}
+            >
+              {b.name}
+              <span className="mode-count">{b.ids.length}</span>
+            </button>
+          ))}
+        </div>
+        <p className="meta">{BANNERS.find((b) => b.id === banner)?.desc}</p>
+        <p className="meta tiny">
+          ตู้นี้มี SSR {bannerPool(banner).SSR.length} ตัว · SR {bannerPool(banner).SR.length} ตัว ·
+          R {bannerPool(banner).R.length} ตัว · ตัวนับการันตีใช้ร่วมกันทั้งสองตู้
+        </p>
 
         <section className="pity">
           <div className="pity-row">

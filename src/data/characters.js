@@ -31,6 +31,14 @@ export const ROLES = {
 
 export const RARITIES = ['R', 'SR', 'SSR']
 
+/** สนามที่ตัวละครถนัด ใช้แนะนำผู้เล่นว่าควรปั้นใครก่อน */
+export const FOCUS = {
+  farm: { id: 'farm', name: 'ไล่เก็บด่าน', mark: '🗺️' },
+  pvp: { id: 'pvp', name: 'ประลอง', mark: '⚔️' },
+  boss: { id: 'boss', name: 'ตีบอส', mark: '🐲' },
+  all: { id: 'all', name: 'ใช้ได้ทุกสนาม', mark: '✨' },
+}
+
 export const CHARACTERS = {
   // ───────── ตัวเริ่มต้น (SR) ─────────
   athen: {
@@ -294,6 +302,262 @@ export const CHARACTERS = {
     },
     blurb: 'ตัวป้องกันที่ตีแรงพอ ๆ กับสายโจมตี ล้มยากที่สุดในเกม',
   },
+
+  // ───────── ตัวละครชุดใหม่ · ระดับ SR ─────────
+  // แต่ละตัวมีสนามที่ถนัด บอกไว้ในฟิลด์ focus
+  // เพื่อให้ผู้เล่นเลือกได้ว่าจะปั้นใครก่อนตามสิ่งที่กำลังติดอยู่
+  gaius: {
+    id: 'gaius', name: 'ไกอัส', epithet: 'ผู้พิทักษ์หินผา',
+    rarity: 'SR', element: 'earth', role: 'guardian', focus: 'farm',
+    stats: { hp: 1450, atk: 108, def: 118, spd: 74, crit: 5 },
+    skill: {
+      name: 'ปราการหิน', mp: 3,
+      desc: 'ดึงเป้าโจมตี 2 เทิร์น เพิ่มป้องกัน และฟื้นพลังตัวเอง 20%',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+        { kind: 'heal', percent: 0.2, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'ผาถล่มทับ', desc: 'โจมตีศัตรูทุกตัว 180% และฟื้นพลังทั้งทีม 15%',
+      effects: [
+        { kind: 'damage', mult: 1.8, target: 'allFoes' },
+        { kind: 'heal', percent: 0.15, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ตัวยืนที่ดูแลตัวเองได้ เหมาะกับการไล่เก็บด่านยาว ๆ โดยไม่ต้องพึ่งหมอ',
+  },
+  celine: {
+    id: 'celine', name: 'เซลีน', epithet: 'นักบวชสายธาร',
+    rarity: 'SR', element: 'water', role: 'mystic', focus: 'farm',
+    stats: { hp: 980, atk: 126, def: 72, spd: 94, crit: 8 },
+    skill: {
+      name: 'สายธารชโลม', mp: 3,
+      desc: 'ฟื้นพลังทั้งทีม 18% และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.18, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'คลื่นซัดฝั่ง', desc: 'โจมตีศัตรูทุกตัว 230% และฟื้นพลังทั้งทีม 20%',
+      effects: [
+        { kind: 'damage', mult: 2.3, target: 'allFoes' },
+        { kind: 'heal', percent: 0.2, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ฟื้นทั้งทีมได้ตั้งแต่สกิล ทำให้ไล่เก็บหลายด่านติดกันโดยไม่ต้องหยุดพัก',
+  },
+  ryusei: {
+    id: 'ryusei', name: 'ริวเซ', epithet: 'ดาบลมกรด',
+    rarity: 'SR', element: 'wind', role: 'striker', focus: 'farm',
+    stats: { hp: 820, atk: 158, def: 56, spd: 116, crit: 16 },
+    skill: {
+      name: 'ฟันกวาดลม', mp: 3, desc: 'โจมตีศัตรูทุกตัว 135%',
+      effects: [{ kind: 'damage', mult: 1.35, target: 'allFoes' }],
+    },
+    ultimate: {
+      name: 'พายุใบมีด', desc: 'โจมตีศัตรูทุกตัว 300%',
+      effects: [{ kind: 'damage', mult: 3, target: 'allFoes' }],
+    },
+    blurb: 'เร็วและกวาดทั้งแถว จบด่านที่มีศัตรูสามตัวได้ในไม่กี่เทิร์น',
+  },
+  talon: {
+    id: 'talon', name: 'ทาลอน', epithet: 'นักล่าเปลวไฟ',
+    rarity: 'SR', element: 'fire', role: 'striker', focus: 'farm',
+    stats: { hp: 860, atk: 164, def: 58, spd: 100, crit: 14 },
+    skill: {
+      name: 'เพลิงลาม', mp: 3, desc: 'โจมตีศัตรูทุกตัว 125% และทำให้ติดไฟ 2 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 1.25, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'allFoes' },
+      ],
+    },
+    ultimate: {
+      name: 'ทะเลเพลิง', desc: 'โจมตีศัตรูทุกตัว 260% แรงขึ้นครึ่งหนึ่งกับตัวที่ติดไฟ',
+      effects: [{ kind: 'damage', mult: 2.6, target: 'allFoes', bonusOn: 'burn', bonusMult: 1.5 }],
+    },
+    blurb: 'ติดไฟให้ทั้งแถวแล้วเก็บทีเดียว คุ้มที่สุดเมื่อศัตรูมาหลายตัว',
+  },
+  mira: {
+    id: 'mira', name: 'มิรา', epithet: 'ผู้ถือคบเพลิงแสง',
+    rarity: 'SR', element: 'light', role: 'mystic', focus: 'farm',
+    stats: { hp: 1020, atk: 104, def: 80, spd: 92, crit: 6 },
+    skill: {
+      name: 'แสงประคอง', mp: 3,
+      desc: 'ฟื้นพลังเพื่อนที่เลือดน้อยที่สุด 35% และให้เกราะ',
+      effects: [
+        { kind: 'heal', percent: 0.35, target: 'lowestAlly' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'lowestAlly' },
+      ],
+    },
+    ultimate: {
+      name: 'วงแสงคุ้มครอง', desc: 'ฟื้นพลังทั้งทีม 30% ให้เกราะทั้งทีม และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.3, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    blurb: 'หมอที่แข็งแรงกว่าลูมินา เหมาะกับทีมที่ต้องยืนระยะยาว',
+  },
+  kage: {
+    id: 'kage', name: 'คาเงะ', epithet: 'เงาไร้เสียง',
+    rarity: 'SR', element: 'dark', role: 'striker', focus: 'pvp',
+    stats: { hp: 780, atk: 182, def: 50, spd: 124, crit: 24 },
+    skill: {
+      name: 'ลอบสังหาร', mp: 3, desc: 'โจมตีเดี่ยว 210% แรงขึ้นเท่าตัวถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 2.1, target: 'one', bonusOn: 'stun', bonusMult: 2 }],
+    },
+    ultimate: {
+      name: 'ตัดสินในพริบตา', desc: 'โจมตีเดี่ยว 480%',
+      effects: [{ kind: 'damage', mult: 4.8, target: 'one' }],
+    },
+    blurb: 'เร็วที่สุดในระดับ SR ได้ลงมือก่อนแล้วเก็บหมอของฝ่ายตรงข้ามทันที',
+  },
+  vesper: {
+    id: 'vesper', name: 'เวสเปอร์', epithet: 'ผู้กุมสายลม',
+    rarity: 'SR', element: 'wind', role: 'guardian', focus: 'pvp',
+    stats: { hp: 1280, atk: 118, def: 104, spd: 98, crit: 8 },
+    skill: {
+      name: 'ลมสะกด', mp: 3, desc: 'ดึงเป้าโจมตี 2 เทิร์น และมีโอกาสครึ่งหนึ่งทำให้ศัตรูสตัน',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.5 },
+      ],
+    },
+    ultimate: {
+      name: 'สุญญากาศ', desc: 'โจมตีศัตรูทุกตัว 200% และสตันทุกตัว 1 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 2, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 1 },
+      ],
+    },
+    blurb: 'ตัวคุมจังหวะ สตันทั้งแถวได้ ทำให้ฝ่ายตรงข้ามเสียเทิร์นทั้งทีม',
+  },
+  borga: {
+    id: 'borga', name: 'บอร์กา', epithet: 'ค้อนทำลายภูผา',
+    rarity: 'SR', element: 'earth', role: 'striker', focus: 'boss',
+    stats: { hp: 1080, atk: 176, def: 78, spd: 68, crit: 12 },
+    skill: {
+      name: 'ทุบซ้ำจุดเดิม', mp: 3, desc: 'โจมตีเดี่ยว 240%',
+      effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
+    },
+    ultimate: {
+      name: 'ค้อนสุดท้าย', desc: 'โจมตีเดี่ยว 560%',
+      effects: [{ kind: 'damage', mult: 5.6, target: 'one' }],
+    },
+    blurb: 'ดาเมจต่อเป้าหมายเดียวสูงที่สุดในระดับ SR สร้างมาเพื่อตีบอสโดยเฉพาะ',
+  },
+
+  // ───────── ตัวละครชุดใหม่ · ระดับ SSR ─────────
+  helios: {
+    id: 'helios', name: 'เฮลิออส', epithet: 'อาทิตย์เที่ยงวัน',
+    rarity: 'SSR', element: 'light', role: 'mystic', focus: 'farm',
+    stats: { hp: 1240, atk: 168, def: 92, spd: 102, crit: 14 },
+    skill: {
+      name: 'ลำแสงเผาผลาญ', mp: 3, desc: 'โจมตีศัตรูทุกตัว 165% และฟื้นพลังทั้งทีม 15%',
+      effects: [
+        { kind: 'damage', mult: 1.65, target: 'allFoes' },
+        { kind: 'heal', percent: 0.15, target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'สุริยะเที่ยงตรง',
+      desc: 'โจมตีศัตรูทุกตัว 330% ฟื้นพลังทั้งทีม 30% และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'damage', mult: 3.3, target: 'allFoes' },
+        { kind: 'heal', percent: 0.3, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    blurb: 'กวาดและฟื้นในท่าเดียว ทีมที่มีตัวนี้แทบไม่ต้องมีหมออีกตัว',
+  },
+  frostina: {
+    id: 'frostina', name: 'ฟรอสตินา', epithet: 'ราชินีเหมันต์',
+    rarity: 'SSR', element: 'water', role: 'striker', focus: 'farm',
+    stats: { hp: 1120, atk: 198, def: 84, spd: 108, crit: 16 },
+    skill: {
+      name: 'พันธนาการน้ำแข็ง', mp: 3,
+      desc: 'โจมตีศัตรูทุกตัว 155% และมีโอกาสหนึ่งในสามทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 1.55, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.33 },
+      ],
+    },
+    ultimate: {
+      name: 'เหมันต์นิรันดร์', desc: 'โจมตีศัตรูทุกตัว 360% และสตันทุกตัว 1 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 3.6, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 1 },
+      ],
+    },
+    blurb: 'กวาดแรงและหยุดศัตรูไปพร้อมกัน ทำให้ด่านที่ศัตรูเยอะกลายเป็นเรื่องง่าย',
+  },
+  nocturne: {
+    id: 'nocturne', name: 'น็อกเทิร์น', epithet: 'บทเพลงแห่งราตรี',
+    rarity: 'SSR', element: 'dark', role: 'striker', focus: 'pvp',
+    stats: { hp: 1040, atk: 232, def: 78, spd: 126, crit: 26 },
+    skill: {
+      name: 'ท่วงทำนองสุดท้าย', mp: 3, desc: 'โจมตีเดี่ยว 260% และทำให้เป้าหมายสตัน 1 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 2.6, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.6 },
+      ],
+    },
+    ultimate: {
+      name: 'ราตรีปิดฉาก', desc: 'โจมตีเดี่ยว 620% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 6.2, target: 'one', bonusOn: 'stun', bonusMult: 1.5 }],
+    },
+    blurb: 'เร็วที่สุดในเกมและตีแรงที่สุดต่อเป้าหมายเดียว ออกแบบมาเพื่อสนามประลอง',
+  },
+  titanor: {
+    id: 'titanor', name: 'ไททานอร์', epithet: 'ป้อมปราการมีชีวิต',
+    rarity: 'SSR', element: 'earth', role: 'guardian', focus: 'boss',
+    stats: { hp: 1820, atk: 176, def: 148, spd: 80, crit: 10 },
+    skill: {
+      name: 'กำแพงไม่แตกสลาย', mp: 3,
+      desc: 'ดึงเป้าโจมตี 3 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 3, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 3, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'ทุบด้วยน้ำหนักทั้งตัว', desc: 'โจมตีเดี่ยว 520% และฟื้นพลังตัวเอง 25%',
+      effects: [
+        { kind: 'damage', mult: 5.2, target: 'one' },
+        { kind: 'heal', percent: 0.25, target: 'self' },
+      ],
+    },
+    blurb: 'ยืนรับบอสได้นานที่สุดและยังตีแรง เหมาะกับการตีบอสโลกที่ยาวสามสิบรอบ',
+  },
+  etheria: {
+    id: 'etheria', name: 'เอเธเรีย', epithet: 'ผู้ทอสายธารกาล',
+    rarity: 'SSR', element: 'light', role: 'mystic', focus: 'all',
+    stats: { hp: 1300, atk: 186, def: 96, spd: 112, crit: 15 },
+    skill: {
+      name: 'ย้อนสายธาร', mp: 3,
+      desc: 'ฟื้นพลังทั้งทีม 25% ให้เกราะทั้งทีม และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.25, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'กาลเวลาพังทลาย',
+      desc: 'โจมตีศัตรูทุกตัว 340% สตันทุกตัว 1 เทิร์น และฟื้นพลังทั้งทีม 25%',
+      effects: [
+        { kind: 'damage', mult: 3.4, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 1 },
+        { kind: 'heal', percent: 0.25, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ทำได้ทุกอย่างและใช้ได้ทุกสนาม ตัวที่แข็งแกร่งที่สุดในเกม',
+  },
 }
 
 export const ALL_IDS = Object.keys(CHARACTERS)
@@ -301,6 +565,41 @@ export const ALL_IDS = Object.keys(CHARACTERS)
 export const STARTER_IDS = Object.values(CHARACTERS)
   .filter((c) => c.starter)
   .map((c) => c.id)
+
+/**
+ * ตู้กาชา
+ *
+ * แยกเป็นสองตู้เพราะถ้ารวมกัน ตัวที่เพิ่มใหม่จะถูกกลืนหายไปในกองเดิม
+ * โอกาสได้ตัวที่ต้องการจริงจะต่ำลงทุกครั้งที่เพิ่มตัวละคร ซึ่งกลับด้านกับที่ควรเป็น
+ */
+export const BANNERS = [
+  {
+    id: 'origin',
+    name: 'ตู้เริ่มต้น',
+    desc: 'ตัวละครชุดแรกของเกม รวมสามตัวเริ่มต้นและตัวหายากรุ่นบุกเบิก',
+    ids: [
+      'athen', 'galen', 'lumina', 'bren', 'moss', 'torg', 'neria', 'corvin',
+      'zephyr', 'iris', 'velka', 'solaris', 'drakos', 'umbra',
+    ],
+  },
+  {
+    id: 'vanguard',
+    name: 'ตู้ทัพหน้าใหม่',
+    desc: 'ตัวละครรุ่นใหม่ที่แยกสนามถนัดชัดเจน ทั้งไล่เก็บด่าน ประลอง และตีบอส',
+    ids: [
+      'gaius', 'celine', 'ryusei', 'talon', 'mira', 'kage', 'vesper', 'borga',
+      'helios', 'frostina', 'nocturne', 'titanor', 'etheria',
+    ],
+  },
+]
+
+export function bannerPool(bannerId) {
+  const banner = BANNERS.find((b) => b.id === bannerId) ?? BANNERS[0]
+  return RARITIES.reduce((acc, r) => {
+    acc[r] = banner.ids.filter((id) => CHARACTERS[id]?.rarity === r)
+    return acc
+  }, {})
+}
 
 export const BY_RARITY = RARITIES.reduce((acc, r) => {
   acc[r] = ALL_IDS.filter((id) => CHARACTERS[id].rarity === r)

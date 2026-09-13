@@ -9,6 +9,9 @@ import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
+import { runCharDungeon } from '../lib/chardungeon'
+import { ROUND_LIMIT, decideByHp } from '../lib/pvp'
+import { CHARACTERS } from '../data/characters'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
 import { GRADES, SLOTS } from '../data/gear'
 import BattleStage from '../components/BattleStage'
@@ -46,7 +49,7 @@ export default function Battle() {
   })()
 
   // กลับไปหน้าที่มาจริง ไม่ใช่แผนที่ด่านเสมอ
-  const backTo = stage?.dungeon ? '/dungeon' : '/stages'
+  const backTo = stage?.dungeon ? '/dungeon' : stage?.charDungeon ? '/hunt' : '/stages'
 
   // round เปลี่ยนค่าเมื่อกดเล่นอีกครั้ง ทำให้ตั้งสนามรบใหม่ทั้งหมด
   useEffect(() => {
@@ -67,6 +70,14 @@ export default function Battle() {
   // เดินเทิร์นอัตโนมัติ เมื่อถึงคิวมอนสเตอร์ หรือเมื่อเปิดออโต้ไว้
   useEffect(() => {
     if (!state || state.outcome) return
+
+    // ด่านรอยอดีตต้องมีเพดานรอบ เพราะบอสที่เป็นตัวละครสายฟื้นพลัง
+    // จะฟื้นเร็วกว่าที่ทีมตีเข้า แล้วการต่อสู้จะไม่มีวันจบ
+    if (stage?.charDungeon && state.round > ROUND_LIMIT) {
+      setState((s) => decideByHp(s))
+      return
+    }
+
     const actor = currentUnit(state)
     if (!actor) return
     if (actor.side === 'ally' && !auto) return
@@ -79,6 +90,19 @@ export default function Battle() {
   useEffect(() => {
     if (!state?.outcome || saved.current) return
     saved.current = true
+
+    if (state.outcome === 'won' && stage.charDungeon) {
+      loadCollection(user.uid)
+        .then((owned) => runCharDungeon({ ...player, uid: user.uid }, stage, owned))
+        .then(async (r) => {
+          setReward({ stars: 0, firstClear: false, gems: 0, hunt: r })
+          await refresh()
+        })
+        .catch((e) =>
+          setReward({ stars: 0, firstClear: false, gems: 0, failed: true, why: explainError('บันทึกผลไม่สำเร็จ', e) })
+        )
+      return
+    }
 
     if (state.outcome === 'won') {
       const stars = starsEarned(state)
@@ -188,6 +212,20 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
           )}
           {reward?.account?.gained > 0 && (
             <p className="levelup">เลเวลผู้เล่นขึ้นเป็น {reward.account.level}</p>
+          )}
+          {reward?.hunt && (
+            <>
+              {reward.hunt.got ? (
+                <p className="levelup">
+                  {reward.hunt.got.isNew
+                    ? `${reward.hunt.name} เข้าร่วมทีมแล้ว`
+                    : `มี${reward.hunt.name}อยู่แล้ว ได้เศษวิญญาณ ${reward.hunt.got.shards}`}
+                </p>
+              ) : (
+                <p className="meta">รอบนี้ไม่ได้อะไร ลองอีกครั้ง</p>
+              )}
+              <p className="meta tiny">ด่านนี้เหลืออีก {reward.hunt.left} ครั้งในชั่วโมงนี้</p>
+            </>
           )}
           {reward?.newFloor && <p className="levelup">พิชิตชั้นใหม่ได้แล้ว</p>}
           {reward?.coins > 0 && <p>ได้เหรียญ {reward.coins.toLocaleString('th-TH')}</p>}

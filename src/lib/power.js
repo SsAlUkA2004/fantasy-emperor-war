@@ -46,8 +46,13 @@ export function teamPower(entries = []) {
 export function stagePower(stage) {
   if (!stage?.enemies) return 0
   return stage.enemies.reduce((sum, x) => {
-    const m = ENEMIES[x.id]
-    return m ? sum + combatPower(effectiveStats(m.stats, x.level, 1), 1) : sum
+    // ศัตรูอาจเป็นมอนสเตอร์ปกติ หรือเป็นตัวละครผู้เล่นที่ถูกใช้เป็นบอส
+    const hero = typeof x.id === 'string' && x.id.startsWith('hero:')
+    const m = hero ? CHARACTERS[x.id.slice(5)] : ENEMIES[x.id]
+    if (!m) return sum
+    const st = effectiveStats(m.stats, x.level ?? 1, x.star ?? 1)
+    const scaled = x.hpScale ? { ...st, hp: Math.round(st.hp * x.hpScale) } : st
+    return sum + combatPower(scaled, x.star ?? 1)
   }, 0)
 }
 
