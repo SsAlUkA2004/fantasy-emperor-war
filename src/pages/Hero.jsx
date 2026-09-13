@@ -169,9 +169,14 @@ export default function Hero() {
   return (
     <main className="screen top">
       <div className="sheet">
-        <button className="plain-link back" onClick={() => navigate(-1)}>
-          กลับ
-        </button>
+        <div className="top-nav">
+          <button className="plain-link inline" onClick={() => navigate(-1)}>
+            ← กลับ
+          </button>
+          <Link className="plain-link inline" to="/collection">
+            หอสะสม
+          </Link>
+        </div>
 
         <header className="hero-head">
           <span className="hero-mark">{element.mark}</span>

@@ -90,6 +90,12 @@ export default function Guild() {
     return (
       <main className="screen top">
         <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
           <h1>กิลด์</h1>
           <p className="meta">เข้าร่วมกิลด์ที่มีอยู่ หรือสร้างกิลด์ของตัวเอง</p>
 
@@ -149,12 +155,6 @@ export default function Guild() {
           >
             {(player.gems ?? 0) < CREATE_COST ? 'เพชรไม่พอ' : 'สร้างกิลด์'}
           </button>
-
-          <div className="gate">
-            <Link className="rune-link" to="/">
-              กลับหน้าหลัก
-            </Link>
-          </div>
         </div>
       </main>
     )
@@ -289,12 +289,6 @@ export default function Guild() {
         >
           ออกจากกิลด์
         </button>
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
-        </div>
       </div>
     </main>
   )

@@ -43,6 +43,12 @@ export default function RankGuide() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>แรงค์และรางวัล</h1>
         <p className="meta">
           ตอนนี้คุณอยู่ {current.mark} {rankLabel(points)} · สูงสุดที่เคยไปถึงคือ{' '}
@@ -151,9 +157,6 @@ export default function RankGuide() {
         <div className="gate">
           <Link className="rune-link" to="/arena">
             กลับไปประลอง
-          </Link>
-          <Link className="rune-link" to="/">
-            หน้าหลัก
           </Link>
         </div>
       </div>

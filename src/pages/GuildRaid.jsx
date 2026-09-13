@@ -43,6 +43,12 @@ export default function GuildRaid() {
     return (
       <main className="screen top">
         <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
           <h1>กิลด์เรด</h1>
           <p className="meta center locked-note">ต้องอยู่ในกิลด์ก่อนจึงจะตีบอสกิลด์ได้</p>
           <Link className="rune-link block" to="/guild">
@@ -189,9 +195,6 @@ export default function GuildRaid() {
         <div className="gate">
           <Link className="rune-link" to="/guild">
             หน้ากิลด์
-          </Link>
-          <Link className="rune-link" to="/">
-            หน้าหลัก
           </Link>
         </div>
       </div>

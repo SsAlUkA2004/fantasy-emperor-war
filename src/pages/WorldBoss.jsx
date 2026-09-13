@@ -83,6 +83,12 @@ export default function WorldBoss() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <header className="boss-head">
           <span className="boss-mark">{boss.spec.mark}</span>
           <div>
@@ -207,12 +213,6 @@ export default function WorldBoss() {
                 <span className="board-points">{fmt(r.total)}</span>
               </div>
             ))}
-        </div>
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
         </div>
       </div>
 

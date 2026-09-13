@@ -27,11 +27,19 @@ import GuildWar from './pages/GuildWar'
 import CharDungeon from './pages/CharDungeon'
 import Collection from './pages/Collection'
 import Board from './pages/Board'
+import BottomNav from './components/BottomNav'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
 // เพราะ GitHub Pages เป็นโฮสต์ไฟล์นิ่ง ถ้าผู้เล่นรีเฟรชหน้าที่ path ลึก ๆ
 // เซิร์ฟเวอร์จะหาไฟล์นั้นไม่เจอแล้วขึ้น 404
+
+/** แถบนำทางโผล่เฉพาะตอนที่ผู้เล่นเข้าเกมแล้วจริง ๆ */
+function NavGate() {
+  const { user, player } = usePlayer()
+  if (!user || !player || !player.starterChosen) return null
+  return <BottomNav />
+}
 
 function Gate({ children }) {
   const { user, player, loading } = usePlayer()
@@ -82,6 +90,7 @@ export default function App() {
           <Route path="/status" element={<Status />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <NavGate />
       </HashRouter>
     </PlayerProvider>
   )

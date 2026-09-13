@@ -13,6 +13,12 @@ export default function Status() {
   return (
     <main className="screen">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>รายละเอียดระบบ</h1>
         <p>หน้านี้มีไว้ยืนยันว่า build และการเปลี่ยนหน้าทำงานถูกต้องบน GitHub Pages</p>
 

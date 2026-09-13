@@ -40,6 +40,12 @@ export default function CharDungeon() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>ดันเจี้ยนรอยอดีต</h1>
         <p className="meta">
           หกด่านต่อรอบ เปลี่ยนตัวละครทุกชั่วโมง · รอบนี้เหลืออีก {minutesLeft(hour)} นาที
@@ -111,12 +117,6 @@ export default function CharDungeon() {
             </div>
           </article>
         ))}
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
-        </div>
       </div>
 
       {brief && (

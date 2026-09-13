@@ -27,6 +27,12 @@ export default function Collection() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <div className="roster-head">
           <h1>หอสะสมฮีโร่</h1>
           <Link className="plain-link inline" to="/">

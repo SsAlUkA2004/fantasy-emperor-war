@@ -59,6 +59,12 @@ export default function Mailbox() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <header className="lobby-head">
           <div>
             <h1>กล่องจดหมาย</h1>
@@ -132,12 +138,6 @@ export default function Mailbox() {
         <p className="meta tiny">
           รางวัลประจำวันออกให้อัตโนมัติเมื่อเปิดหน้านี้ในแต่ละวัน ยิ่งแรงค์สูงยิ่งได้มาก
         </p>
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
-        </div>
       </div>
     </main>
   )

@@ -46,6 +46,12 @@ export default function Shop() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <header className="lobby-head">
           <div>
             <h1>ร้านค้า</h1>
@@ -158,12 +164,6 @@ export default function Shop() {
             </div>
           )
         })}
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
-        </div>
       </div>
     </main>
   )

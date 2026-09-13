@@ -97,6 +97,12 @@ export default function StageMap() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <TeamStrip team={player.team} power={roster ? myPower : undefined} />
 
         <div className="chapter-bar">
@@ -323,12 +329,6 @@ export default function StageMap() {
               </button>
             )
           })}
-        </div>
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
         </div>
       </div>
 

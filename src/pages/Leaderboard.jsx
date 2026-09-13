@@ -21,6 +21,12 @@ export default function Leaderboard() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>กระดานอันดับ</h1>
         <p className="meta">
           50 อันดับแรก · ตอนนี้คุณอยู่{' '}
@@ -57,9 +63,6 @@ export default function Leaderboard() {
           </Link>
           <Link className="rune-link" to="/arena">
             กลับไปประลอง
-          </Link>
-          <Link className="rune-link" to="/">
-            หน้าหลัก
           </Link>
         </div>
       </div>

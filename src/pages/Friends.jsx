@@ -94,6 +94,12 @@ export default function Friends() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>เพื่อน</h1>
         <p className="meta">ค้นหาจากชื่อผู้ใช้ ต้องพิมพ์ให้ตรงทั้งหมด</p>
 
@@ -223,14 +229,6 @@ export default function Friends() {
           ประลองกับเพื่อนไม่นับแต้มและไม่ใช้โควตาประจำวัน
           ฝั่งเพื่อนให้บอทคุมทีมตั้งรับที่เขาบันทึกไว้
         </p>
-
-
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
-        </div>
       </div>
 
       {peek && (

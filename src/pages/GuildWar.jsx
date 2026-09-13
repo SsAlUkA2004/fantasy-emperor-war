@@ -52,6 +52,12 @@ export default function GuildWar() {
     return (
       <main className="screen top">
         <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
           <h1>ศึกชิงธง</h1>
           <p className="meta center locked-note">ต้องอยู่ในกิลด์ก่อนจึงจะลงศึกได้</p>
           <Link className="rune-link block" to="/guild">
@@ -179,9 +185,6 @@ export default function GuildWar() {
         <div className="gate">
           <Link className="rune-link" to="/guild">
             หน้ากิลด์
-          </Link>
-          <Link className="rune-link" to="/">
-            หน้าหลัก
           </Link>
         </div>
       </div>

@@ -26,6 +26,12 @@ export default function Dungeon() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>หอคอยดันเจี้ยน</h1>
         <p className="meta">
           ผ่านแล้ว {cleared} จาก {FLOORS} ชั้น · วันนี้เหลือ {left} ครั้ง
@@ -73,12 +79,6 @@ export default function Dungeon() {
               </button>
             )
           })}
-        </div>
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
         </div>
       </div>
 

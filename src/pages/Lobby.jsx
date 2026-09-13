@@ -11,7 +11,12 @@ import { titlesFor, TITLES, claimableRanks } from '../data/ranks'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
-import { UNLOCKS, chapterCleared } from '../data/stages'
+import { UNLOCKS, chapterCleared, GEM_RUNS_PER_DAY } from '../data/stages'
+import { RUNS_PER_DAY as DUNGEON_RUNS } from '../data/dungeon'
+import { runsLeft } from '../lib/dayclock'
+import { RUNS_PER_SLOT, SLOTS_PER_ROUND } from '../data/chardungeon'
+import { totalRunsLeft } from '../lib/chardungeon'
+import { roundFor } from '../data/chardungeon'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
 
@@ -219,14 +224,23 @@ export default function Lobby() {
 
         <Link className="rune-link block" to="/stages">
           ออกผจญภัย
+          <span className="btn-note">
+            เหมืองเหลือ {runsLeft(player, GEM_RUNS_PER_DAY)} ครั้ง
+          </span>
         </Link>
 
         <Link className="rune-link block" to="/dungeon">
           ดันเจี้ยน
+          <span className="btn-note">
+            วันนี้เหลือ {runsLeft(player, DUNGEON_RUNS, 'dunRunAt', 'dunRunCount')} ครั้ง
+          </span>
         </Link>
 
         <Link className="rune-link block" to="/hunt">
           ดันเจี้ยนรอยอดีต · หาตัวละคร
+          <span className="btn-note">
+            รอบนี้เหลือ {totalRunsLeft(player, roundFor().slots)} ครั้ง
+          </span>
         </Link>
 
         <Link
@@ -250,47 +264,9 @@ export default function Lobby() {
             ' · มีรางวัลรอรับ'}
         </Link>
 
-        <div className="gate">
-          <Link className="rune-link" to="/gacha">
-            อัญเชิญ
-          </Link>
-          <Link className="rune-link" to="/team">
-            จัดทีม
-          </Link>
-          <Link className="rune-link" to="/board">
-            บอร์ด
-          </Link>
-          <Link className="rune-link" to="/collection">
-            หอสะสม
-          </Link>
-          <Link className="rune-link" to="/guild">
-            กิลด์
-          </Link>
-          <Link className="rune-link" to="/gear">
-            อุปกรณ์
-          </Link>
-          <Link className="rune-link" to="/mail">
-            กล่องจดหมาย
-          </Link>
-          <Link className="rune-link" to="/exchange">
-            แลกเปลี่ยน
-          </Link>
-          <Link className="rune-link" to="/shop">
-            ร้านค้า
-          </Link>
-          <Link className="rune-link" to="/redeem">
-            แลกโค้ด
-          </Link>
-          <Link className="rune-link" to="/friends">
-            เพื่อน
-          </Link>
-          <Link className="rune-link" to="/status">
-            รายละเอียดระบบ
-          </Link>
-          <button className="rune-link" onClick={signOut}>
-            ออกจากระบบ
-          </button>
-        </div>
+        <p className="meta tiny center lobby-hint">
+          โหมดอื่นทั้งหมดอยู่ในแถบด้านล่าง กดปุ่มเมนูขวาสุดเพื่อดูทุกหน้า
+        </p>
       </div>
     </main>
   )

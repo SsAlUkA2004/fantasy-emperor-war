@@ -30,6 +30,12 @@ export default function Redeem() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <header className="lobby-head">
           <div>
             <h1>แลกโค้ด</h1>
@@ -79,12 +85,6 @@ export default function Redeem() {
             </div>
           </>
         )}
-
-        <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
-        </div>
       </div>
     </main>
   )

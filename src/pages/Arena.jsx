@@ -135,6 +135,12 @@ export default function Arena() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <header className="lobby-head">
           <div>
             <h1>ประลอง</h1>
@@ -298,9 +304,6 @@ export default function Arena() {
           </Link>
           <Link className="rune-link" to="/leaderboard">
             กระดานอันดับ
-          </Link>
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
           </Link>
         </div>
       </div>

@@ -38,6 +38,12 @@ export default function Exchange() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
         <h1>หอแลกเปลี่ยน</h1>
         <p className="meta">
           ตัวซ้ำจากกาชาให้เศษวิญญาณตามระดับหายาก สะสมครบเท่ากับตัวซ้ำ {DUPES_PER_UNIT} ตัว
@@ -107,9 +113,6 @@ export default function Exchange() {
         <div className="gate">
           <Link className="rune-link" to="/gacha">
             ไปกาชา
-          </Link>
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
           </Link>
         </div>
       </div>
