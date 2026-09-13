@@ -17,6 +17,37 @@ export { SHARDS_PER_DUPE }
 export const STAR_COST = { 2: 15, 3: 30, 4: 60, 5: 120 }
 
 /**
+ * ยกระดับผลที่สุ่มได้ ถ้าตู้นั้นไม่มีตัวละครระดับนั้นเลย
+ *
+ * ตู้ทัพหน้าใหม่ไม่มีตัวระดับ R แต่การสุ่มยังออกผล R ได้เจ็ดสิบเก้าเปอร์เซ็นต์
+ * เดิมโค้ดจึงไปหยิบจากกองว่างแล้วได้ค่าว่าง ซึ่งพังตอนเขียนลง Firestore
+ *
+ * แก้โดยเลื่อนขึ้นไประดับที่ตู้นั้นมีจริง ผลคือตู้ที่ไม่มีของระดับต่ำ
+ * จะให้ของดีกว่าโดยอัตโนมัติ ซึ่งถูกต้องแล้วและผู้เล่นเห็นอัตราจริงในหน้ากาชา
+ */
+function liftRarity(rarity, pool) {
+  const order = ['R', 'SR', 'SSR']
+  const from = order.indexOf(rarity)
+  for (let i = from; i < order.length; i++) {
+    if (pool[order[i]]?.length) return order[i]
+  }
+  for (let i = from - 1; i >= 0; i--) {
+    if (pool[order[i]]?.length) return order[i]
+  }
+  return null
+}
+
+/** อัตราออกจริงของตู้หนึ่ง หลังยุบระดับที่ตู้นั้นไม่มีเข้ากับระดับที่มี */
+export function effectiveRates(pool) {
+  const out = { R: 0, SR: 0, SSR: 0 }
+  Object.entries(RATES).forEach(([rarity, chance]) => {
+    const target = liftRarity(rarity, pool)
+    if (target) out[target] += chance
+  })
+  return out
+}
+
+/**
  * สุ่มหนึ่งครั้ง โดยดูตัวนับการันตีประกอบ
  *
  * ตัวนับสองตัวทำงานแยกกัน sinceSR รีเซ็ตเมื่อได้ SR ขึ้นไป
@@ -34,7 +65,10 @@ function rollOne(pity, pool) {
     rarity = r < RATES.SSR ? 'SSR' : r < RATES.SSR + RATES.SR ? 'SR' : 'R'
   }
 
-  const list = pool[rarity]
+  // ตู้บางตู้ไม่มีตัวละครทุกระดับ ต้องเลื่อนขึ้นไประดับที่มีจริง
+  rarity = liftRarity(rarity, pool) ?? rarity
+  const list = pool[rarity] ?? []
+  if (!list.length) throw new Error('ตู้นี้ยังไม่มีตัวละครให้สุ่ม')
   const id = list[Math.floor(Math.random() * list.length)]
 
   if (rarity === 'SSR') {
@@ -74,6 +108,12 @@ export async function pull(player, count, bannerId = 'origin') {
   const charPool = bannerPool(bannerId)
   const results = []
   for (let i = 0; i < count; i++) results.push(rollOne(pity, charPool))
+
+  // กันไม่ให้ค่าว่างหลุดลงไปถึง Firestore
+  // ถ้าเคยหลุด ข้อความที่ได้จะเป็น indexOf ของ undefined ซึ่งตามต้นตอยากมาก
+  if (results.some((r) => !r.id || !CHARACTERS[r.id])) {
+    throw new Error('ผลการสุ่มผิดพลาด ลองใหม่อีกครั้ง')
+  }
 
   const uid = player.uid
   const owned = {}

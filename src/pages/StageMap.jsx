@@ -22,6 +22,7 @@ import {
 import { usePlayer } from '../context/PlayerContext'
 import StatPeek from '../components/StatPeek'
 import TeamStrip from '../components/TeamStrip'
+import StageBrief from '../components/StageBrief'
 
 /** ป้ายเทียบพลังทีมกับพลังศัตรูของด่านนั้น */
 function PowerTag({ mine, stage, ready }) {
@@ -40,6 +41,7 @@ function PowerTag({ mine, stage, ready }) {
 export default function StageMap() {
   const { user, player } = usePlayer()
   const [roster, setRoster] = useState(null)
+  const [brief, setBrief] = useState(null)
 
   useEffect(() => {
     loadCollection(user.uid).then(setRoster)
@@ -142,7 +144,7 @@ export default function StageMap() {
                   data-locked={!unlocked}
                   data-boss={boss}
                   disabled={!unlocked}
-                  onClick={() => navigate(`/battle/${stage.id}`)}
+                  onClick={() => setBrief(stage)}
                 >
                   <span className="stage-id">{stage.id}</span>
                   <span className="stage-body">
@@ -201,7 +203,7 @@ export default function StageMap() {
                 className="stage-row"
                 data-locked={!unlocked || left === 0}
                 disabled={!unlocked || left === 0}
-                onClick={() => navigate(`/battle/${g.id}`)}
+                onClick={() => setBrief(g)}
               >
                 <span className="stage-id gem">◆</span>
                 <span className="stage-body">
@@ -235,7 +237,7 @@ export default function StageMap() {
                 className="stage-row"
                 data-locked={!unlocked || matLeft === 0}
                 disabled={!unlocked || matLeft === 0}
-                onClick={() => navigate(`/battle/${m.id}`)}
+                onClick={() => setBrief(m)}
               >
                 <span className="stage-id mat">⛏</span>
                 <span className="stage-body">
@@ -271,7 +273,7 @@ export default function StageMap() {
                 className="stage-row"
                 data-locked={!unlocked}
                 disabled={!unlocked}
-                onClick={() => navigate(`/battle/${t.id}`)}
+                onClick={() => setBrief(t)}
               >
                 <span className="stage-id">exp</span>
                 <span className="stage-body">
@@ -292,6 +294,14 @@ export default function StageMap() {
           </Link>
         </div>
       </div>
+
+      {brief && (
+        <StageBrief
+          stage={brief}
+          onStart={() => navigate(`/battle/${brief.id}`)}
+          onClose={() => setBrief(null)}
+        />
+      )}
     </main>
   )
 }

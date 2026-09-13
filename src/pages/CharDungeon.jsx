@@ -9,16 +9,19 @@ import {
   minutesLeft,
   roundFor,
   schedule,
+  slotStage,
 } from '../data/chardungeon'
 import { ELEMENTS, FOCUS, ROLES } from '../data/characters'
 import { runsLeftFor } from '../lib/chardungeon'
 import { loadCollection } from '../lib/player'
+import StageBrief from '../components/StageBrief'
 
 export default function CharDungeon() {
   const { user, player } = usePlayer()
   const navigate = useNavigate()
   const [owned, setOwned] = useState(null)
   const [hour, setHour] = useState(hourIndex())
+  const [brief, setBrief] = useState(null)
 
   useEffect(() => {
     loadCollection(user.uid).then(setOwned)
@@ -58,7 +61,7 @@ export default function CharDungeon() {
                 data-locked={left === 0}
                 data-boss={s.rarity === 'SSR'}
                 disabled={left === 0}
-                onClick={() => navigate(`/battle/c-${hour}-${s.slot}`)}
+                onClick={() => setBrief(slotStage(s, hour))}
               >
                 <span className="stage-id">{ELEMENTS[s.char.element].mark}</span>
                 <span className="stage-body">
@@ -115,6 +118,14 @@ export default function CharDungeon() {
           </Link>
         </div>
       </div>
+
+      {brief && (
+        <StageBrief
+          stage={brief}
+          onStart={() => navigate(`/battle/${brief.id}`)}
+          onClose={() => setBrief(null)}
+        />
+      )}
     </main>
   )
 }

@@ -12,6 +12,7 @@ import { loadRaid, raidHitsLeft } from '../lib/guildraid'
 import { loadGuild, loadMembers } from '../lib/guild'
 import { buyGuildItem } from '../lib/guildshop'
 import { hoursUntilReset } from '../lib/dayclock'
+import StageBrief from '../components/StageBrief'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
 
@@ -25,6 +26,7 @@ export default function GuildRaid() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [got, setGot] = useState(null)
+  const [brief, setBrief] = useState(null)
 
   useEffect(() => {
     if (!player.guildId) return
@@ -117,8 +119,11 @@ export default function GuildRaid() {
                   className="rune-link block primary"
                   disabled={left === 0}
                   onClick={() =>
-                    navigate('/boss/fight', {
-                      state: { mode: 'raid', guildId: player.guildId, week: raid.week },
+                    setBrief({
+                      id: 'guildraid',
+                      name: raid.spec.name,
+                      intro: raid.spec.intro,
+                      enemies: [{ id: `boss:${raid.spec.id}`, level: 1 }],
                     })
                   }
                 >
@@ -190,6 +195,18 @@ export default function GuildRaid() {
           </Link>
         </div>
       </div>
+
+      {brief && (
+        <StageBrief
+          stage={brief}
+          onStart={() =>
+            navigate('/boss/fight', {
+              state: { mode: 'raid', guildId: player.guildId, week: raid.week },
+            })
+          }
+          onClose={() => setBrief(null)}
+        />
+      )}
     </main>
   )
 }

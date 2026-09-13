@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { BANNERS, CHARACTERS, ELEMENTS, FOCUS, ROLES, bannerPool } from '../data/characters'
-import { PULL_COST, TEN_PULL_COST, PITY_SR, PITY_SSR, RATES, pull } from '../lib/gacha'
+import {
+  PULL_COST,
+  TEN_PULL_COST,
+  PITY_SR,
+  PITY_SSR,
+  effectiveRates,
+  pull,
+} from '../lib/gacha'
 import { loadCollection } from '../lib/player'
 
 export default function Gacha() {
@@ -20,6 +27,8 @@ export default function Gacha() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
+  const pool = bannerPool(banner)
+  const rates = effectiveRates(pool)
   const inBanner = BANNERS.find((b) => b.id === banner)?.ids ?? []
   const hasChar = (id) => owned?.some((o) => o.id === id) ?? false
 
@@ -54,8 +63,11 @@ export default function Gacha() {
           <div>
             <h1>ประตูอัญเชิญ</h1>
             <p className="meta">
-              โอกาสออก R {Math.round(RATES.R * 100)}% · SR {Math.round(RATES.SR * 100)}% · SSR{' '}
-              {Math.round(RATES.SSR * 100)}%
+              โอกาสออกในตู้นี้ ·{' '}
+              {['R', 'SR', 'SSR']
+                .filter((r) => rates[r] > 0)
+                .map((r) => `${r} ${(rates[r] * 100).toFixed(rates[r] < 0.05 ? 0 : 0)}%`)
+                .join(' · ')}
             </p>
           </div>
           <div className="purse">
@@ -79,8 +91,9 @@ export default function Gacha() {
         </div>
         <p className="meta">{BANNERS.find((b) => b.id === banner)?.desc}</p>
         <p className="meta tiny">
-          ตู้นี้มี SSR {bannerPool(banner).SSR.length} ตัว · SR {bannerPool(banner).SR.length} ตัว ·
-          R {bannerPool(banner).R.length} ตัว · ตัวนับการันตีใช้ร่วมกันทั้งสองตู้
+          ตู้นี้มี SSR {pool.SSR.length} ตัว · SR {pool.SR.length} ตัว · R {pool.R.length} ตัว ·
+          ตัวนับการันตีใช้ร่วมกันทั้งสองตู้
+          {pool.R.length === 0 && ' · ตู้นี้ไม่มีตัวระดับ R โอกาสที่ควรออก R จึงเลื่อนขึ้นเป็น SR ทั้งหมด'}
         </p>
 
         <div className="roster-head">

@@ -15,6 +15,7 @@ import { claimTier, hitsLeft, loadBoss, loadMyDamage, loadRanking } from '../lib
 import { hoursUntilReset } from '../lib/dayclock'
 import { UNLOCKS, chapterCleared } from '../data/stages'
 import Locked from '../components/Locked'
+import StageBrief from '../components/StageBrief'
 
 const fmt = (n) => Math.round(n).toLocaleString('th-TH')
 
@@ -26,6 +27,7 @@ export default function WorldBoss() {
   const [mine, setMine] = useState(null)
   const [board, setBoard] = useState(null)
   const [busy, setBusy] = useState(null)
+  const [brief, setBrief] = useState(null)
   const [error, setError] = useState(null)
 
   const unlocked = chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter)
@@ -130,7 +132,14 @@ export default function WorldBoss() {
             <button
               className="rune-link block primary"
               disabled={left === 0}
-              onClick={() => navigate('/boss/fight', { state: { week: boss.week } })}
+              onClick={() =>
+                setBrief({
+                  id: 'worldboss',
+                  name: boss.spec.name,
+                  intro: boss.spec.intro,
+                  enemies: [{ id: `boss:${boss.spec.id}`, level: 1 }],
+                })
+              }
             >
               {left === 0 ? `ครบโควตาวันนี้ · รีเซ็ตอีก ${hoursUntilReset()} ชั่วโมง` : 'เข้าโจมตี'}
             </button>
@@ -206,6 +215,14 @@ export default function WorldBoss() {
           </Link>
         </div>
       </div>
+
+      {brief && (
+        <StageBrief
+          stage={brief}
+          onStart={() => navigate('/boss/fight', { state: { week: boss.week } })}
+          onClose={() => setBrief(null)}
+        />
+      )}
     </main>
   )
 }

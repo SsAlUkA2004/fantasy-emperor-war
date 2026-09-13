@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { FLOORS, RUNS_PER_DAY, floorStage, ilvlForFloor, isGuardFloor } from '../data/dungeon'
@@ -6,10 +7,12 @@ import { ELEMENTS } from '../data/characters'
 import { GRADES, SOURCE_RANGE } from '../data/gear'
 import { runsLeft, hoursUntilReset } from '../lib/dayclock'
 import { stagePower, formatPower } from '../lib/power'
+import StageBrief from '../components/StageBrief'
 
 export default function Dungeon() {
   const { player } = usePlayer()
   const navigate = useNavigate()
+  const [brief, setBrief] = useState(null)
 
   const cleared = player.dungeonFloor ?? 0
   const left = runsLeft(player, RUNS_PER_DAY, 'dunRunAt', 'dunRunCount')
@@ -47,7 +50,7 @@ export default function Dungeon() {
                 className="stage-row"
                 data-boss={guard}
                 disabled={left === 0}
-                onClick={() => navigate(`/battle/${f.id}`)}
+                onClick={() => setBrief(f)}
               >
                 <span className="stage-id">{f.floor}</span>
                 <span className="stage-body">
@@ -78,6 +81,14 @@ export default function Dungeon() {
           </Link>
         </div>
       </div>
+
+      {brief && (
+        <StageBrief
+          stage={brief}
+          onStart={() => navigate(`/battle/${brief.id}`)}
+          onClose={() => setBrief(null)}
+        />
+      )}
     </main>
   )
 }
