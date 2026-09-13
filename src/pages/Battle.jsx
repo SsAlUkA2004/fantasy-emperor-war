@@ -93,9 +93,14 @@ export default function Battle() {
 
     if (state.outcome === 'won' && stage.charDungeon) {
       loadCollection(user.uid)
-        .then((owned) => runCharDungeon({ ...player, uid: user.uid }, stage, owned))
+        .then(async (owned) => {
+          const r = await runCharDungeon({ ...player, uid: user.uid }, stage, owned)
+          // ตัวละครที่ร่วมรบได้ค่าประสบการณ์เหมือนด่านอื่น
+          const levels = await awardExp(user.uid, roster.current, stage.exp ?? 0).catch(() => null)
+          return { ...r, levels }
+        })
         .then(async (r) => {
-          setReward({ stars: 0, firstClear: false, gems: 0, hunt: r })
+          setReward({ stars: 0, firstClear: false, gems: 0, hunt: r, exp: stage.exp, levels: r.levels, coins: r.coins })
           await refresh()
         })
         .catch((e) =>

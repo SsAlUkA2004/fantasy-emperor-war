@@ -21,6 +21,18 @@ export const DROP_RATE = { R: 0.6, SR: 0.1, SSR: 0.01 }
 /** ตัวคูณเลือดของบอส ชดเชยที่เป็นตัวเดียวสู้กับทีมห้าคน */
 export const HP_SCALE = { R: 5, SR: 9, SSR: 16 }
 
+/**
+ * เหรียญและค่าประสบการณ์ที่ได้ทุกครั้งที่ชนะ ไม่ว่าจะได้ตัวละครหรือไม่
+ *
+ * ที่ต้องมีเพราะโอกาสได้ตัว SSR อยู่ที่ 1% ถ้าชนะแล้วไม่ได้อะไรเลย
+ * ผู้เล่นจะรู้สึกว่าเสียเวลาฟรีเก้าสิบเก้าครั้งจากร้อย
+ */
+export const CLEAR_REWARD = {
+  R: { coins: 150, exp: 400 },
+  SR: { coins: 350, exp: 1200 },
+  SSR: { coins: 800, exp: 3000 },
+}
+
 export function hourIndex(date = new Date()) {
   return Math.floor(date.getTime() / HOUR_MS)
 }
@@ -86,7 +98,8 @@ export function slotStage(entry, hour) {
     rarity: entry.rarity,
     name: `รอยอดีตของ${entry.char.name}`,
     intro: `เงาของ${entry.char.name}ยืนรออยู่ตรงนั้น และมันสู้เหมือนตัวจริงทุกอย่าง`,
-    exp: 0,
+    exp: CLEAR_REWARD[entry.rarity].exp,
+    coins: CLEAR_REWARD[entry.rarity].coins,
     // คูณเลือดเพราะเป็นตัวเดียวสู้กับทีมห้าคน ยิ่งหายากยิ่งอึด
     enemies: [{ id: `hero:${entry.charId}`, level, star, hpScale: HP_SCALE[entry.rarity] }],
   }

@@ -1,17 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { BANNERS, CHARACTERS, ELEMENTS, FOCUS, ROLES, bannerPool } from '../data/characters'
 import { PULL_COST, TEN_PULL_COST, PITY_SR, PITY_SSR, RATES, pull } from '../lib/gacha'
+import { loadCollection } from '../lib/player'
 
 export default function Gacha() {
   const { user, player, refresh } = usePlayer()
   const [results, setResults] = useState(null)
   const [lastCount, setLastCount] = useState(1)
   const [banner, setBanner] = useState(BANNERS[0].id)
+  const [owned, setOwned] = useState(null)
+  const [showPool, setShowPool] = useState(false)
+
+  useEffect(() => {
+    loadCollection(user.uid).then(setOwned)
+  }, [user.uid])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+
+  const inBanner = BANNERS.find((b) => b.id === banner)?.ids ?? []
+  const hasChar = (id) => owned?.some((o) => o.id === id) ?? false
 
   const sinceSR = player.pitySR ?? 0
   const sinceSSR = player.pitySSR ?? 0
@@ -73,6 +83,30 @@ export default function Gacha() {
           R {bannerPool(banner).R.length} ตัว · ตัวนับการันตีใช้ร่วมกันทั้งสองตู้
         </p>
 
+        <div className="roster-head">
+          <span className="meta">
+            ในตู้นี้คุณมีแล้ว {inBanner.filter((id) => hasChar(id)).length} จาก {inBanner.length} ตัว
+          </span>
+          <button className="plain-link inline" onClick={() => setShowPool((v) => !v)}>
+            {showPool ? 'ซ่อนรายชื่อ' : 'ดูรายชื่อในตู้'}
+          </button>
+        </div>
+
+        {showPool && (
+          <div className="pool-grid">
+            {inBanner.map((id) => {
+              const c = CHARACTERS[id]
+              const mine = hasChar(id)
+              return (
+                <span className="pool-chip" key={id} data-owned={mine} data-rarity={c.rarity}>
+                  {mine ? ELEMENTS[c.element].mark : '❔'} {mine ? c.name : '???'}
+                  <span className="pool-rarity">{c.rarity}</span>
+                </span>
+              )
+            })}
+          </div>
+        )}
+
         <section className="pity">
           <div className="pity-row">
             <span className="meta">อีก {Math.max(0, PITY_SR - sinceSR)} ครั้งได้ SR ขึ้นไปแน่นอน</span>
@@ -103,6 +137,9 @@ export default function Gacha() {
         {busy && <p className="meta center">กำลังอัญเชิญ</p>}
 
         <div className="gate">
+          <Link className="rune-link" to="/collection">
+            หอสะสมฮีโร่
+          </Link>
           <Link className="rune-link" to="/">
             กลับหน้าหลัก
           </Link>

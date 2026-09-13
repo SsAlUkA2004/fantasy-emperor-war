@@ -37,6 +37,9 @@ export async function runCharDungeon(player, stage, owned) {
 
   counts[key] = used + 1
 
+  // เหรียญได้ทุกครั้งที่ชนะ ไม่ผูกกับการได้ตัวละคร
+  patch.coins = (player.coins ?? 0) + (stage.coins ?? 0)
+
   const hit = Math.random() < dropRateFor(stage.rarity)
   const has = owned.some((o) => o.id === stage.charId)
   const batch = writeBatch(db)
@@ -68,5 +71,10 @@ export async function runCharDungeon(player, stage, owned) {
   batch.update(doc(db, 'users', player.uid), patch)
   await batch.commit()
 
-  return { got, left: RUNS_PER_SLOT - counts[key], name: CHARACTERS[stage.charId]?.name }
+  return {
+    got,
+    left: RUNS_PER_SLOT - counts[key],
+    name: CHARACTERS[stage.charId]?.name,
+    coins: stage.coins ?? 0,
+  }
 }

@@ -63,6 +63,15 @@ export default function Gear() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+          <Link className="plain-link inline" to="/team">
+            จัดทีม
+          </Link>
+        </div>
+
         <header className="lobby-head">
           <div>
             <h1>อุปกรณ์</h1>
@@ -256,9 +265,6 @@ export default function Gear() {
           >
             ↑ กลับขึ้นบน
           </button>
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
         </div>
       </div>
 

@@ -249,6 +249,9 @@ export default function Lobby() {
           <Link className="rune-link" to="/team">
             จัดทีม
           </Link>
+          <Link className="rune-link" to="/collection">
+            หอสะสม
+          </Link>
           <Link className="rune-link" to="/guild">
             กิลด์
           </Link>
