@@ -121,10 +121,10 @@ export async function saveStageResult(player, stage, stars, exp) {
   }
 
   // ───── ด่านเนื้อเรื่อง ─────
-  if (!firstClear && stars <= previous) return { firstClear: false, gems: 0, account: null }
-
-  // เหรียญกับอุปกรณ์ได้ทุกครั้งที่ผ่าน ไม่ใช่เฉพาะครั้งแรก
-  // เพราะสองอย่างนี้คือเหตุผลให้กลับมาเล่นด่านเดิมซ้ำ
+  //
+  // เดิมโค้ดตรงนี้คืนค่าออกไปเลยถ้าเล่นซ้ำแล้วได้ดาวไม่ดีขึ้น
+  // ผลคือเล่นซ้ำแล้วไม่ได้อะไรเลยแม้แต่เหรียญ ซึ่งขัดกับที่ตั้งใจไว้
+  // ตอนนี้เหรียญกับอุปกรณ์ได้ทุกครั้งที่ผ่าน ส่วนดาวกับเพชรยังให้เฉพาะตอนทำได้ดีขึ้น
   const chapter = stage.chapter ?? 1
   const coins = coinsForStage(chapter)
   let drop = null

@@ -108,7 +108,7 @@ export const STAGE_DROP_CHANCE = 0.35
 
 /** เหรียญที่ได้จากการผ่านด่าน ขึ้นกับบท */
 export function coinsForStage(chapter = 1) {
-  return 40 + (chapter - 1) * 55
+  return 120 + (chapter - 1) * 180
 }
 
 /**
