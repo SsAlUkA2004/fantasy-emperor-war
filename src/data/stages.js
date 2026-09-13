@@ -62,15 +62,15 @@ export const ENEMIES = {
   // ───────── บทที่ 3 ทะเลทรายกระดูก ─────────
   scorpion: {
     id: 'scorpion', name: 'แมงป่องทราย', element: 'earth', mark: '🦂',
-    stats: { hp: 3910, atk: 699, def: 146, spd: 106, crit: 16 },
+    stats: { hp: 3324, atk: 594, def: 132, spd: 106, crit: 16 },
   },
   mummy: {
     id: 'mummy', name: 'มัมมี่คำสาป', element: 'dark', mark: '🧟',
-    stats: { hp: 6157, atk: 590, def: 218, spd: 62, crit: 6 },
+    stats: { hp: 5233, atk: 502, def: 198, spd: 62, crit: 6 },
   },
   efreet: {
     id: 'efreet', name: 'อิฟรีตทะเลทราย', element: 'fire', mark: '🕯️',
-    stats: { hp: 4909, atk: 815, def: 159, spd: 98, crit: 12 },
+    stats: { hp: 4173, atk: 693, def: 144, spd: 98, crit: 12 },
     skill: {
       name: 'ลมร้อนแผดเผา', mp: 3,
       effects: [
@@ -81,7 +81,7 @@ export const ENEMIES = {
   },
   sandwyrm: {
     id: 'sandwyrm', name: 'พญาหนอนทราย', element: 'earth', mark: '🪱', boss: true,
-    stats: { hp: 25792, atk: 991, def: 310, spd: 70, crit: 10 },
+    stats: { hp: 21923, atk: 842, def: 281, spd: 70, crit: 10 },
     skill: {
       name: 'กลืนทั้งเป็น', mp: 3,
       effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
@@ -91,11 +91,11 @@ export const ENEMIES = {
   // ───────── บทที่ 4 ยอดเขาเพลิงนิทรา ─────────
   lavahound: {
     id: 'lavahound', name: 'สุนัขลาวา', element: 'fire', mark: '🐕',
-    stats: { hp: 4472, atk: 593, def: 179, spd: 112, crit: 14 },
+    stats: { hp: 3327, atk: 441, def: 151, spd: 112, crit: 14 },
   },
   ashmage: {
     id: 'ashmage', name: 'นักเวทเถ้าถ่าน', element: 'fire', mark: '🌋',
-    stats: { hp: 4004, atk: 681, def: 145, spd: 94, crit: 10 },
+    stats: { hp: 2979, atk: 507, def: 121, spd: 94, crit: 10 },
     skill: {
       name: 'ฝนเถ้าถ่าน', mp: 3,
       effects: [
@@ -106,11 +106,11 @@ export const ENEMIES = {
   },
   rocdrake: {
     id: 'rocdrake', name: 'มังกรน้อยหินผา', element: 'wind', mark: '🐉',
-    stats: { hp: 5330, atk: 634, def: 208, spd: 120, crit: 15 },
+    stats: { hp: 3966, atk: 471, def: 175, spd: 120, crit: 15 },
   },
   emberlord: {
     id: 'emberlord', name: 'จอมเพลิงหลับใหล', element: 'fire', mark: '👹', boss: true,
-    stats: { hp: 27300, atk: 889, def: 324, spd: 100, crit: 14 },
+    stats: { hp: 20312, atk: 662, def: 270, spd: 100, crit: 14 },
     skill: {
       name: 'เปลวหมื่นปี', mp: 3,
       effects: [
@@ -123,11 +123,11 @@ export const ENEMIES = {
   // ───────── บทที่ 5 ปราการเงามืด ─────────
   wraith: {
     id: 'wraith', name: 'วิญญาณอาฆาต', element: 'dark', mark: '👻',
-    stats: { hp: 5928, atk: 827, def: 202, spd: 128, crit: 20 },
+    stats: { hp: 2668, atk: 372, def: 125, spd: 128, crit: 20 },
   },
   darkknight: {
     id: 'darkknight', name: 'อัศวินดำ', element: 'dark', mark: '⚔️',
-    stats: { hp: 8840, atk: 770, def: 344, spd: 92, crit: 12 },
+    stats: { hp: 3978, atk: 347, def: 213, spd: 92, crit: 12 },
     skill: {
       name: 'ดาบสาปแช่ง', mp: 3,
       effects: [{ kind: 'damage', mult: 2.2, target: 'one' }],
@@ -135,7 +135,7 @@ export const ENEMIES = {
   },
   sentinel: {
     id: 'sentinel', name: 'ผู้พิทักษ์แสงร้าง', element: 'light', mark: '🛡️',
-    stats: { hp: 10140, atk: 686, def: 391, spd: 80, crit: 8 },
+    stats: { hp: 4563, atk: 308, def: 242, spd: 80, crit: 8 },
     skill: {
       name: 'ปราการศักดิ์สิทธิ์', mp: 3,
       effects: [
@@ -146,7 +146,7 @@ export const ENEMIES = {
   },
   voidking: {
     id: 'voidking', name: 'ราชันสุญญากาศ', element: 'dark', mark: '🌑', boss: true,
-    stats: { hp: 46800, atk: 1139, def: 451, spd: 116, crit: 18 },
+    stats: { hp: 21060, atk: 512, def: 280, spd: 116, crit: 18 },
     skill: {
       name: 'กลืนกินแสงสุดท้าย', mp: 3,
       effects: [
@@ -159,7 +159,7 @@ export const ENEMIES = {
   // ───────── บทที่ 6 หุบเหวเสียงกรีดร้อง ─────────
   banshee: {
     id: 'banshee', name: 'แบนชีคร่ำครวญ', element: 'dark', mark: '👤',
-    stats: { hp: 23920, atk: 1612, def: 426, spd: 132, crit: 20 },
+    stats: { hp: 16074, atk: 1083, def: 335, spd: 132, crit: 20 },
     skill: {
       name: 'เสียงกรีดสลายขวัญ', mp: 3,
       effects: [
@@ -170,15 +170,15 @@ export const ENEMIES = {
   },
   gargoyle: {
     id: 'gargoyle', name: 'การ์กอยล์เฝ้าผา', element: 'earth', mark: '🗿',
-    stats: { hp: 37700, atk: 1425, def: 763, spd: 88, crit: 10 },
+    stats: { hp: 25334, atk: 957, def: 601, spd: 88, crit: 10 },
   },
   harpy: {
     id: 'harpy', name: 'ฮาร์ปีล่าเหยื่อ', element: 'wind', mark: '🦅',
-    stats: { hp: 22360, atk: 1747, def: 387, spd: 148, crit: 24 },
+    stats: { hp: 15026, atk: 1174, def: 305, spd: 148, crit: 24 },
   },
   abysswing: {
     id: 'abysswing', name: 'ปีกเหวลึก', element: 'dark', mark: '🕷️', boss: true,
-    stats: { hp: 187200, atk: 2548, def: 994, spd: 128, crit: 20 },
+    stats: { hp: 125798, atk: 1712, def: 784, spd: 128, crit: 20 },
     skill: {
       name: 'ปีกคลุมเหว', mp: 3,
       effects: [
@@ -191,7 +191,7 @@ export const ENEMIES = {
   // ───────── บทที่ 7 นครลอยฟ้าที่ร้างไป ─────────
   automaton: {
     id: 'automaton', name: 'จักรกลผู้พิทักษ์', element: 'light', mark: '🤖',
-    stats: { hp: 117000, atk: 4230, def: 1775, spd: 96, crit: 12 },
+    stats: { hp: 20807, atk: 752, def: 630, spd: 96, crit: 12 },
     skill: {
       name: 'ลำแสงตัดสิน', mp: 3,
       effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
@@ -199,7 +199,7 @@ export const ENEMIES = {
   },
   stormcaller: {
     id: 'stormcaller', name: 'ผู้เรียกพายุ', element: 'wind', mark: '⚡',
-    stats: { hp: 87750, atk: 5310, def: 1036, spd: 156, crit: 22 },
+    stats: { hp: 15606, atk: 944, def: 368, spd: 156, crit: 22 },
     skill: {
       name: 'สายฟ้าซัดทั่วฟ้า', mp: 3,
       effects: [
@@ -210,7 +210,7 @@ export const ENEMIES = {
   },
   seraph: {
     id: 'seraph', name: 'เซราฟตกสวรรค์', element: 'light', mark: '👼',
-    stats: { hp: 103500, atk: 4770, def: 1381, spd: 120, crit: 18 },
+    stats: { hp: 18406, atk: 848, def: 490, spd: 120, crit: 18 },
     skill: {
       name: 'ปีกหกคู่', mp: 3,
       effects: [
@@ -221,7 +221,7 @@ export const ENEMIES = {
   },
   skylord: {
     id: 'skylord', name: 'เจ้าแห่งนภาที่ถูกลืม', element: 'light', mark: '☀️', boss: true,
-    stats: { hp: 742500, atk: 7740, def: 2416, spd: 140, crit: 22 },
+    stats: { hp: 132047, atk: 1376, def: 857, spd: 140, crit: 22 },
     skill: {
       name: 'คำสั่งจากเบื้องบน', mp: 3,
       effects: [
@@ -311,9 +311,9 @@ export const CHAPTERS = [
   chapter(7, 'นครลอยฟ้าที่ร้างไป', 'เมืองที่คนทิ้งไปแต่เครื่องจักรยังทำงาน', [
     { name: 'ท่าเทียบเรือลม', intro: 'จักรกลยังตรวจตราอยู่เหมือนไม่มีอะไรเกิดขึ้น', exp: 12000, enemies: [e('automaton', 2), e('automaton', 2)] },
     { name: 'ถนนลอยฟ้า', intro: 'ลมแรงจนยืนแทบไม่อยู่', exp: 12800, enemies: [e('stormcaller', 2), e('automaton', 3)] },
-    { name: 'หอสังเกตการณ์', intro: 'เซราฟตัวนี้ฟื้นพลังตัวเองได้ ต้องเร่งเก็บ', exp: 13600, enemies: [e('seraph', 3), e('stormcaller', 3)] },
-    { name: 'ลานพิธีกลางเมือง', intro: 'สามตัวนี้ไม่มีตัวไหนอ่อนเลย', exp: 14800, enemies: [e('automaton', 4), e('seraph', 4), e('stormcaller', 4)] },
-    { name: 'บันไดสู่ยอดหอ', intro: 'ด่านสุดท้ายก่อนถึงยอด อย่าขึ้นไปด้วยทีมที่บาดเจ็บ', exp: 16000, enemies: [e('seraph', 5), e('seraph', 5), e('stormcaller', 6)] },
+    { name: 'หอสังเกตการณ์', intro: 'เซราฟตัวนี้ฟื้นพลังตัวเองได้ ต้องเร่งเก็บ', exp: 13600, enemies: [e('seraph', 1), e('stormcaller', 1)] },
+    { name: 'ลานพิธีกลางเมือง', intro: 'สามตัวนี้ไม่มีตัวไหนอ่อนเลย', exp: 14800, enemies: [e('automaton', 2), e('seraph', 1), e('stormcaller', 1)] },
+    { name: 'บันไดสู่ยอดหอ', intro: 'ด่านสุดท้ายก่อนถึงยอด อย่าขึ้นไปด้วยทีมที่บาดเจ็บ', exp: 16000, enemies: [e('automaton', 1), e('seraph', 1)] },
     { name: 'ยอดหอแห่งนภา', intro: 'สิ่งที่เฝ้าเมืองนี้มาตลอดหันมามองคุณ', exp: 24000, enemies: [e('skylord', 4)] },
   ]),
 ]
@@ -328,10 +328,19 @@ export const STAGES = CHAPTERS.flatMap((c) => c.stages)
 // รหัสด่านต่อท้ายด้วย @hard หรือ @demon ความคืบหน้าจึงแยกกันเองโดยไม่ต้องทำอะไรเพิ่ม
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * เพดานรอบของด่านทั่วไป
+ *
+ * ต้องมีเพราะถ้าทีมตีไม่พอที่จะฆ่าศัตรูและศัตรูก็ฆ่าทีมไม่ได้
+ * การต่อสู้จะวนไปเรื่อย ๆ ไม่มีวันจบ ผู้เล่นต้องนั่งกดจนกว่าจะยอมแพ้เอง
+ * ตั้งไว้สูงกว่าประลองเพราะบอสในเนื้อเรื่องเลือดเยอะกว่ามาก
+ */
+export const STORY_ROUND_LIMIT = 50
+
 export const DIFFICULTIES = [
   { id: 'normal', name: 'ปกติ', suffix: '', enemy: 1, reward: 1, gems: 30, ilvlBonus: 0 },
-  { id: 'hard', name: 'ยาก', suffix: '@hard', enemy: 1.8, reward: 2, gems: 50, ilvlBonus: 1 },
-  { id: 'demon', name: 'ปีศาจ', suffix: '@demon', enemy: 4.2, reward: 6, gems: 100, ilvlBonus: 2 },
+  { id: 'hard', name: 'ยาก', suffix: '@hard', enemy: 1.2, reward: 2, gems: 50, ilvlBonus: 1 },
+  { id: 'demon', name: 'ปีศาจ', suffix: '@demon', enemy: 1.32, reward: 6, gems: 100, ilvlBonus: 2 },
 ]
 
 export function difficultyOf(id) {

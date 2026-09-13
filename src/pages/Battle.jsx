@@ -11,6 +11,7 @@ import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { runCharDungeon } from '../lib/chardungeon'
 import { ROUND_LIMIT, decideByHp } from '../lib/pvp'
+import { STORY_ROUND_LIMIT } from '../data/stages'
 import { CHARACTERS } from '../data/characters'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
 import { GRADES, SLOTS } from '../data/gear'
@@ -71,10 +72,27 @@ export default function Battle() {
   useEffect(() => {
     if (!state || state.outcome) return
 
-    // ด่านรอยอดีตต้องมีเพดานรอบ เพราะบอสที่เป็นตัวละครสายฟื้นพลัง
-    // จะฟื้นเร็วกว่าที่ทีมตีเข้า แล้วการต่อสู้จะไม่มีวันจบ
+    // ด่านรอยอดีตตัดสินด้วยเลือดที่เหลือ เพราะบอสเป็นตัวละครที่อาจฟื้นพลังได้
     if (stage?.charDungeon && state.round > ROUND_LIMIT) {
       setState((s) => decideByHp(s))
+      return
+    }
+
+    // ด่านอื่นทั้งหมดต้องมีเพดานเหมือนกัน
+    //
+    // ก่อนหน้านี้ไม่มีเลย ถ้าทีมตีไม่พอที่จะฆ่าบอสและบอสก็ฆ่าทีมไม่ได้
+    // การต่อสู้จะวนไปเรื่อย ๆ ไม่มีวันจบ ซึ่งเป็นอาการที่เจอในบทที่ 7
+    // ตัดสินเป็นแพ้เพราะไม่สามารถล้มศัตรูได้ในเวลาที่กำหนด
+    if (state.round > STORY_ROUND_LIMIT) {
+      setState((s) => ({
+        ...s,
+        outcome: 'lost',
+        timedOut: true,
+        log: [
+          ...s.log,
+          { text: `ครบ ${STORY_ROUND_LIMIT} รอบแล้วยังล้มศัตรูไม่ได้`, kind: 'lose' },
+        ],
+      }))
       return
     }
 
@@ -187,7 +205,7 @@ export default function Battle() {
   )
 }
 
-function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgain, onBack, backLabel }) {
+function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgain, onBack, backLabel, timedOut, bossLeft }) {
   const won = outcome === 'won'
 
   return (
@@ -263,7 +281,15 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
           )}
         </>
       ) : (
-        <p>ลองจัดทีมใหม่หรือไปเก็บเลเวลจากลานฝึกดู</p>
+        <>
+          {timedOut && (
+            <p className="meta">
+              หมดเวลาโดยที่ศัตรูยังเหลือเลือด {bossLeft}% แปลว่าทีมยังตีไม่แรงพอ
+              ไม่ใช่ว่าอึดไม่พอ
+            </p>
+          )}
+          <p>ลองจัดทีมใหม่หรือไปเก็บเลเวลจากลานฝึกดู</p>
+        </>
       )}
 
       {won && nextStage && (
