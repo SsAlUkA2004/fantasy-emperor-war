@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { STAGES } from '../data/stages'
 import { findStage } from '../data/materials'
+import { FLOORS as DUNGEON_FLOORS } from '../data/dungeon'
 import { createBattle, currentUnit, needsTarget, takeTurn, starsEarned } from '../lib/battle'
 import { loadCollection as reloadCollection } from '../lib/player'
 import { awardExp, loadCollection } from '../lib/player'
 import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
 import { GRADES, SLOTS } from '../data/gear'
 import BattleStage from '../components/BattleStage'
@@ -31,10 +33,20 @@ export default function Battle() {
   // ด่านถัดไปในลำดับรวมทั้งเกม ข้ามบทได้เอง
   // ลานฝึกกับเหมืองไม่มีด่านถัดไป เพราะไม่ได้อยู่ในลำดับเนื้อเรื่อง
   const nextStage = (() => {
-    if (!stage || stage.training || stage.gemStage) return null
+    if (!stage) return null
+    // ดันเจี้ยนไปชั้นถัดไป ถ้ายังไม่ถึงชั้นบนสุด
+    if (stage.dungeon) {
+      return stage.floor < DUNGEON_FLOORS
+        ? { id: `d-${stage.floor + 1}`, name: `ชั้นที่ ${stage.floor + 1}` }
+        : null
+    }
+    if (stage.training || stage.gemStage || stage.materialStage) return null
     const i = STAGES.findIndex((x) => x.id === stage.id)
     return i >= 0 && i < STAGES.length - 1 ? STAGES[i + 1] : null
   })()
+
+  // กลับไปหน้าที่มาจริง ไม่ใช่แผนที่ด่านเสมอ
+  const backTo = stage?.dungeon ? '/dungeon' : '/stages'
 
   // round เปลี่ยนค่าเมื่อกดเล่นอีกครั้ง ทำให้ตั้งสนามรบใหม่ทั้งหมด
   useEffect(() => {
@@ -80,7 +92,9 @@ export default function Battle() {
           setReward({ stars, exp, levels, ...r })
           return refresh()
         })
-        .catch(() => setReward({ stars, firstClear: false, gems: 0, failed: true }))
+        .catch((e) =>
+          setReward({ stars, firstClear: false, gems: 0, failed: true, why: explainError('บันทึกผลไม่สำเร็จ', e) })
+        )
     }
   }, [state?.outcome])
 
@@ -105,7 +119,7 @@ export default function Battle() {
     <main className="screen top battle">
       <div className="sheet">
         <header className="battle-head">
-          <button className="plain-link inline" onClick={() => navigate('/stages')}>
+          <button className="plain-link inline" onClick={() => navigate(backTo)}>
             ← ออก
           </button>
           <div className="battle-title">
@@ -136,14 +150,15 @@ export default function Battle() {
           nextStage={nextStage}
           onNext={() => navigate(`/battle/${nextStage.id}`)}
           onAgain={() => setRound((r) => r + 1)}
-          onBack={() => navigate('/stages')}
+          onBack={() => navigate(backTo)}
+          backLabel={stage.dungeon ? 'กลับไปหอคอย' : 'กลับไปแผนที่'}
         />
       )}
     </main>
   )
 }
 
-function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgain, onBack }) {
+function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgain, onBack, backLabel }) {
   const won = outcome === 'won'
 
   return (
@@ -201,9 +216,7 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
             <p className="meta">เคยผ่านด่านนี้แล้ว รอบนี้ไม่ได้เพชรเพิ่ม</p>
           )}
           {reward?.failed && (
-            <div className="trace">
-              บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลด Security Rules เวอร์ชันล่าสุดแล้วหรือยัง
-            </div>
+            <div className="trace">{reward.why ?? 'บันทึกผลไม่สำเร็จ'}</div>
           )}
         </>
       ) : (
@@ -212,14 +225,14 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
 
       {won && nextStage && (
         <button className="rune-link block primary" onClick={onNext}>
-          ไปด่าน {nextStage.id} · {nextStage.name}
+          ไป{nextStage.name}
         </button>
       )}
       <button className="rune-link block" onClick={onAgain}>
         เล่นอีกครั้ง
       </button>
       <button className="plain-link" onClick={onBack}>
-        กลับไปแผนที่
+        {backLabel ?? 'กลับไปแผนที่'}
       </button>
       </section>
     </div>

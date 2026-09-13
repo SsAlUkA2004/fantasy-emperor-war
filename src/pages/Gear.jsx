@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { GRADES, SLOTS, SLOT_IDS, enhanceCost, gearStat, maxPlus } from '../data/gear'
 import { loadCollection } from '../lib/player'
-import { enhance, equip, loadGear, sell, sellAll, unequip } from '../lib/gear'
+import { enhance, equip, equipBest, loadGear, sell, sellAll, unequip } from '../lib/gear'
 import { entryPower, formatPower } from '../lib/power'
 
 export default function Gear() {
@@ -26,7 +27,7 @@ export default function Gear() {
   }
 
   useEffect(() => {
-    reload().catch(() => setError('อ่านอุปกรณ์ไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
+    reload().catch((e) => setError(explainError('อ่านอุปกรณ์ไม่สำเร็จ', e)))
   }, [user.uid])
 
   const cap = maxPlus(player.playerLevel ?? 1)
@@ -94,7 +95,17 @@ export default function Gear() {
 
         {target && (
           <>
-            <h2 className="section-title">ช่องสวมใส่ของ {CHARACTERS[target.id].name}</h2>
+            <div className="roster-head">
+              <h2 className="section-title flush">ช่องสวมใส่ของ {CHARACTERS[target.id].name}</h2>
+              <button
+                className="plain-link inline"
+                disabled={busy === 'best'}
+                onClick={() => run('best', () => equipBest(user.uid, who, gear ?? []))}
+              >
+                สวมของที่ดีที่สุด
+              </button>
+            </div>
+            <p className="meta tiny">ไม่แย่งของที่ตัวอื่นใส่อยู่</p>
             <div className="slot-grid">
               {SLOT_IDS.map((sid) => {
                 const worn = wearing.find((g) => g.slot === sid)

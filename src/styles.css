@@ -2494,3 +2494,32 @@ a {
   font-size: 1.3rem;
   color: var(--gold-bright);
 }
+
+.peek-unit {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--body);
+  color: inherit;
+  align-items: flex-start;
+}
+
+.peek-more {
+  color: var(--rune);
+  font-size: 0.72rem;
+}
+
+.unit-detail {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(200, 164, 77, 0.18);
+}
+
+.unit-detail .ledger {
+  border-top: none;
+  margin-top: 0;
+}
+
+.unit-detail .ledger-row {
+  padding: 0.35rem 0;
+}

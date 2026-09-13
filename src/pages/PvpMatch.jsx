@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { currentUnit, needsTarget, takeTurn } from '../lib/battle'
 import {
   ROUND_LIMIT,
@@ -12,6 +13,7 @@ import {
 } from '../lib/pvp'
 import { loadCollection } from '../lib/player'
 import { rankLabel, rankOf } from '../data/ranks'
+import { submitWarResult } from '../lib/guildwar'
 import { teamPower, entryPower, formatPower } from '../lib/power'
 import BattleStage from '../components/BattleStage'
 
@@ -24,6 +26,12 @@ export default function PvpMatch() {
 
   const foe = location.state?.foe
   const friendly = Boolean(location.state?.friendly)
+  const warMode = location.state?.mode === 'war'
+  const war = {
+    guildId: location.state?.guildId,
+    name: location.state?.guildName,
+    tag: location.state?.guildTag,
+  }
 
   const [state, setState] = useState(null)
   const [auto, setAuto] = useState(false)
@@ -73,12 +81,30 @@ export default function PvpMatch() {
       return
     }
 
+    // โหมดศึกชิงธงไม่แตะแต้มประลอง คะแนนไปลงที่กิลด์แทน
+    if (warMode) {
+      const myCp = state.units
+        .filter((u) => u.side === 'ally')
+        .reduce((s2, u) => s2 + u.atk + u.def + u.maxHp / 10, 0)
+      const foeCp = state.units
+        .filter((u) => u.side === 'enemy')
+        .reduce((s2, u) => s2 + u.atk + u.def + u.maxHp / 10, 0)
+
+      submitWarResult({ ...player, uid: user.uid }, war.guildId, war.name, war.tag, won, myCp, foeCp)
+        .then(async (r) => {
+          setOutcome({ won, war: r })
+          await refresh()
+        })
+        .catch((e) => setOutcome({ won, failed: true, why: explainError('บันทึกผลไม่สำเร็จ', e) }))
+      return
+    }
+
     saveMatch({ ...player, uid: user.uid }, foe, won)
       .then((r) => {
         setOutcome({ won, ...r })
         return refresh()
       })
-      .catch(() => setOutcome({ won, failed: true }))
+      .catch((e) => setOutcome({ won, failed: true, why: explainError('บันทึกผลไม่สำเร็จ', e) }))
   }, [state?.outcome])
 
   if (!foe) {
@@ -116,7 +142,12 @@ export default function PvpMatch() {
           <div className="battle-title">
             <h1>{foe.username}</h1>
             <p className="meta">
-              {friendly ? 'ประลองสนุก ๆ ไม่นับแต้ม' : rankLabel(foe.pvpPoints ?? 0)} · ⚔{' '}
+              {friendly
+                ? 'ประลองสนุก ๆ ไม่นับแต้ม'
+                : warMode
+                  ? 'ศึกชิงธง · คะแนนเข้ากิลด์'
+                  : rankLabel(foe.pvpPoints ?? 0)}{' '}
+              · ⚔{' '}
               {formatPower(foePower)}
             </p>
           </div>
@@ -149,7 +180,7 @@ export default function PvpMatch() {
           outcome={outcome}
           foe={foe}
           decidedByHp={state?.decidedByHp}
-          onAgain={() => navigate('/arena')}
+          onAgain={() => navigate(warMode ? '/guild/war' : '/arena')}
         />
       )}
     </main>
@@ -165,10 +196,17 @@ function PvpResult({ outcome, foe, decidedByHp, onAgain }) {
 
         {decidedByHp && <p className="meta">ตัดสินด้วยเลือดที่เหลือเมื่อครบรอบ</p>}
 
-        {outcome.friendly ? (
+        {outcome.war ? (
+          <>
+            <p className="stars">
+              <span className="delta up">+{outcome.war.points}</span>
+            </p>
+            <p>คะแนนเข้ากิลด์ · ได้เหรียญกิลด์ {outcome.war.coins}</p>
+          </>
+        ) : outcome.friendly ? (
           <p>ประลองสนุก ๆ ไม่มีการเปลี่ยนแปลงแต้ม</p>
         ) : outcome.failed ? (
-          <div className="trace">บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง</div>
+          <div className="trace">{outcome.why ?? 'บันทึกผลไม่สำเร็จ'}</div>
         ) : (
           <>
             <p className="stars">
@@ -184,7 +222,7 @@ function PvpResult({ outcome, foe, decidedByHp, onAgain }) {
         )}
 
         <button className="rune-link block primary" onClick={onAgain}>
-          กลับไปสนามประลอง
+          กลับ
         </button>
       </section>
     </div>

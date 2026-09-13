@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
 import { effectiveRarity, awakenName } from '../data/ascension'
 import { loadCollection } from '../lib/player'
@@ -71,8 +72,8 @@ export default function Team() {
       const value = mode === 'defense' ? entries : picks
       await updateDoc(doc(db, 'users', user.uid), { [config.key]: value })
       await refresh()
-    } catch {
-      setError('บันทึกไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
+    } catch (e) {
+      setError(explainError('บันทึกไม่สำเร็จ', e))
     }
     setSaving(false)
   }

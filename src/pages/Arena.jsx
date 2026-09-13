@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import DefensePeek from '../components/DefensePeek'
 import { CHARACTERS, ELEMENTS, TEAM_SIZE } from '../data/characters'
 import { MATCHES_PER_DAY, claimableRanks, rankLabel, rankOf, titleName, titlesFor } from '../data/ranks'
@@ -58,7 +59,7 @@ export default function Arena() {
     if (!roster || !unlocked) return
     findOpponents({ ...player, uid: user.uid }, teamPower(myTeam))
       .then(setFoes)
-      .catch(() => setError('หาคู่แข่งไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
+      .catch((e) => setError(explainError('หาคู่แข่งไม่สำเร็จ', e)))
   }, [roster, player.pvpPoints])
 
   // ใช้ทีมบุกของโหมดประลอง ถ้ายังไม่ได้ตั้งให้ถอยไปใช้ทีมผจญภัย
@@ -105,8 +106,8 @@ export default function Arena() {
       setFoes(
         await findOpponents({ ...player, uid: user.uid, pvpPoints: saved.points }, teamPower(myTeam))
       )
-    } catch {
-      setError('บันทึกผลไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
+    } catch (e) {
+      setError(explainError('บันทึกผลไม่สำเร็จ', e))
     }
     setBusy(false)
   }

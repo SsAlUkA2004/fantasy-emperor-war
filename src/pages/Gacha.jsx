@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { PULL_COST, TEN_PULL_COST, PITY_SR, PITY_SSR, RATES, pull } from '../lib/gacha'
 
@@ -30,7 +31,7 @@ export default function Gacha() {
       setResults(r.summary)
       await refresh()
     } catch (err) {
-      setError(err.message === 'เพชรไม่พอ' ? err.message : 'สุ่มไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
+      setError(err.message === 'เพชรไม่พอ' ? err.message : explainError('สุ่มไม่สำเร็จ', err))
     }
     setBusy(false)
   }

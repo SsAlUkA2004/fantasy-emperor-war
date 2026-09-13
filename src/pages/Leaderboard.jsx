@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { loadLeaderboard } from '../lib/pvp'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
 
@@ -12,7 +13,7 @@ export default function Leaderboard() {
   useEffect(() => {
     loadLeaderboard(50)
       .then(setRows)
-      .catch(() => setError('อ่านกระดานไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
+      .catch((e) => setError(explainError('อ่านกระดานไม่สำเร็จ', e)))
   }, [])
 
   const myIndex = rows?.findIndex((r) => r.uid === user.uid) ?? -1

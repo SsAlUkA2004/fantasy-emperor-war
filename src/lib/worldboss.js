@@ -89,15 +89,20 @@ export async function submitDamage(player, week, rawDamage) {
     const mine = mineSnap.exists() ? mineSnap.data() : { total: 0, hits: 0 }
 
     tx.update(BOSS_DOC(), { hp: boss.hp - dealt, hits: (boss.hits ?? 0) + 1 })
+    const sameWeek = mine.week === week
+    const total = (sameWeek ? mine.total : 0) + dealt
+    const best = Math.max(sameWeek ? mine.best ?? 0 : 0, dealt)
+
     tx.set(myRef, {
       username: player.username,
       week,
-      total: (mine.week === week ? mine.total : 0) + dealt,
-      hits: (mine.week === week ? mine.hits : 0) + 1,
+      total,
+      best,
+      hits: (sameWeek ? mine.hits : 0) + 1,
       lastAt: serverTimestamp(),
     })
 
-    return { dealt, remaining: boss.hp - dealt, total: (mine.week === week ? mine.total : 0) + dealt }
+    return { dealt, remaining: boss.hp - dealt, total, best }
   })
 
   // นับโควตารายวันแยกจาก transaction เพราะอยู่คนละเอกสารและไม่ต้องอะตอมมิกร่วมกัน

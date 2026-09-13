@@ -138,6 +138,21 @@ export async function loadGuild(guildId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
+/**
+ * จดค่าพลังของตัวเองไว้ในเอกสารสมาชิก
+ *
+ * ต้องเก็บไว้ตรงนี้ เพราะกระเป๋าตัวละครของแต่ละคนอยู่ในคอลเลกชันย่อยที่คนอื่นอ่านไม่ได้
+ * ถ้าไม่จดไว้ กิลด์จะรวมพลังสมาชิกไม่ได้เลย
+ * ค่าจะอัปเดตทุกครั้งที่เจ้าตัวเปิดหน้ากิลด์ จึงเป็นค่าล่าสุดเท่าที่เขาเข้ามาดู
+ */
+export async function reportPower(guildId, uid, power) {
+  await updateDoc(doc(membersRef(guildId), uid), { power: Math.round(power) })
+}
+
+export function guildPower(members = []) {
+  return members.reduce((sum, m) => sum + (m.power ?? 0), 0)
+}
+
 export async function loadMembers(guildId) {
   const snap = await getDocs(query(membersRef(guildId), orderBy('contribution', 'desc')))
   return snap.docs.map((d) => ({ uid: d.id, ...d.data() }))

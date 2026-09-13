@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import {
   DAMAGE_TIERS,
   HITS_PER_DAY,
@@ -37,7 +38,7 @@ export default function WorldBoss() {
         setMine(await loadMyDamage(user.uid))
         setBoard(await loadRanking(30))
       })
-      .catch(() => setError('อ่านข้อมูลบอสไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
+      .catch((e) => setError(explainError('อ่านข้อมูลบอสไม่สำเร็จ', e)))
   }, [user.uid, unlocked])
 
   if (!unlocked) {
@@ -114,6 +115,13 @@ export default function WorldBoss() {
           <span className="meta">ดาเมจสะสมของคุณ</span>
           <strong>{fmt(myTotal)}</strong>
         </div>
+        <div className="cp-banner">
+          <span className="meta">ดาเมจสูงสุดในหนึ่งครั้ง</span>
+          <strong>{fmt(mine?.week === boss.week ? mine.best ?? 0 : 0)}</strong>
+        </div>
+        <p className="meta tiny">
+          โจมตีไปแล้ว {mine?.week === boss.week ? mine.hits ?? 0 : 0} ครั้งในสัปดาห์นี้
+        </p>
 
         {dead ? (
           <p className="meta center locked-note">บอสสัปดาห์นี้ถูกปราบแล้ว รอตัวใหม่สัปดาห์หน้า</p>
@@ -183,7 +191,9 @@ export default function WorldBoss() {
                 </span>
                 <span className="board-body">
                   <span className="board-name">{r.username}</span>
-                  <span className="meta">โจมตี {r.hits} ครั้ง</span>
+                  <span className="meta">
+                    โจมตี {r.hits} ครั้ง · สูงสุด {fmt(r.best ?? 0)}
+                  </span>
                 </span>
                 <span className="board-points">{fmt(r.total)}</span>
               </div>

@@ -9,7 +9,15 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { GEAR_BOXES, GRADES, SLOT_IDS, enhanceCost, maxPlus, rollGear } from '../data/gear'
+import {
+  GEAR_BOXES,
+  GRADES,
+  SLOT_IDS,
+  enhanceCost,
+  gearStat,
+  maxPlus,
+  rollGear,
+} from '../data/gear'
 
 const bag = (uid) => collection(db, 'users', uid, 'gear')
 
@@ -130,6 +138,39 @@ export async function buyBox(player, boxId) {
   await batch.commit()
 
   return { id, ...gear }
+}
+
+/**
+ * สวมของที่ดีที่สุดให้ตัวละครหนึ่งตัว
+ *
+ * นับเฉพาะของที่ว่างอยู่หรือที่ตัวนี้ใส่อยู่แล้ว
+ * ของที่ตัวอื่นใส่อยู่จะไม่ถูกแย่งมา เพราะการถอดของตัวอื่นโดยที่เจ้าของไม่รู้
+ * ทำให้ทีมที่จัดไว้พังทั้งทีมโดยไม่ได้ตั้งใจ
+ *
+ * เทียบด้วยค่าที่ชิ้นนั้นให้จริง ซึ่งรวมสี ระดับไอเทม และการตีบวกแล้ว
+ */
+export async function equipBest(uid, charId, all = []) {
+  const batch = writeBatch(db)
+  let changed = 0
+
+  SLOT_IDS.forEach((slot) => {
+    const available = all.filter(
+      (g) => g.slot === slot && (!g.equippedBy || g.equippedBy === charId)
+    )
+    if (!available.length) return
+
+    const best = available.reduce((a, b) => (gearStat(b) > gearStat(a) ? b : a))
+    const worn = available.find((g) => g.equippedBy === charId)
+
+    if (worn?.id === best.id) return
+    if (worn) batch.update(doc(bag(uid), worn.id), { equippedBy: null })
+    batch.update(doc(bag(uid), best.id), { equippedBy: charId })
+    changed += 1
+  })
+
+  if (!changed) throw new Error('ใส่ของที่ดีที่สุดอยู่แล้ว')
+  await batch.commit()
+  return { changed }
 }
 
 export { SLOT_IDS }

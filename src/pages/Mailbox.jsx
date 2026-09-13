@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { MAIL_KINDS } from '../data/mail'
 import { POOL_MARKS } from '../data/exchange'
 import { claimAll, claimMail, issueDailyMail, loadMail, removeMail } from '../lib/mail'
@@ -20,7 +21,7 @@ export default function Mailbox() {
     // ออกจดหมายรายวันให้ก่อนถ้ายังไม่มีของวันนี้ แล้วค่อยอ่านทั้งกล่อง
     issueDailyMail({ ...player, uid: user.uid })
       .then(reload)
-      .catch(() => setError('อ่านกล่องจดหมายไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
+      .catch((e) => setError(explainError('อ่านกล่องจดหมายไม่สำเร็จ', e)))
   }, [user.uid])
 
   const unread = mails?.filter((m) => !m.claimed) ?? []

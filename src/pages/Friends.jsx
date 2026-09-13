@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { addFriend, findPlayer, loadFriends, removeFriend } from '../lib/friends'
 import { STAGES } from '../data/stages'
 import { PLAYER_MAX_LEVEL } from '../lib/leveling'
@@ -48,8 +49,8 @@ export default function Friends() {
     try {
       const result = await findPlayer(term)
       setFound(result)
-    } catch {
-      setError('ค้นหาไม่สำเร็จ ตรวจว่าอัปโหลด Security Rules ล่าสุดแล้วหรือยัง')
+    } catch (e) {
+      setError(explainError('ค้นหาไม่สำเร็จ', e))
     }
     setBusy(false)
   }

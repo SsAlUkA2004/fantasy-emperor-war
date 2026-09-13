@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { explainError } from '../lib/errors'
 import { RAID_HITS_PER_DAY, DAMAGE_PER_COIN } from '../data/guildraid'
 import { GUILD_SHOP } from '../data/guildshop'
 import { MATERIALS } from '../data/materials'
@@ -33,7 +34,7 @@ export default function GuildRaid() {
         setRaid(r)
         setMembers(m)
       })
-      .catch(() => setError('อ่านข้อมูลกิลด์เรดไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง'))
+      .catch((e) => setError(explainError('อ่านข้อมูลกิลด์เรดไม่สำเร็จ', e)))
   }, [player.guildId])
 
   if (!player.guildId) {

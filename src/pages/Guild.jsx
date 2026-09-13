@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
+import { loadCollection } from '../lib/player'
+import { teamPower, formatPower } from '../lib/power'
+import { explainError } from '../lib/errors'
 import {
   CREATE_COST,
   GUILD_ROLES,
@@ -10,6 +13,8 @@ import {
 } from '../data/guild'
 import {
   browseGuilds,
+  guildPower,
+  reportPower,
   createGuild,
   findGuildByTag,
   joinGuild,
@@ -39,6 +44,13 @@ export default function Guild() {
 
   async function reload() {
     if (player.guildId) {
+      // จดค่าพลังของตัวเองก่อนอ่านรายชื่อ ผลรวมของกิลด์จึงรวมค่าล่าสุดของเราด้วย
+      try {
+        const roster = await loadCollection(user.uid)
+        await reportPower(player.guildId, user.uid, teamPower(roster))
+      } catch {
+        // จดไม่ได้ก็ไม่เป็นไร แค่ตัวเลขของเราจะเป็นค่าเดิม
+      }
       const g = await loadGuild(player.guildId)
       setGuild(g)
       setMembers(g ? await loadMembers(player.guildId) : [])
@@ -52,7 +64,7 @@ export default function Guild() {
 
   useEffect(() => {
     reload().catch(() =>
-      setError('อ่านข้อมูลกิลด์ไม่สำเร็จ ตรวจว่าอัปโหลดกฎล่าสุดแล้วหรือยัง')
+      setError(explainError('อ่านข้อมูลกิลด์ไม่สำเร็จ', e))
     )
   }, [player.guildId])
 
@@ -177,6 +189,14 @@ export default function Guild() {
         {error && <div className="trace">{error}</div>}
 
         <div className="cp-banner">
+          <span className="meta">พลังกิลด์</span>
+          <strong>⚔ {formatPower(guildPower(members ?? []))}</strong>
+        </div>
+        <p className="meta tiny">
+          รวมจากค่าพลังตัวละครทั้งหมดของสมาชิกแต่ละคน อัปเดตเมื่อเจ้าตัวเปิดหน้ากิลด์
+        </p>
+
+        <div className="cp-banner">
           <span className="meta">คะแนนกิลด์</span>
           <strong>
             {fmt(guild.points)}
@@ -226,7 +246,9 @@ export default function Guild() {
                 {m.username}
                 <span className="rarity">{GUILD_ROLES[m.role]?.name ?? 'สมาชิก'}</span>
               </h3>
-              <p className="meta">คะแนนสะสม {fmt(m.contribution)}</p>
+              <p className="meta">
+                ⚔ {formatPower(m.power ?? 0)} · คะแนนสะสม {fmt(m.contribution)}
+              </p>
             </div>
             {isOwner && m.uid !== user.uid && (
               <div className="card-actions">
@@ -255,6 +277,9 @@ export default function Guild() {
 
         <Link className="rune-link block primary" to="/guild/raid">
           กิลด์เรดและร้านค้ากิลด์
+        </Link>
+        <Link className="rune-link block" to="/guild/war">
+          ศึกชิงธง
         </Link>
 
         <button

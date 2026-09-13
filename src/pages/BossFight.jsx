@@ -23,7 +23,7 @@ const fmt = (n) => Math.round(n).toLocaleString('th-TH')
 export default function BossFight() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, player } = usePlayer()
+  const { user, player, refresh } = usePlayer()
 
   // หน้านี้ใช้ได้ทั้งบอสโลกและบอสของกิลด์ ต่างกันที่ปลายทางของดาเมจเท่านั้น
   const mode = location.state?.mode === 'raid' ? 'raid' : 'world'
@@ -87,12 +87,17 @@ export default function BossFight() {
           ? await submitRaidDamage({ ...player, uid: user.uid }, guildId, week, dealt)
           : await submitDamage({ ...player, uid: user.uid }, week, dealt)
       setDone({ dealt, ...r })
+      // ต้องรีเฟรชไม่งั้นตัวนับโควตาในหน้าก่อนหน้าจะยังเป็นค่าเก่า
+      // แล้วผู้เล่นจะกดเข้าโจมตีได้ไม่จำกัด
+      await refresh()
     } catch (err) {
       setDone({ dealt, failed: true, message: err.message })
     }
   }
 
   const actor = state ? currentUnit(state) : null
+  const bossUnit = state?.units.find((u) => u.side === 'enemy')
+  const dealtSoFar = bossUnit ? Math.max(0, bossUnit.maxHp - bossUnit.hp) : 0
 
   function act(type) {
     const move = { type }
@@ -131,8 +136,13 @@ export default function BossFight() {
           </button>
         </header>
 
+        <div className="cp-banner">
+          <span className="meta">ดาเมจที่ทำได้แล้วในตานี้</span>
+          <strong>{fmt(dealtSoFar)}</strong>
+        </div>
         <p className="meta center round-note">
-          บอสตัวนี้ล้มไม่ได้ในครั้งเดียว คะแนนคือดาเมจรวมที่ทำได้ก่อนหมดรอบ
+          เลือดที่เห็นในสนามเป็นของบอสในตานี้เท่านั้น ไม่ใช่เลือดก้อนกลางที่ทุกคนช่วยกันตี
+          คะแนนของคุณคือดาเมจรวมที่ทำได้ก่อนหมดรอบ
         </p>
 
         <BattleStage

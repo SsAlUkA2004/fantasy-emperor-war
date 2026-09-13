@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
+import { SLOTS, GRADES, gearStat } from '../data/gear'
+import { entryStats, entrySkillScale } from '../lib/stats'
 import { effectiveRarity, awakenName } from '../data/ascension'
 import { entryLevelCap } from '../lib/stats'
 import { entryPower, formatPower } from '../lib/power'
@@ -14,6 +17,7 @@ import { defenseEntries } from '../lib/pvp'
 export default function DefensePeek({ foe, title, onClose }) {
   const team = defenseEntries(foe)
   const total = team.reduce((s, e) => s + entryPower(e), 0)
+  const [open, setOpen] = useState(null)
 
   return (
     <div className="veil" role="dialog" aria-modal="true">
@@ -30,7 +34,12 @@ export default function DefensePeek({ foe, title, onClose }) {
             const c = CHARACTERS[e.id]
             if (!c) return null
             return (
-              <div className="card peek-unit" key={i}>
+              <button
+                className="card peek-unit"
+                key={i}
+                data-open={open === i}
+                onClick={() => setOpen(open === i ? null : i)}
+              >
                 <span className="card-mark">{ELEMENTS[c.element].mark}</span>
                 <div className="card-body">
                   <h3>
@@ -50,9 +59,14 @@ export default function DefensePeek({ foe, title, onClose }) {
                     {ROLES[c.role]} · เลเวล {e.level}/{entryLevelCap(e.id, e)} ·{' '}
                     {'★'.repeat(e.star ?? 1)}
                   </p>
-                  <p className="meta cp">⚔ {formatPower(entryPower(e))}</p>
+                  <p className="meta cp">
+                    ⚔ {formatPower(entryPower(e))}
+                    <span className="peek-more">{open === i ? ' ▲' : ' ▼ ดูรายละเอียด'}</span>
+                  </p>
+
+                  {open === i && <UnitDetail entry={e} char={c} />}
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>
@@ -61,6 +75,53 @@ export default function DefensePeek({ foe, title, onClose }) {
           ปิด
         </button>
       </section>
+    </div>
+  )
+}
+
+/** รายละเอียดของตัวละครหนึ่งตัวในทีมตั้งรับ กางออกเมื่อกด */
+function UnitDetail({ entry, char }) {
+  const st = entryStats(entry.id, entry)
+  const scale = entrySkillScale(entry)
+  const gear = entry.gear ?? []
+
+  return (
+    <div className="unit-detail">
+      <dl className="ledger">
+        {[
+          ['พลังชีวิต', st.hp],
+          ['พลังโจมตี', st.atk],
+          ['พลังป้องกัน', st.def],
+          ['ความเร็ว', st.spd],
+          ['คริติคอล', st.crit + '%'],
+        ].map(([k, v]) => (
+          <div className="ledger-row" key={k}>
+            <dt>{k}</dt>
+            <dd>{typeof v === 'number' ? v.toLocaleString('th-TH') : v}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="move">
+        <h3>{char.skill.name}</h3>
+        <p>{char.skill.desc}</p>
+      </div>
+      <div className="move ult">
+        <h3>{char.ultimate.name}</h3>
+        <p>{char.ultimate.desc}</p>
+      </div>
+      <p className="meta tiny">
+        ระดับสกิล {entry.skillLevel ?? 1} · ความแรงสกิลรวม {Math.round(scale * 100)}%
+      </p>
+
+      {gear.length > 0 && (
+        <p className="meta tiny">
+          อุปกรณ์{' '}
+          {gear
+            .map((g) => `${SLOTS[g.slot].name}${GRADES[g.grade].name}+${g.plus ?? 0}`)
+            .join(' · ')}
+        </p>
+      )}
     </div>
   )
 }
