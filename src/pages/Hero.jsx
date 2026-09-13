@@ -336,16 +336,16 @@ export default function Hero() {
               <dt>ชิ้นส่วนที่มี</dt>
               <dd>
                 {entry.shards ?? 0}
-                {nextStarCost(star) !== null && ` / ${nextStarCost(star)}`}
+                {nextStarCost(star, c.rarity) !== null && ` / ${nextStarCost(star, c.rarity)}`}
               </dd>
             </div>
             {error && <div className="trace">{error}</div>}
-            {nextStarCost(star) === null ? (
+            {nextStarCost(star, c.rarity) === null ? (
               <p className="meta">ดาวเต็มแล้ว</p>
             ) : (
               <button
                 className="rune-link block"
-                disabled={busy || (entry.shards ?? 0) < nextStarCost(star)}
+                disabled={busy || (entry.shards ?? 0) < nextStarCost(star, c.rarity)}
                 onClick={async () => {
                   setBusy(true)
                   setError(null)
@@ -364,7 +364,8 @@ export default function Hero() {
           </div>
         )}
         <p className="meta tiny">
-          ชิ้นส่วนได้จากการสุ่มกาชาแล้วเจอตัวซ้ำ ตัวซ้ำระดับ R ให้ 5 ชิ้น SR ให้ 20 SSR ให้ 50
+          ตัวซ้ำหนึ่งตัวเท่ากับหนึ่งดาวพอดี ระดับ {c.rarity} ต้องใช้ {nextStarCost(1, c.rarity)} ชิ้น
+          ซึ่งเท่ากับที่ได้จากตัวซ้ำหนึ่งตัว
         </p>
 
         <h2 className="section-title">ระดับสกิล</h2>

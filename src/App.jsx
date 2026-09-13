@@ -26,6 +26,7 @@ import GuildRaid from './pages/GuildRaid'
 import GuildWar from './pages/GuildWar'
 import CharDungeon from './pages/CharDungeon'
 import Collection from './pages/Collection'
+import Board from './pages/Board'
 import Status from './pages/Status'
 
 // ใช้ HashRouter ไม่ใช่ BrowserRouter
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="/dungeon" element={<Gate><Dungeon /></Gate>} />
           <Route path="/hunt" element={<Gate><CharDungeon /></Gate>} />
           <Route path="/collection" element={<Gate><Collection /></Gate>} />
+          <Route path="/board" element={<Gate><Board /></Gate>} />
           <Route path="/guild" element={<Gate><Guild /></Gate>} />
           <Route path="/guild/raid" element={<Gate><GuildRaid /></Gate>} />
           <Route path="/guild/war" element={<Gate><GuildWar /></Gate>} />

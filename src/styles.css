@@ -2892,3 +2892,20 @@ a {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.rune-link[data-deal='true'] {
+  border-color: var(--rune);
+  background: rgba(111, 214, 200, 0.1);
+}
+
+.deal-tag {
+  display: block;
+  margin-top: 0.2rem;
+  font-family: var(--body);
+  font-size: 0.66rem;
+  color: var(--rune);
+}
+
+.board-tabs {
+  margin: 1rem 0;
+}

@@ -8,6 +8,8 @@ import {
   TEN_PULL_COST,
   PITY_SR,
   PITY_SSR,
+  discountAvailable,
+  discountedPullCost,
   effectiveRates,
   pull,
 } from '../lib/gacha'
@@ -32,11 +34,14 @@ export default function Gacha() {
   const inBanner = BANNERS.find((b) => b.id === banner)?.ids ?? []
   const hasChar = (id) => owned?.some((o) => o.id === id) ?? false
 
+  const discount = discountAvailable(player)
+  const singleCost = discount ? discountedPullCost() : PULL_COST
+
   const sinceSR = player.pitySR ?? 0
   const sinceSSR = player.pitySSR ?? 0
 
   async function roll(count) {
-    const cost = count === 10 ? TEN_PULL_COST : PULL_COST
+    const cost = count === 10 ? TEN_PULL_COST : singleCost
     if (player.gems < cost) {
       setError('เพชรไม่พอ ไปเก็บจากด่านที่ยังไม่เคยผ่านก่อน')
       return
@@ -138,8 +143,9 @@ export default function Gacha() {
         {error && <div className="trace">{error}</div>}
 
         <div className="pull-row">
-          <button className="rune-link" disabled={busy} onClick={() => roll(1)}>
-            สุ่ม 1 ครั้ง · {PULL_COST}
+          <button className="rune-link" disabled={busy} onClick={() => roll(1)} data-deal={discount}>
+            สุ่ม 1 ครั้ง · {singleCost}
+            {discount && <span className="deal-tag">ครั้งแรกของวัน ลด 50%</span>}
           </button>
           <button className="rune-link" disabled={busy} onClick={() => roll(10)}>
             สุ่ม 10 ครั้ง · {TEN_PULL_COST}

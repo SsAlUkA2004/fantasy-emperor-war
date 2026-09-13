@@ -52,6 +52,9 @@ export default function Leaderboard() {
         </div>
 
         <div className="gate">
+          <Link className="rune-link" to="/board">
+            บอร์ดรวม
+          </Link>
           <Link className="rune-link" to="/arena">
             กลับไปประลอง
           </Link>

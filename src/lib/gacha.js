@@ -3,9 +3,22 @@ import { db } from '../firebase'
 import { BANNERS, CHARACTERS, bannerPool } from '../data/characters'
 import { MAX_STAR } from './leveling'
 import { EMPTY_POOL, SHARDS_PER_DUPE } from '../data/exchange'
+import { todayKey } from './dayclock'
 
 export const PULL_COST = 100
 export const TEN_PULL_COST = 900
+
+/** ส่วนลดของการสุ่มครั้งแรกในแต่ละวัน */
+export const DAILY_DISCOUNT = 0.5
+
+export function discountedPullCost() {
+  return Math.round(PULL_COST * DAILY_DISCOUNT)
+}
+
+/** วันนี้ยังไม่ได้ใช้ส่วนลดใช่ไหม */
+export function discountAvailable(player) {
+  return (player?.gachaDiscountDay ?? null) !== todayKey()
+}
 
 export const RATES = { R: 0.79, SR: 0.18, SSR: 0.03 }
 
@@ -14,7 +27,16 @@ export const PITY_SSR = 60 // ครบ 60 ครั้งได้ SSR แน�
 
 export { SHARDS_PER_DUPE }
 
-export const STAR_COST = { 2: 15, 3: 30, 4: 60, 5: 120 }
+/**
+ * ค่าอัปดาว เท่ากับชิ้นส่วนที่ได้จากตัวซ้ำหนึ่งตัวพอดี
+ *
+ * เดิมไล่ขึ้นเป็น 15/30/60/120 ซึ่งแปลว่าดาวหลัง ๆ ต้องใช้ตัวซ้ำหลายตัว
+ * เปลี่ยนเป็นหนึ่งตัวซ้ำต่อหนึ่งดาวตรง ๆ ผู้เล่นจึงนับเองได้ว่าต้องการอีกกี่ตัว
+ * และของหายากที่ซ้ำยากก็ยังแพงกว่าอยู่ดี เพราะคิดตามระดับของตัวนั้น
+ */
+export function starCostFor(rarity) {
+  return SHARDS_PER_DUPE[rarity] ?? SHARDS_PER_DUPE.R
+}
 
 /**
  * ยกระดับผลที่สุ่มได้ ถ้าตู้นั้นไม่มีตัวละครระดับนั้นเลย
@@ -96,7 +118,9 @@ function rollOne(pity, pool) {
  * เมื่อเปิดใช้ ให้เปลี่ยนฟังก์ชันนี้ไปเรียก httpsCallable แทน ส่วนอื่นไม่ต้องแก้
  */
 export async function pull(player, count, bannerId = 'origin') {
-  const cost = count === 10 ? TEN_PULL_COST : PULL_COST * count
+  // ส่วนลดใช้ได้กับการสุ่มทีละครั้งเท่านั้น และวันละหนึ่งครั้ง
+  const useDiscount = count === 1 && discountAvailable(player)
+  const cost = count === 10 ? TEN_PULL_COST : useDiscount ? discountedPullCost() : PULL_COST * count
   if (player.gems < cost) throw new Error('เพชรไม่พอ')
 
   const pity = {
@@ -185,24 +209,27 @@ export async function pull(player, count, bannerId = 'origin') {
     }
   })
 
-  batch.update(doc(db, 'users', uid), {
+  const userPatch = {
     gems: player.gems - cost,
     pitySR: pity.sinceSR,
     pitySSR: pity.sinceSSR,
     shardPool: pool,
-  })
+  }
+  if (useDiscount) userPatch.gachaDiscountDay = todayKey()
+
+  batch.update(doc(db, 'users', uid), userPatch)
 
   await batch.commit()
-  return { summary, spent: cost, pity, bannerId }
+  return { summary, spent: cost, pity, bannerId, discounted: useDiscount }
 }
 
 /** ชิ้นส่วนที่ต้องใช้เพื่อขึ้นดาวถัดไป คืน null ถ้าเต็มแล้ว */
-export function nextStarCost(star) {
-  return star >= MAX_STAR ? null : STAR_COST[star + 1]
+export function nextStarCost(star, rarity = 'R') {
+  return star >= MAX_STAR ? null : starCostFor(rarity)
 }
 
 export async function ascend(uid, entry) {
-  const cost = nextStarCost(entry.star)
+  const cost = nextStarCost(entry.star, CHARACTERS[entry.id]?.rarity ?? 'R')
   if (cost === null) throw new Error('ดาวเต็มแล้ว')
   if ((entry.shards ?? 0) < cost) throw new Error('ชิ้นส่วนไม่พอ')
 
