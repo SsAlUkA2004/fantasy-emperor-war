@@ -330,7 +330,7 @@ export const STAGES = CHAPTERS.flatMap((c) => c.stages)
 
 export const DIFFICULTIES = [
   { id: 'normal', name: 'ปกติ', suffix: '', enemy: 1, reward: 1, gems: 30, ilvlBonus: 0 },
-  { id: 'hard', name: 'ยาก', suffix: '@hard', enemy: 3.2, reward: 2.5, gems: 60, ilvlBonus: 1 },
+  { id: 'hard', name: 'ยาก', suffix: '@hard', enemy: 1.8, reward: 2, gems: 50, ilvlBonus: 1 },
   { id: 'demon', name: 'ปีศาจ', suffix: '@demon', enemy: 4.2, reward: 6, gems: 100, ilvlBonus: 2 },
 ]
 
