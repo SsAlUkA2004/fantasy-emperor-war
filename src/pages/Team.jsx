@@ -91,6 +91,15 @@ export default function Team() {
   return (
     <main className="screen top">
       <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+          <Link className="plain-link inline" to="/gear">
+            อุปกรณ์
+          </Link>
+        </div>
+
         <h1>จัดทีม</h1>
 
         <div className="mode-tabs">
@@ -202,9 +211,12 @@ export default function Team() {
           })}
 
         <div className="gate">
-          <Link className="rune-link" to="/">
-            กลับหน้าหลัก
-          </Link>
+          <button
+            className="rune-link"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            ↑ กลับขึ้นบน
+          </button>
         </div>
       </div>
     </main>

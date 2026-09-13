@@ -31,7 +31,15 @@ export default function Lobby() {
   const [owned, setOwned] = useState(null)
 
   useEffect(() => {
-    loadCollection(user.uid).then(setOwned)
+    loadCollection(user.uid).then(async (list) => {
+      setOwned(list)
+      // จดค่าพลังรวมไว้ในเอกสารของตัวเอง เพื่อนจึงดูได้
+      // ต้องจดไว้เพราะกระเป๋าตัวละครของเราคนอื่นอ่านไม่ได้ และไม่ควรเปิดให้อ่าน
+      const total = teamPower(list)
+      if (total !== (player.rosterPower ?? 0)) {
+        updateDoc(doc(db, 'users', user.uid), { rosterPower: total }).catch(() => {})
+      }
+    })
   }, [user.uid])
 
   // เรียงตามลำดับที่จัดไว้ในทีม ไม่ใช่ลำดับที่ได้ตัวละครมา

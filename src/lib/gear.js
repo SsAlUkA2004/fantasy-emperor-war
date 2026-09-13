@@ -70,9 +70,31 @@ export async function unequip(uid, gearId) {
   await updateDoc(doc(bag(uid), gearId), { equippedBy: null })
 }
 
+/** ถอดทุกชิ้นที่ตัวละครนี้ใส่อยู่ */
+export async function unequipAll(uid, charId, all = []) {
+  const worn = all.filter((g) => g.equippedBy === charId)
+  if (!worn.length) throw new Error('ตัวนี้ยังไม่ได้ใส่อุปกรณ์')
+
+  const batch = writeBatch(db)
+  worn.forEach((g) => batch.update(doc(bag(uid), g.id), { equippedBy: null }))
+  await batch.commit()
+  return { count: worn.length }
+}
+
+/**
+ * ล็อกอุปกรณ์ไม่ให้ขาย
+ *
+ * มีไว้เพราะปุ่มขายทั้งหมดเป็นทางเดียวที่จะจัดการของหลายสิบชิ้นได้ไหว
+ * แต่ก็เป็นทางที่ทำให้เผลอขายของดีที่เพิ่งได้มาแล้วยังไม่ได้ใส่
+ */
+export async function toggleLock(uid, gear) {
+  await updateDoc(doc(bag(uid), gear.id), { locked: !gear.locked })
+}
+
 /** ขายอุปกรณ์เป็นเหรียญ ของที่สวมอยู่ขายไม่ได้ */
 export async function sell(player, gear) {
   if (gear.equippedBy) throw new Error('ต้องถอดออกก่อนจึงจะขายได้')
+  if (gear.locked) throw new Error('ปลดล็อกก่อนจึงจะขายได้')
   const coins = (player.coins ?? 0) + GRADES[gear.grade].sell
 
   const batch = writeBatch(db)
@@ -83,9 +105,15 @@ export async function sell(player, gear) {
   return { coins, gained: GRADES[gear.grade].sell }
 }
 
-export async function sellAll(player, list) {
-  const sellable = list.filter((g) => !g.equippedBy)
-  if (!sellable.length) throw new Error('ไม่มีของที่ขายได้')
+/**
+ * ขายหลายชิ้นพร้อมกัน เลือกได้ว่าจะขายสีไหนบ้าง
+ * ของที่สวมอยู่และของที่ล็อกไว้ถูกข้ามเสมอ ไม่ว่าจะเลือกสีอะไร
+ */
+export async function sellAll(player, list, grades = null) {
+  const sellable = list.filter(
+    (g) => !g.equippedBy && !g.locked && (!grades || grades.includes(g.grade))
+  )
+  if (!sellable.length) throw new Error('ไม่มีของที่ขายได้ตามที่เลือก')
 
   const gained = sellable.reduce((s, g) => s + GRADES[g.grade].sell, 0)
   const batch = writeBatch(db)

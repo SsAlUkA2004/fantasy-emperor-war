@@ -3,9 +3,19 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS } from '../data/characters'
-import { GRADES, SLOTS, SLOT_IDS, enhanceCost, gearStat, maxPlus } from '../data/gear'
+import { GRADES, GRADE_IDS, SLOTS, SLOT_IDS, enhanceCost, gearStat, maxPlus } from '../data/gear'
 import { loadCollection } from '../lib/player'
-import { enhance, equip, equipBest, loadGear, sell, sellAll, unequip } from '../lib/gear'
+import {
+  enhance,
+  equip,
+  equipBest,
+  loadGear,
+  sell,
+  sellAll,
+  toggleLock,
+  unequip,
+  unequipAll,
+} from '../lib/gear'
 import { entryPower, formatPower } from '../lib/power'
 
 export default function Gear() {
@@ -17,6 +27,7 @@ export default function Gear() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState('all')
+  const [sellGrades, setSellGrades] = useState([])
 
   const who = params.get('char') ?? null
 
@@ -31,6 +42,9 @@ export default function Gear() {
   }, [user.uid])
 
   const cap = maxPlus(player.playerLevel ?? 1)
+  const sellCount = (gear ?? []).filter(
+    (g) => !g.equippedBy && !g.locked && sellGrades.includes(g.grade)
+  ).length
   const target = roster?.find((c) => c.id === who) ?? null
   const wearing = gear?.filter((g) => g.equippedBy === who) ?? []
 
@@ -112,13 +126,22 @@ export default function Gear() {
           <>
             <div className="roster-head">
               <h2 className="section-title flush">ช่องสวมใส่ของ {CHARACTERS[target.id].name}</h2>
-              <button
-                className="plain-link inline"
-                disabled={busy === 'best'}
-                onClick={() => run('best', () => equipBest(user.uid, who, gear ?? []))}
-              >
-                สวมของที่ดีที่สุด
-              </button>
+              <div className="head-actions">
+                <button
+                  className="plain-link inline"
+                  disabled={busy === 'best'}
+                  onClick={() => run('best', () => equipBest(user.uid, who, gear ?? []))}
+                >
+                  สวมของที่ดีที่สุด
+                </button>
+                <button
+                  className="plain-link inline"
+                  disabled={busy === 'off' || !wearing.length}
+                  onClick={() => run('off', () => unequipAll(user.uid, who, gear ?? []))}
+                >
+                  ถอดทั้งหมด
+                </button>
+              </div>
             </div>
             <p className="meta tiny">ไม่แย่งของที่ตัวอื่นใส่อยู่</p>
             <div className="slot-grid">
@@ -162,14 +185,40 @@ export default function Gear() {
           <h2 className="section-title flush">คลังอุปกรณ์</h2>
           <button
             className="plain-link inline"
-            disabled={busy === 'sellall'}
+            disabled={busy === 'sellall' || !sellGrades.length}
             onClick={() =>
-              run('sellall', () => sellAll({ ...player, uid: user.uid }, gear ?? []))
+              run('sellall', () =>
+                sellAll({ ...player, uid: user.uid }, gear ?? [], sellGrades)
+              )
             }
           >
-            ขายที่ไม่ได้ใส่ทั้งหมด
+            {sellGrades.length ? `ขายสีที่เลือก (${sellCount})` : 'เลือกสีที่จะขาย'}
           </button>
         </div>
+
+        <div className="qty-row sell-row">
+          {GRADE_IDS.map((g) => {
+            const n = (gear ?? []).filter(
+              (x) => x.grade === g && !x.equippedBy && !x.locked
+            ).length
+            return (
+              <button
+                key={g}
+                className="qty-chip"
+                data-active={sellGrades.includes(g)}
+                style={{ color: sellGrades.includes(g) ? GRADES[g].color : undefined }}
+                onClick={() =>
+                  setSellGrades((v) =>
+                    v.includes(g) ? v.filter((x) => x !== g) : [...v, g]
+                  )
+                }
+              >
+                {GRADES[g].name} {n}
+              </button>
+            )
+          })}
+        </div>
+        <p className="meta tiny">ของที่สวมอยู่และของที่ล็อกไว้จะถูกข้ามเสมอ</p>
 
         <div className="qty-row">
           <button className="qty-chip" data-active={filter === 'all'} onClick={() => setFilter('all')}>
@@ -203,6 +252,7 @@ export default function Gear() {
                 <span className="gear-mark">{SLOTS[g.slot].mark}</span>
                 <div className="gear-body">
                   <h3 style={{ color: GRADES[g.grade].color }}>
+                    {g.locked && '🔒 '}
                     {SLOTS[g.slot].name}
                     {GRADES[g.grade].name}
                     {g.plus > 0 && ` +${g.plus}`}
@@ -213,6 +263,14 @@ export default function Gear() {
                   {owner && <p className="meta cp">สวมอยู่กับ {owner.name}</p>}
                 </div>
                 <div className="card-actions">
+                  <button
+                    className="plain-link inline lock-btn"
+                    data-on={Boolean(g.locked)}
+                    disabled={busy === g.id}
+                    onClick={() => run(g.id, () => toggleLock(user.uid, g))}
+                  >
+                    {g.locked ? '🔒 ล็อกอยู่' : '🔓 ล็อก'}
+                  </button>
                   <button
                     className="plain-link inline"
                     disabled={
@@ -246,10 +304,10 @@ export default function Gear() {
                   ) : (
                     <button
                       className="plain-link inline"
-                      disabled={busy === g.id}
+                      disabled={busy === g.id || g.locked}
                       onClick={() => run(g.id, () => sell({ ...player, uid: user.uid }, g))}
                     >
-                      ขาย ⛁{GRADES[g.grade].sell}
+                      {g.locked ? 'ล็อกอยู่' : `ขาย ⛁${GRADES[g.grade].sell}`}
                     </button>
                   )}
                 </div>

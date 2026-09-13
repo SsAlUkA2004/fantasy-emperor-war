@@ -8,6 +8,7 @@ import { PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { RANKS, rankLabel, titleName } from '../data/ranks'
 import DefensePeek from '../components/DefensePeek'
 import { defenseEntries } from '../lib/pvp'
+import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { entryPower, formatPower } from '../lib/power'
 
 function furthestStage(progress = {}) {
@@ -170,6 +171,10 @@ export default function Friends() {
                 <dd>{RANKS[f.highestRank ?? 0]?.name ?? RANKS[0].name}</dd>
               </div>
               <div className="ledger-row">
+                <dt>ค่าพลังตัวละครทั้งหมด</dt>
+                <dd>{f.rosterPower ? `⚔ ${formatPower(f.rosterPower)}` : 'ยังไม่มีข้อมูล'}</dd>
+              </div>
+              <div className="ledger-row">
                 <dt>ค่าพลังทีมตั้งรับ</dt>
                 <dd>
                   {defenseEntries(f).length
@@ -178,6 +183,22 @@ export default function Friends() {
                 </dd>
               </div>
             </dl>
+
+            {defenseEntries(f).length > 0 && (
+              <div className="team-strip-slots friend-team">
+                {defenseEntries(f).map((e, i) => {
+                  const c = CHARACTERS[e.id]
+                  if (!c) return null
+                  return (
+                    <div className="mini-slot" data-filled key={i}>
+                      <span className="mini-mark">{ELEMENTS[c.element].mark}</span>
+                      <span className="mini-name">{c.name}</span>
+                      <span className="meta tiny">lv{e.level}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
 
             <div className="friend-actions">
               <button

@@ -2857,3 +2857,29 @@ a {
 .advice-row[data-picked='true'] .advice-pick {
   color: var(--gold-bright);
 }
+
+/* ───────── ล็อกอุปกรณ์ ขายตามสี ทีมเพื่อน ───────── */
+
+.head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.sell-row {
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.lock-btn[data-on='true'] {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+
+.gear-row .card-actions {
+  gap: 0.25rem;
+}
+
+.friend-team {
+  margin-top: 0.75rem;
+}

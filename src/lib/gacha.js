@@ -126,25 +126,62 @@ export async function pull(player, count, bannerId = 'origin') {
     })
   )
 
-  const batch = writeBatch(db)
   const summary = []
   const pool = { ...EMPTY_POOL, ...(player.shardPool ?? {}) }
 
+  // รวมผลของตัวละครแต่ละตัวให้จบก่อน แล้วค่อยเขียนลงฐานข้อมูลตัวละหนึ่งครั้ง
+  //
+  // เดิมเขียนทันทีในลูป พอสุ่มสิบครั้งแล้วได้ตัวเดิมซ้ำที่ยังไม่เคยมี
+  // รอบแรกสั่งสร้างเอกสาร รอบสองสั่งแก้ไขเอกสารที่ยังไม่มีอยู่จริง แล้วทั้งชุดถูกปฏิเสธ
+  // ตู้ที่มีตัวละครน้อยยิ่งเจอบ่อย เพราะโอกาสซ้ำในหนึ่งชุดสูงกว่ามาก
+  const changes = {}
+
   results.forEach(({ id, rarity }) => {
+    if (!changes[id]) {
+      changes[id] = {
+        rarity,
+        existed: Boolean(owned[id]),
+        shards: owned[id]?.shards ?? 0,
+        gained: 0,
+      }
+    }
+
+    const c = changes[id]
+    if (!c.existed && c.gained === 0 && !c.created) {
+      // ครั้งแรกที่ได้ตัวนี้ในชุดนี้ และยังไม่เคยมีมาก่อน
+      c.created = true
+      summary.push({ id, rarity, isNew: true })
+      return
+    }
+
+    // ตัวซ้ำให้ทั้งชิ้นส่วนของตัวเอง (ไว้หลอมดาว)
+    // และเศษวิญญาณกลาง (ไว้แลกตัวที่ยังไม่มีในหอแลกเปลี่ยน)
+    const gain = SHARDS_PER_DUPE[rarity]
+    c.shards += gain
+    c.gained += gain
+    pool[rarity] = (pool[rarity] ?? 0) + gain
+    summary.push({ id, rarity, isNew: false, shards: gain })
+  })
+
+  const batch = writeBatch(db)
+
+  Object.entries(changes).forEach(([id, c]) => {
     const ref = doc(db, 'users', uid, 'collection', id)
 
-    if (!owned[id]) {
-      owned[id] = { level: 1, exp: 0, star: 1, shards: 0, skillLevel: 1, tier: 0, awaken: 0 }
-      batch.set(ref, { ...owned[id], obtainedAt: serverTimestamp() })
-      summary.push({ id, rarity, isNew: true })
-    } else {
-      // ตัวซ้ำให้ทั้งชิ้นส่วนของตัวเอง (ไว้หลอมดาว)
-      // และเศษวิญญาณกลาง (ไว้แลกตัวที่ยังไม่มีในหอแลกเปลี่ยน)
-      const gain = SHARDS_PER_DUPE[rarity]
-      owned[id].shards += gain
-      pool[rarity] = (pool[rarity] ?? 0) + gain
-      batch.update(ref, { shards: owned[id].shards })
-      summary.push({ id, rarity, isNew: false, shards: gain })
+    if (c.created) {
+      // สร้างใหม่พร้อมชิ้นส่วนที่ได้จากตัวซ้ำในชุดเดียวกันไปเลย
+      batch.set(ref, {
+        level: 1,
+        exp: 0,
+        star: 1,
+        shards: c.shards,
+        skillLevel: 1,
+        tier: 0,
+        awaken: 0,
+        obtainedAt: serverTimestamp(),
+      })
+    } else if (c.gained > 0) {
+      batch.update(ref, { shards: c.shards })
     }
   })
 

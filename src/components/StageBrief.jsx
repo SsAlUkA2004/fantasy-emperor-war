@@ -22,6 +22,7 @@ export default function StageBrief({ stage, onStart, onClose }) {
   const [roster, setRoster] = useState(null)
   const [picks, setPicks] = useState(player.team ?? [])
   const [saving, setSaving] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -114,11 +115,16 @@ export default function StageBrief({ stage, onStart, onClose }) {
           })}
         </div>
 
-        <h3 className="section-title">แนะนำสำหรับด่านนี้</h3>
+        <div className="roster-head">
+          <h3 className="section-title flush">แนะนำสำหรับด่านนี้</h3>
+          <button className="plain-link inline" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? 'ดูเฉพาะที่แนะนำ' : `ดูทั้งหมด (${ranked.length})`}
+          </button>
+        </div>
         {roster === null && <p className="meta">กำลังเปิดกระเป๋า</p>}
 
         <div className="advice-list">
-          {ranked.slice(0, 12).map(({ entry, char, score, reasons }, i) => {
+          {(showAll ? ranked : ranked.slice(0, 12)).map(({ entry, char, score, reasons }, i) => {
             const picked = picks.includes(entry.id)
             return (
               <button

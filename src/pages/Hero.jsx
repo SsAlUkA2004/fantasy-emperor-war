@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { heroStats, entryStats, entryLevelCap, elementMatchup, entrySkillScale } from '../lib/stats'
 import { heroPower, entryPower, formatPower } from '../lib/power'
+import { GRADES, SLOTS, SLOT_IDS, gearStat } from '../data/gear'
 import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
@@ -223,6 +224,43 @@ export default function Hero() {
             ⚔ {formatPower(entry ? entryPower({ ...entry, id: charId }) : heroPower(charId, level, star))}
           </strong>
         </div>
+
+        {entry && (
+          <>
+            <div className="roster-head">
+              <h2 className="section-title flush">อุปกรณ์ที่สวมอยู่</h2>
+              <Link className="plain-link inline" to={`/gear?char=${charId}`}>
+                จัดอุปกรณ์
+              </Link>
+            </div>
+
+            <div className="slot-grid">
+              {SLOT_IDS.map((sid) => {
+                const worn = (entry.gear ?? []).find((g) => g.slot === sid)
+                return (
+                  <div className="gear-slot" key={sid} data-filled={Boolean(worn)}>
+                    <span className="gear-slot-mark">{SLOTS[sid].mark}</span>
+                    <span className="meta tiny">{SLOTS[sid].name}</span>
+                    {worn ? (
+                      <>
+                        <span className="gear-grade" style={{ color: GRADES[worn.grade].color }}>
+                          {GRADES[worn.grade].name}
+                          {worn.plus > 0 && ` +${worn.plus}`}
+                        </span>
+                        <span className="meta tiny">
+                          +{gearStat(worn)} {SLOTS[sid].stat}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="meta tiny">ว่าง</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <p className="meta tiny">ค่าพลังด้านล่างรวมอุปกรณ์เหล่านี้แล้ว</p>
+          </>
+        )}
 
         <h2 className="section-title">ค่าพลัง</h2>
         <dl className="ledger">
