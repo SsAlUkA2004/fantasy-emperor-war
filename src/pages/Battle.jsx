@@ -11,7 +11,7 @@ import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { runCharDungeon } from '../lib/chardungeon'
 import { ROUND_LIMIT, decideByHp } from '../lib/pvp'
-import { STORY_ROUND_LIMIT } from '../data/stages'
+import { DIFFICULTIES, STORY_ROUND_LIMIT } from '../data/stages'
 import { CHARACTERS } from '../data/characters'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
 import { GRADES, SLOTS } from '../data/gear'
@@ -45,8 +45,28 @@ export default function Battle() {
         : null
     }
     if (stage.training || stage.gemStage || stage.materialStage) return null
-    const i = STAGES.findIndex((x) => x.id === stage.id)
-    return i >= 0 && i < STAGES.length - 1 ? STAGES[i + 1] : null
+
+    const base = stage.id.split('@')[0]
+    const sfx = stage.id.includes('@') ? '@' + stage.id.split('@')[1] : ''
+    const i = STAGES.findIndex((x) => x.id === base)
+    if (i < 0) return null
+
+    // ยังมีด่านต่อไปในโหมดเดียวกัน
+    if (i < STAGES.length - 1) {
+      const next = STAGES[i + 1]
+      return { id: next.id + sfx, name: next.name }
+    }
+
+    // จบโหมดนี้แล้ว ชวนไปเริ่มโหมดถัดไปตั้งแต่ด่านแรก
+    // ถ้าไม่มีปุ่มนี้ ผู้เล่นต้องกลับไปแผนที่แล้วหาแท็บโหมดเอาเอง
+    const at = DIFFICULTIES.findIndex((d) => d.suffix === sfx)
+    const nextDiff = DIFFICULTIES[at + 1]
+    if (!nextDiff) return null
+    return {
+      id: STAGES[0].id + nextDiff.suffix,
+      name: `บทที่ 1 โหมด${nextDiff.name}`,
+      newDifficulty: nextDiff.name,
+    }
   })()
 
   // กลับไปหน้าที่มาจริง ไม่ใช่แผนที่ด่านเสมอ
@@ -294,7 +314,9 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
 
       {won && nextStage && (
         <button className="rune-link block primary" onClick={onNext}>
-          ไป{nextStage.name}
+          {nextStage.newDifficulty
+            ? `เปิดโหมด${nextStage.newDifficulty} · เริ่มที่บทที่ 1`
+            : `ไป${nextStage.name}`}
         </button>
       )}
       <button className="rune-link block" onClick={onAgain}>

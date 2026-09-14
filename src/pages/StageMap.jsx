@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   CHAPTERS,
   DIFFICULTIES,
-  chapterClearedAt,
   stageAt,
   TARGET_LEVEL,
   STAGES,
@@ -66,11 +65,16 @@ export default function StageMap() {
   const cleared = (id) => (progress[id] ?? 0) > 0
   const suffix = DIFFICULTIES.find((d) => d.id === diff)?.suffix ?? ''
 
-  // โหมดยากเปิดเมื่อผ่านบทนั้นในโหมดก่อนหน้าครบแล้ว
-  function diffOpen(id, chapterNumber) {
+  /**
+   * โหมดถัดไปเปิดเมื่อผ่านด่านสุดท้ายของโหมดก่อนหน้าแล้ว ไม่ใช่ทีละบท
+   * เพราะแต่ละโหมดต้องไต่ใหม่ตั้งแต่บทที่ 1 เหมือนเริ่มเกมรอบใหม่
+   */
+  const lastId = STAGES[STAGES.length - 1].id
+
+  function diffOpen(id) {
     if (id === 'normal') return true
-    if (id === 'hard') return chapterClearedAt(progress, chapterNumber, 'normal')
-    return chapterClearedAt(progress, chapterNumber, 'hard')
+    if (id === 'hard') return cleared(lastId)
+    return cleared(`${lastId}@hard`)
   }
 
   // บทถัดไปเปิดเมื่อผ่านด่านสุดท้ายของบทก่อนหน้า
@@ -179,6 +183,11 @@ export default function StageMap() {
         )}
         {diff === 'normal' && (
           <p className="meta tiny">แนะนำทีมเลเวล {TARGET_LEVEL.normal[view - 1]} ขึ้นไปสำหรับบทนี้</p>
+        )}
+        {!diffOpen('hard') && (
+          <p className="meta tiny">
+            ผ่านด่าน {lastId} ให้จบเพื่อเปิดโหมดยาก · ผ่านโหมดยากจนจบเพื่อเปิดโหมดปีศาจ
+          </p>
         )}
 
         {!open ? (
