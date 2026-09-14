@@ -8,6 +8,7 @@ import { MATERIAL_RUNS_PER_DAY } from '../data/materials'
 import { runsLeft } from '../lib/dayclock'
 import { discountAvailable } from '../lib/gacha'
 import { matchesLeft } from '../lib/pvp'
+import { signOut } from '../lib/auth'
 
 // ─────────────────────────────────────────────────────────────
 // แถบนำทางล่างจอ
@@ -111,9 +112,14 @@ export default function BottomNav() {
                 </div>
               </div>
             ))}
-            <button className="plain-link" onClick={() => setOpen(false)}>
-              ปิด
-            </button>
+            <div className="nav-foot">
+              <button className="plain-link inline" onClick={() => setOpen(false)}>
+                ปิด
+              </button>
+              <button className="plain-link inline logout" onClick={signOut}>
+                ออกจากระบบ
+              </button>
+            </div>
           </section>
         </div>
       )}

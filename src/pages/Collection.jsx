@@ -84,12 +84,17 @@ export default function Collection() {
                   })}
                 </div>
 
-                {open && CHARACTERS[open].rarity === rarity && (
-                  <Detail id={open} entry={have(open)} onClose={() => setOpen(null)} />
-                )}
               </section>
             )
           })}
+
+        {open && (
+          <div className="veil" role="dialog" aria-modal="true" onClick={() => setOpen(null)}>
+            <div onClick={(e) => e.stopPropagation()} className="collect-modal">
+              <Detail id={open} entry={have(open)} onClose={() => setOpen(null)} />
+            </div>
+          </div>
+        )}
 
         <div className="gate">
           <Link className="rune-link" to="/gacha">

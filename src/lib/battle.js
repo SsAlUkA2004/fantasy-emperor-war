@@ -67,7 +67,20 @@ function applyDamage(state, unit, amount) {
 // ───────── สร้างสนามรบ ─────────
 
 function makeUnit(base, opts) {
-  const raw = opts.stats ?? effectiveStats(base.stats, opts.level, opts.star)
+  let raw = opts.stats ?? effectiveStats(base.stats, opts.level, opts.star)
+
+  // ตัวคูณของระดับความยาก คูณทั้งเลือด พลังโจมตี และพลังป้องกัน
+  // ป้องกันคูณน้อยกว่าเพราะมีผลแบบไม่เป็นเส้นตรง ถ้าคูณเท่ากันศัตรูจะตีไม่เข้าเลย
+  if (opts.statScale && opts.statScale !== 1) {
+    const f = opts.statScale
+    raw = {
+      ...raw,
+      hp: Math.round(raw.hp * f),
+      atk: Math.round(raw.atk * f),
+      def: Math.round(raw.def * Math.pow(f, 0.6)),
+    }
+  }
+
   // ตัวเดียวสู้กับทีมห้าคนย่อมแพ้ทุกครั้ง ถ้าไม่คูณเลือดให้
   const s = opts.hpScale ? { ...raw, hp: Math.round(raw.hp * opts.hpScale) } : raw
   return {
@@ -133,6 +146,7 @@ export function createBattle(allyEntries, stage) {
         skillScale: isHero ? skillScale(e.star ?? 1) : 1,
         stats: isHero ? effectiveStats(m.stats, e.level ?? 1, e.star ?? 1) : undefined,
         hpScale: e.hpScale,
+        statScale: e.statScale,
         mark: isHero ? ELEMENTS[m.element].mark : m.mark,
       })
     }),

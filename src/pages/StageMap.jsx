@@ -5,6 +5,7 @@ import {
   DIFFICULTIES,
   chapterClearedAt,
   stageAt,
+  TARGET_LEVEL,
   STAGES,
   TRAINING,
   GEM_STAGES,
@@ -85,11 +86,19 @@ export default function StageMap() {
   const chapter = CHAPTERS[view - 1]
   const open = chapterOpen(view)
 
-  // ด่านเปิดเมื่อผ่านด่านก่อนหน้าในลำดับรวมทั้งเกม
-  function stageOpen(stageId) {
-    const index = STAGES.findIndex((s) => s.id === stageId)
+  /**
+   * ด่านเปิดเมื่อผ่านด่านก่อนหน้าในโหมดเดียวกัน
+   *
+   * เดิมเช็คจากรหัสด่านพื้นฐานอย่างเดียว ผลคือพอผ่านโหมดปกติครบ
+   * โหมดยากเปิดหมดทุกด่านพร้อมกัน ไม่ต้องไต่ใหม่เลย
+   */
+  function stageOpen(baseId, difficultyId) {
+    const index = STAGES.findIndex((s) => s.id === baseId)
+    if (index < 0) return false
     if (index === 0) return true
-    return cleared(STAGES[index - 1].id)
+    const prev = STAGES[index - 1].id
+    const sfx = DIFFICULTIES.find((d) => d.id === difficultyId)?.suffix ?? ''
+    return cleared(prev + sfx)
   }
 
   const done = chapter.stages.filter((s) => cleared(s.id)).length
@@ -146,7 +155,7 @@ export default function StageMap() {
 
         <div className="mode-tabs diff-tabs">
           {DIFFICULTIES.map((d) => {
-            const ok = diffOpen(d.id, view)
+            const ok = diffOpen(d.id)
             return (
               <button
                 key={d.id}
@@ -163,9 +172,13 @@ export default function StageMap() {
         </div>
         {diff !== 'normal' && (
           <p className="meta tiny">
-            ศัตรูแข็งขึ้นมาก แลกกับรางวัลคูณ{' '}
-            {DIFFICULTIES.find((d) => d.id === diff)?.reward} เท่า และของที่ดรอปมีระดับไอเทมสูงขึ้น
+            โหมดนี้เริ่มไต่ใหม่ตั้งแต่บทที่ 1 และบทแรกของโหมดนี้ยากเท่ากับบทสุดท้ายของโหมดก่อนหน้า ·
+            รางวัลคูณ {DIFFICULTIES.find((d) => d.id === diff)?.reward} เท่า ·
+            แนะนำทีมเลเวล {TARGET_LEVEL[diff][view - 1]} ขึ้นไปสำหรับบทนี้
           </p>
+        )}
+        {diff === 'normal' && (
+          <p className="meta tiny">แนะนำทีมเลเวล {TARGET_LEVEL.normal[view - 1]} ขึ้นไปสำหรับบทนี้</p>
         )}
 
         {!open ? (
@@ -177,7 +190,7 @@ export default function StageMap() {
             {chapter.stages.map((base) => {
               const stage = stageAt(base.id, diff) ?? base
               const stars = progress[stage.id] ?? 0
-              const unlocked = stageOpen(base.id) && diffOpen(diff, view)
+              const unlocked = stageOpen(base.id, diff) && diffOpen(diff)
               const boss = stage.enemies.some((x) => ENEMIES[x.id]?.boss)
 
               return (

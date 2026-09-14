@@ -28,6 +28,7 @@ export default function Gear() {
   const [error, setError] = useState(null)
   const [filter, setFilter] = useState('all')
   const [sellGrades, setSellGrades] = useState([])
+  const [sort, setSort] = useState('value')
 
   const who = params.get('char') ?? null
 
@@ -48,17 +49,22 @@ export default function Gear() {
   const target = roster?.find((c) => c.id === who) ?? null
   const wearing = gear?.filter((g) => g.equippedBy === who) ?? []
 
-  // ของที่ตัวละครที่เลือกใส่อยู่ ขึ้นก่อนเสมอ
-  // ไม่งั้นพอของเยอะต้องเลื่อนหาว่าชิ้นไหนใส่อยู่ ซึ่งเป็นสิ่งที่อยากรู้ที่สุด
+  // ของที่ตัวละครที่เลือกใส่อยู่ ขึ้นก่อนเสมอไม่ว่าจะเรียงแบบไหน
+  // เพราะพอของเยอะ สิ่งที่อยากรู้ที่สุดคือชิ้นไหนใส่อยู่
+  const order = {
+    value: (a, b) => gearStat(b) - gearStat(a),
+    grade: (a, b) =>
+      GRADES[b.grade].order - GRADES[a.grade].order || (b.ilvl ?? 1) - (a.ilvl ?? 1),
+    slot: (a, b) => SLOT_IDS.indexOf(a.slot) - SLOT_IDS.indexOf(b.slot) || gearStat(b) - gearStat(a),
+  }
+
   const shown = (gear ?? [])
     .filter((g) => (filter === 'all' ? true : g.slot === filter))
     .sort((a, b) => {
       const aMine = a.equippedBy === who ? 1 : 0
       const bMine = b.equippedBy === who ? 1 : 0
       if (aMine !== bMine) return bMine - aMine
-      return (
-        GRADES[b.grade].order - GRADES[a.grade].order || (b.ilvl ?? 1) - (a.ilvl ?? 1)
-      )
+      return (order[sort] ?? order.value)(a, b)
     })
 
   async function run(label, fn) {
@@ -220,20 +226,45 @@ export default function Gear() {
         </div>
         <p className="meta tiny">ของที่สวมอยู่และของที่ล็อกไว้จะถูกข้ามเสมอ</p>
 
-        <div className="qty-row">
-          <button className="qty-chip" data-active={filter === 'all'} onClick={() => setFilter('all')}>
-            ทั้งหมด
-          </button>
-          {SLOT_IDS.map((sid) => (
+        <div className="sticky-bar">
+          <div className="qty-row">
             <button
-              key={sid}
               className="qty-chip"
-              data-active={filter === sid}
-              onClick={() => setFilter(sid)}
+              data-active={filter === 'all'}
+              onClick={() => setFilter('all')}
             >
-              {SLOTS[sid].mark}
+              ทั้งหมด
             </button>
-          ))}
+            {SLOT_IDS.map((sid) => (
+              <button
+                key={sid}
+                className="qty-chip"
+                data-active={filter === sid}
+                onClick={() => setFilter(sid)}
+              >
+                {SLOTS[sid].mark}
+              </button>
+            ))}
+          </div>
+
+          <div className="qty-row">
+            <span className="meta tiny">เรียงตาม</span>
+            {[
+              ['value', 'ค่าที่ให้'],
+              ['grade', 'ระดับสี'],
+              ['slot', 'ช่อง'],
+            ].map(([k, label]) => (
+              <button
+                key={k}
+                className="qty-chip"
+                data-active={sort === k}
+                onClick={() => setSort(k)}
+              >
+                {label}
+              </button>
+            ))}
+            <span className="meta tiny count-note">แสดง {shown.length} ชิ้น</span>
+          </div>
         </div>
 
         {gear === null && <p className="meta">กำลังเปิดคลัง</p>}

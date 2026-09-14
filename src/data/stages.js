@@ -338,10 +338,53 @@ export const STAGES = CHAPTERS.flatMap((c) => c.stages)
 export const STORY_ROUND_LIMIT = 50
 
 export const DIFFICULTIES = [
-  { id: 'normal', name: 'ปกติ', suffix: '', enemy: 1, reward: 1, gems: 30, ilvlBonus: 0 },
-  { id: 'hard', name: 'ยาก', suffix: '@hard', enemy: 1.2, reward: 2, gems: 50, ilvlBonus: 1 },
-  { id: 'demon', name: 'ปีศาจ', suffix: '@demon', enemy: 1.32, reward: 6, gems: 100, ilvlBonus: 2 },
+  { id: 'normal', name: 'ปกติ', suffix: '', reward: 1, gems: 30, ilvlBonus: 0 },
+  { id: 'hard', name: 'ยาก', suffix: '@hard', reward: 2, gems: 50, ilvlBonus: 1 },
+  { id: 'demon', name: 'ปีศาจ', suffix: '@demon', reward: 6, gems: 100, ilvlBonus: 2 },
 ]
+
+// ─────────────────────────────────────────────────────────────
+// ความยากไล่ต่อเนื่องข้ามโหมด
+//
+// เดิมโหมดยากคือการคูณศัตรูทั้งเจ็ดบทด้วยเลขเดียวกัน
+// ผลคือบทที่ 1 โหมดยากยังง่ายกว่าบทที่ 7 โหมดปกติมาก
+// ผู้เล่นที่ผ่านเนื้อเรื่องจบแล้วจึงกวาดโหมดยากตั้งแต่บทแรกได้ทันที
+//
+// เปลี่ยนมากำหนดว่าแต่ละบทแต่ละโหมดควรใช้ทีมเลเวลเท่าไหร่จึงจะผ่าน
+// แล้วคำนวณตัวคูณย้อนกลับจากเลเวลที่ต้องการ
+// โหมดยากบทแรกจึงเริ่มตรงที่โหมดปกติบทสุดท้ายจบพอดี และไล่ขึ้นต่อไปเอง
+// ─────────────────────────────────────────────────────────────
+
+/** เลเวลที่แนะนำสำหรับแต่ละบทของแต่ละโหมด ใช้แสดงในแผนที่ด่าน */
+export const TARGET_LEVEL = {
+  normal: [5, 10, 18, 28, 38, 50, 60],
+  hard: [60, 63, 66, 70, 73, 77, 80],
+  demon: [80, 82, 84, 86, 87, 89, 90],
+}
+
+/**
+ * ตัวคูณค่าพลังศัตรูของแต่ละบทในแต่ละโหมด
+ *
+ * ไม่ได้คิดจากสูตร แต่คำนวณจากค่าพลังทีมที่ผู้เล่นควรมีตอนนั้น
+ * โดยตั้งให้ศัตรูอยู่ราว 1.35 เท่าของค่าพลังทีม ซึ่งเป็นจุดที่จำลองแล้วชนะราว 85%
+ *
+ * โหมดปกติคงไว้ที่ 1 เกือบทั้งหมด เพราะปรับสมดุลด้วยการจำลองมาแล้ว
+ * ยกเว้นบทที่ 7 ที่ลดลงให้ใช้ทีมเลเวล 60 แทน 70
+ *
+ * โหมดยากบทที่ 1 ตั้งให้เท่ากับโหมดปกติบทที่ 7 พอดี แล้วไล่ขึ้นต่อไปเอง
+ * ตัวเลขจึงสูงมากในบทต้น เพราะศัตรูบทแรกมีค่าพลังพื้นฐานน้อย
+ * ต้องคูณสามสิบเท่าจึงจะเทียบเท่าบอสบทสุดท้าย
+ */
+export const STAGE_SCALE = {
+  normal: [1, 1, 1, 0.82, 1, 0.816, 0.869],
+  hard: [30.622, 9.993, 4.075, 4.507, 4.557, 1.158, 1.103],
+  demon: [38.843, 12.443, 4.986, 5.36, 5.287, 1.31, 1.219],
+}
+
+export function stageScale(chapter, difficultyId = 'normal') {
+  const table = STAGE_SCALE[difficultyId] ?? STAGE_SCALE.normal
+  return table[Math.max(0, Math.min(table.length - 1, chapter - 1))]
+}
 
 export function difficultyOf(id) {
   const at = typeof id === 'string' ? id.indexOf('@') : -1
@@ -354,24 +397,21 @@ export function baseIdOf(id) {
   return at < 0 ? id : id.slice(0, at)
 }
 
-/** ประกอบด่านตามระดับความยาก โดยคูณค่าพลังศัตรูด้วยเลเวลที่สูงขึ้น */
 export function stageAt(baseId, difficultyId = 'normal') {
   const base = STAGES.find((s) => s.id === baseId)
   if (!base) return null
   const d = DIFFICULTIES.find((x) => x.id === difficultyId) ?? DIFFICULTIES[0]
-  if (d.id === 'normal') return base
+  const scale = stageScale(base.chapter ?? 1, d.id)
 
   return {
     ...base,
     id: base.id + d.suffix,
     difficulty: d.id,
-    name: `${base.name} · ${d.name}`,
+    name: d.id === 'normal' ? base.name : `${base.name} · ${d.name}`,
     exp: Math.round(base.exp * d.reward),
-    // ดันเลเวลศัตรูแทนการแก้ค่าพลังโดยตรง ใช้สูตรเติบโตเดียวกับตัวละคร
-    enemies: base.enemies.map((x) => ({
-      ...x,
-      level: Math.max(1, Math.round(((x.level ?? 1) - 1 + (d.enemy - 1) / 0.08) + 1)),
-    })),
+    // คูณค่าพลังตรง ๆ แทนการดันเลเวล เพราะต้องคูณได้หลายเท่าในบทต้น ๆ
+    // ซึ่งการดันเลเวลทำไม่ได้ ศัตรูบทแรกมีค่าพลังพื้นฐานน้อยเกินกว่าจะไต่ทัน
+    enemies: base.enemies.map((x) => ({ ...x, statScale: scale })),
   }
 }
 

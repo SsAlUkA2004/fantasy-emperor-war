@@ -50,7 +50,15 @@ export function stagePower(stage) {
     const hero = typeof x.id === 'string' && x.id.startsWith('hero:')
     const m = hero ? CHARACTERS[x.id.slice(5)] : ENEMIES[x.id]
     if (!m) return sum
-    const st = effectiveStats(m.stats, x.level ?? 1, x.star ?? 1)
+    let st = effectiveStats(m.stats, x.level ?? 1, x.star ?? 1)
+    if (x.statScale && x.statScale !== 1) {
+      st = {
+        ...st,
+        hp: Math.round(st.hp * x.statScale),
+        atk: Math.round(st.atk * x.statScale),
+        def: Math.round(st.def * Math.pow(x.statScale, 0.6)),
+      }
+    }
     const scaled = x.hpScale ? { ...st, hp: Math.round(st.hp * x.hpScale) } : st
     return sum + combatPower(scaled, x.star ?? 1)
   }, 0)

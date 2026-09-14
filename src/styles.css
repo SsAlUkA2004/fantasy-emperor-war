@@ -3057,3 +3057,56 @@ a {
   font-size: 0.68rem;
   color: var(--parchment-dim);
 }
+
+/* ───────── แถบเครื่องมือติดขอบบน ───────── */
+
+.sticky-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin: 0 -0.15rem 0.6rem;
+  padding: 0.5rem 0.15rem 0.35rem;
+  background: linear-gradient(180deg, var(--void) 72%, rgba(11, 8, 24, 0));
+}
+
+.sticky-bar .qty-row {
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.count-note {
+  margin-left: auto;
+}
+
+/* รายละเอียดในหอสะสม แสดงเป็นป๊อปอัพแทนการแทรกกลางหน้า */
+.collect-modal {
+  width: 100%;
+  max-width: 26rem;
+  max-height: 85dvh;
+  overflow-y: auto;
+  animation: popup-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.collect-modal .collect-detail {
+  margin: 0;
+  background: linear-gradient(180deg, rgba(46, 34, 100, 0.97), rgba(18, 14, 40, 0.98));
+  box-shadow: 0 1.5rem 3rem rgba(4, 2, 10, 0.7);
+}
+
+.nav-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.nav-foot .plain-link {
+  width: auto;
+  margin: 0;
+}
+
+.logout {
+  color: var(--ember);
+  border: 1px solid rgba(194, 88, 67, 0.4);
+  padding: 0.3rem 0.8rem;
+}
