@@ -519,42 +519,42 @@ export const TRAINING = [
   {
     id: 't-1', name: 'ลานฝึกชั้นต้น', intro: 'หุ่นฟางที่ขยับได้ ไม่เจ็บใครแต่ทนได้นาน',
     training: true, exp: 90, requires: '1-2',
-    enemies: [e('skeleton', 3), e('skeleton', 3)],
+    enemies: [e('skeleton', 1), e('skeleton', 1)],
   },
   {
     id: 't-2', name: 'ลานฝึกชั้นกลาง', intro: 'คู่ซ้อมที่เอาจริงขึ้น เตรียมใจไว้หน่อย',
     training: true, exp: 200, requires: '1-5',
-    enemies: [e('frostwolf', 8), e('hexer', 8), e('frostwolf', 8)],
+    enemies: [e('frostwolf', 1), e('hexer', 1), e('frostwolf', 1)],
   },
   {
     id: 't-3', name: 'ลานฝึกชั้นสูง', intro: 'ของจริงจากป่าหมอก ไม่ใช่หุ่นฟางแล้ว',
     training: true, exp: 520, requires: '2-4',
-    enemies: [e('direboar', 8), e('mandrake', 8), e('sprite', 10)],
+    enemies: [e('direboar', 3), e('mandrake', 3), e('sprite', 5)],
   },
   {
     id: 't-4', name: 'ลานฝึกยอดยุทธ์', intro: 'คู่ซ้อมระดับที่เจอในทะเลทราย',
     training: true, exp: 1200, requires: '3-4',
-    enemies: [e('efreet', 3), e('mummy', 4), e('scorpion', 5)],
+    enemies: [e('efreet', 1), e('mummy', 2), e('scorpion', 3)],
   },
   {
     id: 't-5', name: 'ลานฝึกเพลิงนิทรา', intro: 'ซ้อมกับของจริงจากยอดเขา',
     training: true, exp: 3000, requires: '4-4',
-    enemies: [e('lavahound', 9), e('ashmage', 9), e('rocdrake', 9)],
+    enemies: [e('lavahound', 8), e('ashmage', 8), e('rocdrake', 8)],
   },
   {
     id: 't-6', name: 'ลานฝึกเงามืด', intro: 'ไม่มีอะไรให้ซ้อมนอกจากสิ่งที่เกือบฆ่าคุณได้',
     training: true, exp: 8000, requires: '5-4',
-    enemies: [e('darkknight', 10), e('sentinel', 10), e('wraith', 11)],
+    enemies: [e('darkknight', 13), e('sentinel', 13), e('wraith', 14)],
   },
   {
     id: 't-7', name: 'ลานฝึกหุบเหว', intro: 'เสียงกรีดร้องที่ซ้อมจนชินแล้ว',
     training: true, exp: 20000, requires: '6-4',
-    enemies: [e('banshee', 4), e('harpy', 5), e('gargoyle', 5)],
+    enemies: [e('banshee', 1), e('harpy', 2), e('gargoyle', 2)],
   },
   {
     id: 't-8', name: 'ลานฝึกนภา', intro: 'จักรกลที่ไม่รู้จักเหนื่อย เหมาะกับการซ้อมที่สุด',
     training: true, exp: 48000, requires: '7-4',
-    enemies: [e('automaton', 1), e('seraph', 1), e('stormcaller', 1)],
+    enemies: [e('automaton', 5), e('seraph', 5), e('stormcaller', 5)],
   },
 ]
 
@@ -573,12 +573,12 @@ export const GEM_STAGES = [
   {
     id: 'g-1', accountExp: 600, name: 'เหมืองคริสตัลร้าง', intro: 'คริสตัลยังฝังอยู่ในผนัง แต่มีอะไรบางอย่างเฝ้าไว้',
     gemStage: true, gems: 60, exp: 60, requires: '1-3',
-    enemies: [e('golem', 8), e('skeleton', 8), e('frostwolf', 8)],
+    enemies: [e('golem', 1), e('skeleton', 1)],
   },
   {
     id: 'g-2', accountExp: 2000, name: 'เหมืองใต้รากไม้', intro: 'รากไม้ชอนไชจนผนังเหมืองแตก และมีอะไรตามเข้ามา',
     gemStage: true, gems: 110, exp: 220, requires: '2-4',
-    enemies: [e('treant', 2), e('mandrake', 10), e('direboar', 10)],
+    enemies: [e('treant', 1), e('mandrake', 5), e('direboar', 5)],
   },
   {
     id: 'g-3', accountExp: 5000, name: 'เหมืองแก้วทะเลทราย', intro: 'ทรายหลอมเป็นแก้วจากความร้อนใต้ดิน',
@@ -588,12 +588,12 @@ export const GEM_STAGES = [
   {
     id: 'g-4', accountExp: 12000, name: 'เหมืองแก่นภูเขาไฟ', intro: 'คริสตัลที่นี่ยังร้อนอยู่ และเจ้าของมันยังไม่ตาย',
     gemStage: true, gems: 280, exp: 1500, requires: '4-4',
-    enemies: [e('emberlord', 2), e('ashmage', 4), e('rocdrake', 4)],
+    enemies: [e('emberlord', 6), e('ashmage', 8), e('rocdrake', 8)],
   },
   {
     id: 'g-5', accountExp: 24000, name: 'คลังสมบัตินภา', intro: 'เมืองที่คนทิ้งไปแต่สมบัติยังอยู่',
-    gemStage: true, gems: 480, exp: 9000, requires: '7-2',
-    enemies: [e('automaton', 1), e('seraph', 1)],
+    gemStage: true, gems: 480, exp: 9000, requires: '7-4',
+    enemies: [e('automaton', 9), e('seraph', 9), e('stormcaller', 9)],
   },
 
 ]
