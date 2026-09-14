@@ -45,6 +45,16 @@ export const MATERIAL_STAGES = [
     enemies: [e('mummy', 6), e('efreet', 6), e('scorpion', 7)],
   },
   {
+    id: 'm-4',
+    name: 'โรงหลอมลอยฟ้า',
+    intro: 'เตาหลอมยังร้อนอยู่ ทั้งที่ไม่มีคนมาหลายร้อยปีแล้ว',
+    materialStage: true,
+    exp: 9000,
+    requires: '7-3',
+    drops: { ore: 110, crystal: 30, scroll: 20 },
+    enemies: [e('automaton', 1), e('stormcaller', 1)],
+  },
+  {
     id: 'm-3',
     name: 'คลังอาวุธเงามืด',
     intro: 'ของดีทั้งหมดอยู่ที่นี่ และมีคนเฝ้าอยู่ทั้งหมดเหมือนกัน',

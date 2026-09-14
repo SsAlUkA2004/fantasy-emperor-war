@@ -14,6 +14,7 @@ import {
 import { loadCollection } from '../lib/player'
 import { rankLabel, rankOf } from '../data/ranks'
 import { submitWarResult } from '../lib/guildwar'
+import { logAttack } from '../lib/defenselog'
 import { teamPower, entryPower, formatPower } from '../lib/power'
 import BattleStage from '../components/BattleStage'
 
@@ -97,6 +98,10 @@ export default function PvpMatch() {
         })
         .catch((e) => setOutcome({ won, failed: true, why: explainError('บันทึกผลไม่สำเร็จ', e) }))
       return
+    }
+
+    if (!foe.isBot) {
+      logAttack(foe.uid, { uid: user.uid, username: player.username }, won).catch(() => {})
     }
 
     saveMatch({ ...player, uid: user.uid }, foe, won)

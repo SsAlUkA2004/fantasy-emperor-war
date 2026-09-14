@@ -461,6 +461,16 @@ export const TRAINING = [
     training: true, exp: 8000, requires: '5-4',
     enemies: [e('darkknight', 10), e('sentinel', 10), e('wraith', 11)],
   },
+  {
+    id: 't-7', name: 'ลานฝึกหุบเหว', intro: 'เสียงกรีดร้องที่ซ้อมจนชินแล้ว',
+    training: true, exp: 20000, requires: '6-4',
+    enemies: [e('banshee', 4), e('harpy', 5), e('gargoyle', 5)],
+  },
+  {
+    id: 't-8', name: 'ลานฝึกนภา', intro: 'จักรกลที่ไม่รู้จักเหนื่อย เหมาะกับการซ้อมที่สุด',
+    training: true, exp: 48000, requires: '7-4',
+    enemies: [e('automaton', 2), e('seraph', 2), e('stormcaller', 2)],
+  },
 ]
 
 /**
@@ -494,7 +504,12 @@ export const GEM_STAGES = [
     id: 'g-4', accountExp: 12000, name: 'เหมืองแก่นภูเขาไฟ', intro: 'คริสตัลที่นี่ยังร้อนอยู่ และเจ้าของมันยังไม่ตาย',
     gemStage: true, gems: 280, exp: 1500, requires: '4-4',
     enemies: [e('emberlord', 4), e('ashmage', 10), e('rocdrake', 10)],
+  },  {
+    id: 'g-5', accountExp: 24000, name: 'คลังสมบัตินภา', intro: 'เมืองที่คนทิ้งไปแต่สมบัติยังอยู่',
+    gemStage: true, gems: 480, exp: 9000, requires: '7-2',
+    enemies: [e('automaton', 1), e('seraph', 1)],
   },
+
 ]
 
 export function getStage(id) {

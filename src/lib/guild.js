@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  writeBatch,
   getDoc,
   getDocs,
   limit,
@@ -46,6 +47,7 @@ export async function createGuild(player, name, tag) {
     tx.set(guildRef(id), {
       name: name.trim(),
       tag: id,
+      joinPolicy: 'open',
       ownerUid: player.uid,
       ownerName: player.username,
       memberCount: 1,
@@ -78,6 +80,51 @@ export async function createGuild(player, name, tag) {
  * ตัวนับสมาชิกอ่านและเขียนใน transaction เดียวกัน
  * สองคนกดเข้าพร้อมกันจึงถูกนับครบทั้งคู่ และกิลด์เต็มแล้วจะไม่มีใครแทรกเข้ามาได้
  */
+/** ยื่นคำขอเข้ากิลด์ที่ตั้งเป็นแบบต้องอนุมัติ */
+export async function requestJoin(player, guildId) {
+  if (player.guildId) throw new Error('ต้องออกจากกิลด์เดิมก่อน')
+  await setDoc(doc(db, 'guilds', guildId, 'requests', player.uid), {
+    username: player.username,
+    power: player.rosterPower ?? 0,
+    at: serverTimestamp(),
+  })
+}
+
+export async function cancelRequest(uid, guildId) {
+  await deleteDoc(doc(db, 'guilds', guildId, 'requests', uid))
+}
+
+export async function loadRequests(guildId) {
+  const snap = await getDocs(collection(db, 'guilds', guildId, 'requests'))
+  return snap.docs.map((d) => ({ uid: d.id, ...d.data() }))
+}
+
+/**
+ * หัวหน้ากดรับ
+ *
+ * ไม่ได้เพิ่มสมาชิกให้ตรง ๆ เพราะต้องแก้เอกสารของผู้สมัครด้วย ซึ่งกฎห้าม
+ * ออกใบอนุมัติไว้แทน แล้วผู้สมัครกดเข้าเองเมื่อไหร่ก็ได้
+ */
+export async function approveRequest(guildId, uid) {
+  const batch = writeBatch(db)
+  batch.set(doc(db, 'guilds', guildId, 'approved', uid), { at: serverTimestamp() })
+  batch.delete(doc(db, 'guilds', guildId, 'requests', uid))
+  await batch.commit()
+}
+
+export async function rejectRequest(guildId, uid) {
+  await deleteDoc(doc(db, 'guilds', guildId, 'requests', uid))
+}
+
+export async function isApproved(guildId, uid) {
+  const snap = await getDoc(doc(db, 'guilds', guildId, 'approved', uid))
+  return snap.exists()
+}
+
+export async function setJoinPolicy(guildId, policy) {
+  await updateDoc(guildRef(guildId), { joinPolicy: policy })
+}
+
 export async function joinGuild(player, guildId) {
   if (player.guildId) throw new Error('ต้องออกจากกิลด์เดิมก่อน')
 
@@ -87,6 +134,12 @@ export async function joinGuild(player, guildId) {
 
     const g = snap.data()
     if ((g.memberCount ?? 0) >= MAX_MEMBERS) throw new Error('กิลด์เต็มแล้ว')
+
+    if ((g.joinPolicy ?? 'open') === 'approval') {
+      const ok = await tx.get(doc(db, 'guilds', guildId, 'approved', player.uid))
+      if (!ok.exists()) throw new Error('กิลด์นี้ต้องรออนุมัติก่อน')
+      tx.delete(doc(db, 'guilds', guildId, 'approved', player.uid))
+    }
 
     tx.update(guildRef(guildId), { memberCount: (g.memberCount ?? 0) + 1 })
     tx.set(doc(membersRef(guildId), player.uid), {

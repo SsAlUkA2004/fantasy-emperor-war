@@ -3122,3 +3122,41 @@ a {
 .guild-line a {
   color: var(--gold);
 }
+
+.defense-note {
+  color: var(--ember) !important;
+  border-left: 3px solid var(--ember);
+  padding-left: 0.6rem;
+}
+
+.helper-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.helper-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.45rem 0.7rem;
+  background: rgba(20, 16, 43, 0.75);
+  border: 1px solid rgba(200, 164, 77, 0.25);
+  color: var(--parchment);
+  font-family: var(--body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.helper-chip[data-active='true'] {
+  border-color: var(--rune);
+  background: rgba(36, 27, 79, 0.9);
+}
+
+.helper-name {
+  font-family: var(--display);
+  font-size: 0.92rem;
+  color: var(--gold-bright);
+}

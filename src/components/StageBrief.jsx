@@ -7,6 +7,7 @@ import { rankRoster, readStage, stageTips } from '../lib/advisor'
 import { loadCollection } from '../lib/player'
 import { teamPower, stagePower, matchup, formatPower, entryPower } from '../lib/power'
 import { explainError } from '../lib/errors'
+import { HELPER_RUNS_PER_DAY, helperRunsLeft, loadHelpers } from '../lib/helper'
 
 /**
  * ป๊อปอัพก่อนเข้าด่าน
@@ -23,6 +24,15 @@ export default function StageBrief({ stage, onStart, onClose }) {
   const [picks, setPicks] = useState(player.team ?? [])
   const [saving, setSaving] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [helpers, setHelpers] = useState(null)
+  const [helper, setHelper] = useState(null)
+
+  // ยืมตัวช่วยได้เฉพาะด่านผจญภัยกับดันเจี้ยน ไม่ใช่ประลองหรือบอส
+  const canBorrow = !stage.charDungeon && !stage.gemStage && helperRunsLeft(player) > 0
+
+  useEffect(() => {
+    if (canBorrow) loadHelpers(user.uid).then(setHelpers).catch(() => setHelpers([]))
+  }, [canBorrow])
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -58,7 +68,7 @@ export default function StageBrief({ stage, onStart, onClose }) {
         await updateDoc(doc(db, 'users', user.uid), { team: picks })
         await refresh()
       }
-      onStart()
+      onStart(helper)
     } catch (e) {
       setError(explainError('บันทึกทีมไม่สำเร็จ', e))
       setSaving(false)
@@ -95,6 +105,30 @@ export default function StageBrief({ stage, onStart, onClose }) {
             <li key={i}>{t}</li>
           ))}
         </ul>
+
+        {canBorrow && helpers?.length > 0 && (
+          <>
+            <h3 className="section-title">ยืมตัวช่วย · วันนี้เหลือ {helperRunsLeft(player)} ครั้ง</h3>
+            <p className="meta tiny">
+              ตัวที่ยืมมาสู้ให้เป็นตัวที่หก ไม่กินช่องทีม เลือกจากผู้เล่นค่าพลังสูงสุดในเซิร์ฟเวอร์
+            </p>
+            <div className="helper-row">
+              {helpers.map((h) => (
+                <button
+                  key={h.uid}
+                  className="helper-chip"
+                  data-active={helper?.uid === h.uid}
+                  onClick={() => setHelper(helper?.uid === h.uid ? null : h)}
+                >
+                  <span className="helper-name">{h.name}</span>
+                  <span className="meta tiny">
+                    ⚔ {formatPower(h.power)} · {h.username}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <h3 className="section-title">ทีมที่จะพาไป</h3>
         <div className="team-strip-slots">

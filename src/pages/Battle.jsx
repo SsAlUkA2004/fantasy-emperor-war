@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { STAGES } from '../data/stages'
 import { findStage } from '../data/materials'
 import { FLOORS as DUNGEON_FLOORS } from '../data/dungeon'
@@ -10,6 +10,7 @@ import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { runCharDungeon } from '../lib/chardungeon'
+import { spendHelper } from '../lib/helper'
 import { ROUND_LIMIT, decideByHp } from '../lib/pvp'
 import { DIFFICULTIES, STORY_ROUND_LIMIT } from '../data/stages'
 import { CHARACTERS } from '../data/characters'
@@ -22,6 +23,8 @@ const STEP_DELAY = 750
 export default function Battle() {
   const { stageId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const helper = location.state?.helper ?? null
   const { user, player, refresh } = usePlayer()
 
   const [state, setState] = useState(null)
@@ -83,8 +86,13 @@ export default function Battle() {
       const team = (player.team ?? [])
         .map((id) => owned.find((o) => o.id === id))
         .filter(Boolean)
+
+      // ตัวที่ยืมมาต่อท้ายทีม ไม่กินช่องของเราเอง
+      // และไม่นับเป็นตัวของเราตอนแจกค่าประสบการณ์ เพราะไม่ใช่ตัวละครของเรา
       roster.current = team
-      if (team.length) setState(createBattle(team, stage))
+      const full = helper ? [...team, { ...helper.entry, id: helper.entry.id }] : team
+
+      if (full.length) setState(createBattle(full, stage))
     })
   }, [stageId, round])
 

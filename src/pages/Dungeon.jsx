@@ -85,7 +85,9 @@ export default function Dungeon() {
       {brief && (
         <StageBrief
           stage={brief}
-          onStart={() => navigate(`/battle/${brief.id}`)}
+          onStart={(helper) =>
+            navigate(`/battle/${brief.id}`, { state: helper ? { helper } : undefined })
+          }
           onClose={() => setBrief(null)}
         />
       )}

@@ -7,6 +7,7 @@ import { explainError } from '../lib/errors'
 import {
   CREATE_COST,
   GUILD_ROLES,
+  JOIN_POLICIES,
   MAX_MEMBERS,
   guildLevel,
   pointsForNextLevel,
@@ -24,6 +25,12 @@ import {
   loadMembers,
   setNotice,
   setRole,
+  approveRequest,
+  cancelRequest,
+  loadRequests,
+  rejectRequest,
+  requestJoin,
+  setJoinPolicy,
 } from '../lib/guild'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
@@ -41,6 +48,8 @@ export default function Guild() {
   const [term, setTerm] = useState('')
   const [found, setFound] = useState(undefined)
   const [draftNotice, setDraftNotice] = useState(null)
+  const [requests, setRequests] = useState(null)
+  const [sent, setSent] = useState(null)
 
   async function reload() {
     if (player.guildId) {
@@ -54,6 +63,7 @@ export default function Guild() {
       const g = await loadGuild(player.guildId)
       setGuild(g)
       setMembers(g ? await loadMembers(player.guildId) : [])
+      setRequests(g ? await loadRequests(player.guildId).catch(() => []) : [])
       setList(null)
     } else {
       setGuild(null)
@@ -100,6 +110,11 @@ export default function Guild() {
           <p className="meta">เข้าร่วมกิลด์ที่มีอยู่ หรือสร้างกิลด์ของตัวเอง</p>
 
           {error && <div className="trace">{error}</div>}
+          {sent && (
+            <p className="levelup">
+              ยื่นคำขอเข้า {sent.name} แล้ว รอหัวหน้ากดรับ แล้วกลับมากดเข้าร่วมอีกครั้ง
+            </p>
+          )}
 
           <h2 className="section-title">ค้นหาด้วยตัวย่อ</h2>
           <div className="search-row">
@@ -121,14 +136,27 @@ export default function Guild() {
           </div>
           {found === null && <p className="meta">ไม่พบกิลด์ตัวย่อนี้</p>}
           {found && (
-            <GuildRow g={found} busy={busy} onJoin={run} player={{ ...player, uid: user.uid }} />
+            <GuildRow
+              g={found}
+              busy={busy}
+              onJoin={run}
+              player={{ ...player, uid: user.uid }}
+              onSent={setSent}
+            />
           )}
 
           <h2 className="section-title">กิลด์ที่เปิดรับ</h2>
           {list === null && <p className="meta">กำลังอ่านรายชื่อ</p>}
           {list?.length === 0 && <p className="meta">ยังไม่มีกิลด์ในเกม เป็นคนแรกเลยไหม</p>}
           {list?.map((g) => (
-            <GuildRow key={g.id} g={g} busy={busy} onJoin={run} player={{ ...player, uid: user.uid }} />
+            <GuildRow
+              key={g.id}
+              g={g}
+              busy={busy}
+              onJoin={run}
+              player={{ ...player, uid: user.uid }}
+              onSent={setSent}
+            />
           ))}
 
           <h2 className="section-title">สร้างกิลด์ใหม่</h2>
@@ -238,6 +266,62 @@ export default function Guild() {
           </>
         )}
 
+        {canManage && (
+          <>
+            <h2 className="section-title">การเข้ากิลด์</h2>
+            <div className="mode-tabs">
+              {Object.values(JOIN_POLICIES).map((pol) => (
+                <button
+                  key={pol.id}
+                  className="mode-tab"
+                  data-active={(guild.joinPolicy ?? 'open') === pol.id}
+                  disabled={busy === 'policy'}
+                  onClick={() => run('policy', () => setJoinPolicy(guild.id, pol.id))}
+                >
+                  {pol.name}
+                </button>
+              ))}
+            </div>
+            <p className="meta tiny">
+              {JOIN_POLICIES[guild.joinPolicy ?? 'open'].desc}
+            </p>
+
+            {requests?.length > 0 && (
+              <>
+                <h2 className="section-title">คำขอเข้ากิลด์ {requests.length} คน</h2>
+                {requests.map((r) => (
+                  <div className="card guild-member" key={r.uid}>
+                    <div className="card-body">
+                      <h3>{r.username}</h3>
+                      <p className="meta">⚔ {fmt(r.power)}</p>
+                    </div>
+                    <div className="card-actions">
+                      <button
+                        className="plain-link inline"
+                        disabled={busy === r.uid}
+                        onClick={() => run(r.uid, () => approveRequest(guild.id, r.uid))}
+                      >
+                        รับ
+                      </button>
+                      <button
+                        className="plain-link inline"
+                        disabled={busy === r.uid}
+                        onClick={() => run(r.uid, () => rejectRequest(guild.id, r.uid))}
+                      >
+                        ปฏิเสธ
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <p className="meta tiny">
+                  กดรับแล้วผู้สมัครต้องกลับมากดเข้าร่วมเองอีกครั้ง
+                  เพราะระบบไม่อนุญาตให้แก้ข้อมูลของผู้เล่นคนอื่น
+                </p>
+              </>
+            )}
+          </>
+        )}
+
         <h2 className="section-title">สมาชิก</h2>
         {members?.map((m) => (
           <div className="card guild-member" key={m.uid}>
@@ -294,7 +378,7 @@ export default function Guild() {
   )
 }
 
-function GuildRow({ g, busy, onJoin, player }) {
+function GuildRow({ g, busy, onJoin, player, onSent }) {
   const full = (g.memberCount ?? 0) >= MAX_MEMBERS
   return (
     <div className="card shop-row">
@@ -306,16 +390,22 @@ function GuildRow({ g, busy, onJoin, player }) {
         </h3>
         <p className="meta">
           เลเวล {guildLevel(g.points)} · สมาชิก {g.memberCount ?? 0}/{MAX_MEMBERS} · หัวหน้า{' '}
-          {g.ownerName ?? '—'}
+          {g.ownerName ?? '—'} · {JOIN_POLICIES[g.joinPolicy ?? 'open'].name}
         </p>
         {g.notice && <p className="meta tiny">{g.notice}</p>}
       </div>
       <button
         className="rune-link"
         disabled={full || busy === g.id}
-        onClick={() => onJoin(g.id, () => joinGuild(player, g.id))}
+        onClick={() =>
+          onJoin(g.id, () =>
+            (g.joinPolicy ?? 'open') === 'approval'
+              ? requestJoin(player, g.id).then(() => onSent(g))
+              : joinGuild(player, g.id)
+          )
+        }
       >
-        {full ? 'เต็ม' : 'เข้าร่วม'}
+        {full ? 'เต็ม' : (g.joinPolicy ?? 'open') === 'approval' ? 'ยื่นคำขอ' : 'เข้าร่วม'}
       </button>
     </div>
   )
