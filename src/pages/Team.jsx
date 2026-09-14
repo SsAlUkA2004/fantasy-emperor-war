@@ -116,7 +116,24 @@ export default function Team() {
           ))}
         </div>
 
-        <p className="meta">{config.note}</p>
+        <div className="roster-head">
+          <span className="meta">{config.note}</span>
+          <button
+            className="plain-link inline"
+            disabled={!owned?.length}
+            onClick={() => {
+              // เรียงตามค่าพลังแล้วหยิบห้าตัวแรก
+              // ไม่ได้ดูธาตุหรือบทบาท เพราะปุ่มนี้มีไว้สำหรับคนที่ยังไม่อยากคิดมาก
+              const best = [...owned]
+                .sort((a, b) => entryPower(b) - entryPower(a))
+                .slice(0, TEAM_SIZE)
+                .map((o) => o.id)
+              setPicks(best)
+            }}
+          >
+            ใส่ตัวที่แรงที่สุด
+          </button>
+        </div>
 
         <div className="cp-banner">
           <span className="meta">ค่าพลังรวม</span>

@@ -7,6 +7,7 @@ import { GRADES, GRADE_IDS, SLOTS, SLOT_IDS, enhanceCost, gearStat, maxPlus } fr
 import { loadCollection } from '../lib/player'
 import {
   enhance,
+  enhanceCostFor,
   equip,
   equipBest,
   loadGear,
@@ -29,6 +30,7 @@ export default function Gear() {
   const [filter, setFilter] = useState('all')
   const [sellGrades, setSellGrades] = useState([])
   const [sort, setSort] = useState('value')
+  const [bulk, setBulk] = useState(1)
 
   const who = params.get('char') ?? null
 
@@ -265,6 +267,20 @@ export default function Gear() {
             ))}
             <span className="meta tiny count-note">แสดง {shown.length} ชิ้น</span>
           </div>
+
+          <div className="qty-row">
+            <span className="meta tiny">ตีบวกครั้งละ</span>
+            {[1, 5, 10].map((n) => (
+              <button
+                key={n}
+                className="qty-chip"
+                data-active={bulk === n}
+                onClick={() => setBulk(n)}
+              >
+                +{n}
+              </button>
+            ))}
+          </div>
         </div>
 
         {gear === null && <p className="meta">กำลังเปิดคลัง</p>}
@@ -302,19 +318,16 @@ export default function Gear() {
                   >
                     {g.locked ? '🔒 ล็อกอยู่' : '🔓 ล็อก'}
                   </button>
-                  <button
-                    className="plain-link inline"
-                    disabled={
-                      busy === g.id ||
-                      (g.plus ?? 0) >= cap ||
-                      (player.coins ?? 0) < enhanceCost(g)
+                  <EnhanceButton
+                    gear={g}
+                    cap={cap}
+                    bulk={bulk}
+                    coins={player.coins ?? 0}
+                    busy={busy === g.id}
+                    onRun={(times) =>
+                      run(g.id, () => enhance({ ...player, uid: user.uid }, g, times))
                     }
-                    onClick={() => run(g.id, () => enhance({ ...player, uid: user.uid }, g))}
-                  >
-                    {(g.plus ?? 0) >= cap
-                      ? `สุด +${cap}`
-                      : `+1 · ⛁${enhanceCost(g).toLocaleString('th-TH')}`}
-                  </button>
+                  />
                   {who && !g.equippedBy && (
                     <button
                       className="plain-link inline"
@@ -365,5 +378,33 @@ export default function Gear() {
         ↑
       </button>
     </main>
+  )
+}
+
+/**
+ * ปุ่มตีบวก แสดงค่าใช้จ่ายรวมของจำนวนขั้นที่เลือก
+ *
+ * ถ้าเหรียญไม่พอครบจำนวน จะลดจำนวนขั้นลงให้เท่าที่จ่ายไหว
+ * แทนที่จะปิดปุ่มไปเลย เพราะตีได้สามขั้นก็ยังดีกว่าไม่ได้เลย
+ */
+function EnhanceButton({ gear, cap, bulk, coins, busy, onRun }) {
+  const now = gear.plus ?? 0
+  if (now >= cap) {
+    return <span className="meta tiny">สุด +{cap}</span>
+  }
+
+  const wanted = enhanceCostFor(gear, bulk, cap)
+  let times = wanted.steps
+  let cost = wanted.total
+  while (times > 1 && cost > coins) {
+    times -= 1
+    cost = enhanceCostFor(gear, times, cap).total
+  }
+
+  const afford = cost <= coins
+  return (
+    <button className="plain-link inline" disabled={busy || !afford} onClick={() => onRun(times)}>
+      {afford ? `+${times} · ⛁${cost.toLocaleString('th-TH')}` : 'เหรียญไม่พอ'}
+    </button>
   )
 }

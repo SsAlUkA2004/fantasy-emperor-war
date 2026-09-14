@@ -59,8 +59,12 @@ export async function createGuild(player, name, tag) {
       contribution: 0,
       joinedAt: serverTimestamp(),
     })
+    // จดตัวย่อไว้ในเอกสารผู้เล่นด้วย เพื่อให้คนอื่นเห็นว่าอยู่กิลด์ไหน
+    // โดยไม่ต้องอ่านเอกสารกิลด์เพิ่มทีละคนตอนแสดงรายชื่อ
     tx.update(doc(db, 'users', player.uid), {
       guildId: id,
+      guildTag: id,
+      guildName: name.trim(),
       gems: player.gems - CREATE_COST,
     })
   })
@@ -91,7 +95,11 @@ export async function joinGuild(player, guildId) {
       contribution: 0,
       joinedAt: serverTimestamp(),
     })
-    tx.update(doc(db, 'users', player.uid), { guildId })
+    tx.update(doc(db, 'users', player.uid), {
+      guildId,
+      guildTag: g.tag ?? guildId,
+      guildName: g.name ?? '',
+    })
   })
 }
 
@@ -109,7 +117,7 @@ export async function leaveGuild(player) {
       tx.update(guildRef(guildId), { memberCount: Math.max(0, (g.memberCount ?? 1) - 1) })
     }
     tx.delete(doc(membersRef(guildId), player.uid))
-    tx.update(doc(db, 'users', player.uid), { guildId: null })
+    tx.update(doc(db, 'users', player.uid), { guildId: null, guildTag: null, guildName: null })
   })
 }
 
@@ -121,7 +129,7 @@ export async function kickMember(guildId, uid) {
       memberCount: Math.max(0, (snap.data().memberCount ?? 1) - 1),
     })
     tx.delete(doc(membersRef(guildId), uid))
-    tx.update(doc(db, 'users', uid), { guildId: null })
+    tx.update(doc(db, 'users', uid), { guildId: null, guildTag: null, guildName: null })
   })
 }
 

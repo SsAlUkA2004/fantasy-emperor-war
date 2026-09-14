@@ -40,6 +40,34 @@ export async function exchangeFor(player, charId, owned) {
   return { charId, rarity, cost, pool }
 }
 
+/**
+ * แปลงชิ้นส่วนของตัวละครที่มีอยู่ ให้กลายเป็นเศษวิญญาณกลาง
+ *
+ * ชิ้นส่วนที่ติดมากับตัวซ้ำใช้ได้แค่หลอมดาวตัวนั้นตัวเดียว
+ * พอหลอมครบห้าดาวแล้วมันก็กองอยู่เฉย ๆ ไม่มีทางใช้ต่อ
+ * ทางนี้เปิดให้เอาไปแลกตัวที่ยังไม่มีได้ในอัตราหนึ่งต่อหนึ่ง
+ */
+export async function convertShards(player, entry, amount) {
+  const c = CHARACTERS[entry.id]
+  if (!c) throw new Error('ไม่พบตัวละครนี้')
+
+  const take = Math.max(1, Math.min(entry.shards ?? 0, Math.floor(amount)))
+  if (take < 1) throw new Error('ตัวนี้ไม่มีชิ้นส่วนเหลือ')
+
+  const pool = { ...EMPTY_POOL, ...(player.shardPool ?? {}) }
+  pool[c.rarity] = (pool[c.rarity] ?? 0) + take
+
+  const batch = writeBatch(db)
+  batch.update(doc(db, 'users', player.uid, 'collection', entry.id), {
+    shards: (entry.shards ?? 0) - take,
+  })
+  batch.update(doc(db, 'users', player.uid), { shardPool: pool })
+  await batch.commit()
+  invalidateRoster()
+
+  return { rarity: c.rarity, amount: take }
+}
+
 /** ตัวที่ยังไม่มี แยกตามระดับหายาก */
 export function missingByRarity(owned) {
   const have = new Set(owned.map((o) => o.id))

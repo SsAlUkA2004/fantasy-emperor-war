@@ -3110,3 +3110,15 @@ a {
   border: 1px solid rgba(194, 88, 67, 0.4);
   padding: 0.3rem 0.8rem;
 }
+
+.guild-tag {
+  font-family: var(--body);
+  font-size: 0.7rem;
+  color: var(--gold);
+  border: 1px solid rgba(200, 164, 77, 0.45);
+  padding: 0 0.3rem;
+}
+
+.guild-line a {
+  color: var(--gold);
+}

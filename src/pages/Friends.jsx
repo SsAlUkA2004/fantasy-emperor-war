@@ -149,6 +149,7 @@ export default function Friends() {
             <header className="friend-head">
               <h3>
                 {f.username}
+                {f.guildTag && <span className="guild-tag">[{f.guildTag}]</span>}
                 <span className="board-title">{titleName(f.titleIndex ?? 0)}</span>
               </h3>
               <button className="plain-link inline" onClick={() => drop(f.uid)}>

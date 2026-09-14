@@ -4,7 +4,7 @@ import { usePlayer } from '../context/PlayerContext'
 import { CHARACTERS, ELEMENTS, RARITIES, ROLES } from '../data/characters'
 import { EMPTY_POOL, EXCHANGE_COST, DUPES_PER_UNIT, POOL_MARKS, POOL_NAMES } from '../data/exchange'
 import { loadCollection } from '../lib/player'
-import { exchangeFor, missingByRarity } from '../lib/exchange'
+import { convertShards, exchangeFor, missingByRarity } from '../lib/exchange'
 
 export default function Exchange() {
   const { user, player, refresh } = usePlayer()
@@ -12,6 +12,7 @@ export default function Exchange() {
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
   const [won, setWon] = useState(null)
+  const [converted, setConverted] = useState(null)
 
   useEffect(() => {
     loadCollection(user.uid).then(setOwned)
@@ -19,6 +20,21 @@ export default function Exchange() {
 
   const pool = { ...EMPTY_POOL, ...(player.shardPool ?? {}) }
   const missing = owned ? missingByRarity(owned) : null
+
+  async function convert(entry) {
+    setBusy(`c${entry.id}`)
+    setError(null)
+    setWon(null)
+    try {
+      const r = await convertShards({ ...player, uid: user.uid }, entry, entry.shards)
+      setConverted(r)
+      setOwned(await loadCollection(user.uid, { fresh: true }))
+      await refresh()
+    } catch (err) {
+      setError(err.message || 'แปลงไม่สำเร็จ')
+    }
+    setBusy(null)
+  }
 
   async function claim(charId) {
     setBusy(charId)
@@ -62,6 +78,11 @@ export default function Exchange() {
         </div>
 
         {error && <div className="trace">{error}</div>}
+        {converted && (
+          <p className="levelup center">
+            ได้{POOL_NAMES[converted.rarity]} {converted.amount} ชิ้น
+          </p>
+        )}
         {won && (
           <p className="levelup center">
             ได้ {CHARACTERS[won.charId].name} มาร่วมทีมแล้ว
@@ -69,6 +90,47 @@ export default function Exchange() {
         )}
 
         {owned === null && <p className="meta">กำลังเปิดกระเป๋า</p>}
+
+        <h2 className="section-title">แปลงชิ้นส่วนที่ค้างอยู่</h2>
+        <p className="meta">
+          ชิ้นส่วนที่ติดมากับตัวซ้ำใช้ได้แค่หลอมดาวตัวนั้น พอครบห้าดาวแล้วก็กองอยู่เฉย ๆ
+          แปลงเป็นเศษวิญญาณแล้วเอาไปแลกตัวที่ยังไม่มีได้ในอัตราหนึ่งต่อหนึ่ง
+        </p>
+
+        {owned?.filter((o) => (o.shards ?? 0) > 0).length === 0 && (
+          <p className="meta">ยังไม่มีชิ้นส่วนค้างอยู่</p>
+        )}
+
+        {owned
+          ?.filter((o) => (o.shards ?? 0) > 0)
+          .sort((a, b) => b.shards - a.shards)
+          .map((o) => {
+            const c = CHARACTERS[o.id]
+            if (!c) return null
+            return (
+              <div className="card shop-row" key={o.id}>
+                <span className="card-mark">{ELEMENTS[c.element].mark}</span>
+                <div className="card-body">
+                  <h3>
+                    {c.name}
+                    <span className="rarity" data-rarity={c.rarity}>
+                      {c.rarity}
+                    </span>
+                  </h3>
+                  <p className="meta">
+                    มีชิ้นส่วน {o.shards} · {'★'.repeat(o.star)} เลเวล {o.level}
+                  </p>
+                </div>
+                <button
+                  className="rune-link"
+                  disabled={busy === `c${o.id}`}
+                  onClick={() => convert(o)}
+                >
+                  แปลงทั้งหมด
+                </button>
+              </div>
+            )
+          })}
 
         {missing &&
           RARITIES.map((r) => (

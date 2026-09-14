@@ -4,6 +4,7 @@ import {
   awakenSkillBoost,
   awakenStatBoost,
   effectiveRarity,
+  rarityPower,
   tierBoost,
 } from '../data/ascension'
 import { levelCap } from './leveling'
@@ -66,7 +67,8 @@ export function entryStats(charId, entry = {}) {
   if (!c) return null
 
   const base = effectiveStats(c.stats, entry.level ?? 1, entry.star ?? 1)
-  const boost = tierBoost(entry.tier ?? 0) * awakenStatBoost(entry.awaken ?? 0)
+  const boost =
+    rarityPower(charId) * tierBoost(entry.tier ?? 0) * awakenStatBoost(entry.awaken ?? 0)
   const gear = gearBonus(entry.gear ?? [])
 
   return {

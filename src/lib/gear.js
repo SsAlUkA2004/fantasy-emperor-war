@@ -137,21 +137,45 @@ export async function sellAll(player, list, grades = null) {
  * สำเร็จเสมอ ไม่มีการสุ่มล้มเหลว ราคาที่จ่ายคือความชันของค่าใช้จ่ายแทน
  * ระบบสุ่มล้มเหลวทำให้ผู้เล่นเสียของโดยไม่ได้อะไรกลับมา ซึ่งน่าหงุดหงิดกว่าที่มันคุ้ม
  */
-export async function enhance(player, gear) {
+export async function enhance(player, gear, times = 1) {
   const cap = maxPlus(player.playerLevel ?? 1)
-  const now = gear.plus ?? 0
+  let now = gear.plus ?? 0
   if (now >= cap) throw new Error(`ตีบวกได้สูงสุด +${cap} ตามเลเวลผู้เล่น`)
 
-  const cost = enhanceCost(gear)
-  if ((player.coins ?? 0) < cost) throw new Error('เหรียญไม่พอ')
+  // ตีบวกหลายขั้นในคำสั่งเดียว หยุดเมื่อเหรียญหมดหรือชนเพดาน
+  // ไม่โยนข้อผิดพลาดถ้าทำได้ไม่ครบจำนวนที่ขอ เพราะทำได้เท่าไหร่ก็คุ้มเท่านั้น
+  let total = 0
+  let done = 0
+  for (let i = 0; i < times && now < cap; i++) {
+    const step = enhanceCost({ ...gear, plus: now })
+    if ((player.coins ?? 0) - total < step) break
+    total += step
+    now += 1
+    done += 1
+  }
+
+  if (!done) throw new Error('เหรียญไม่พอแม้แต่ขั้นเดียว')
 
   const batch = writeBatch(db)
-  batch.update(doc(bag(player.uid), gear.id), { plus: now + 1 })
-  batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) - cost })
+  batch.update(doc(bag(player.uid), gear.id), { plus: now })
+  batch.update(doc(db, 'users', player.uid), { coins: (player.coins ?? 0) - total })
   await batch.commit()
   invalidateRoster()
 
-  return { plus: now + 1, cost }
+  return { plus: now, cost: total, done }
+}
+
+/** ค่าใช้จ่ายรวมถ้าตีบวกต่อเนื่องหลายขั้น ใช้แสดงบนปุ่ม */
+export function enhanceCostFor(gear, times, cap) {
+  let now = gear.plus ?? 0
+  let total = 0
+  let steps = 0
+  for (let i = 0; i < times && now < cap; i++) {
+    total += enhanceCost({ ...gear, plus: now })
+    now += 1
+    steps += 1
+  }
+  return { total, steps }
 }
 
 /** ซื้อหีบอุปกรณ์ด้วยเหรียญ ได้ของสุ่มหนึ่งชิ้นตามระดับของหีบ */

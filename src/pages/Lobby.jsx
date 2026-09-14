@@ -66,6 +66,13 @@ export default function Lobby() {
               {titleName(player.titleIndex ?? 0)}
               <span className="title-edit">เปลี่ยน</span>
             </button>
+            {player.guildTag && (
+              <p className="meta guild-line">
+                <Link to="/guild">
+                  {player.guildName || 'กิลด์'} [{player.guildTag}]
+                </Link>
+              </p>
+            )}
 
             <div className="level-block">
               <div className="level-line">

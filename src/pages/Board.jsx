@@ -37,11 +37,24 @@ function storyScore(user) {
   return count
 }
 
+/**
+ * ด่านล่าสุดที่ผ่าน นับรวมทุกโหมด
+ *
+ * เดิมดูแต่โหมดปกติ ผลคือคนที่ไต่ไปถึงปีศาจ 5-4 แล้วยังขึ้นว่า 7-6 อยู่
+ * ซึ่งต่ำกว่าความจริงมาก และทำให้บอร์ดเรียงคนที่เก่งกว่าไว้ต่ำกว่า
+ */
 function furthest(user) {
   const progress = user.stageProgress ?? {}
   const all = CHAPTERS.flatMap((c) => c.stages)
-  const cleared = all.filter((s) => (progress[s.id] ?? 0) > 0)
-  return cleared.length ? cleared[cleared.length - 1].id : '—'
+
+  for (const d of [...DIFFICULTIES].reverse()) {
+    const cleared = all.filter((s) => (progress[s.id + d.suffix] ?? 0) > 0)
+    if (cleared.length) {
+      const last = cleared[cleared.length - 1].id
+      return d.id === 'normal' ? last : `${d.name} ${last}`
+    }
+  }
+  return '—'
 }
 
 export default function Board() {
@@ -120,6 +133,7 @@ export default function Board() {
               <span className="board-body">
                 <span className="board-name">
                   {r.username}
+                  {r.guildTag && <span className="guild-tag">[{r.guildTag}]</span>}
                   {r.titleIndex > 0 && (
                     <span className="board-title">{titleName(r.titleIndex)}</span>
                   )}
