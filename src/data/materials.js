@@ -32,7 +32,7 @@ export const MATERIAL_STAGES = [
     exp: 400,
     requires: '1-6',
     drops: { ore: 8, crystal: 0, scroll: 1 },
-    enemies: [e('golem', 6), e('skeleton', 10)],
+    enemies: [e('golem', 2), e('skeleton', 5)],
   },
   {
     id: 'm-2',
@@ -42,7 +42,17 @@ export const MATERIAL_STAGES = [
     exp: 1400,
     requires: '3-2',
     drops: { ore: 20, crystal: 4, scroll: 3 },
-    enemies: [e('mummy', 2), e('efreet', 2), e('scorpion', 3)],
+    enemies: [e('mummy', 1), e('efreet', 1), e('scorpion', 2)],
+  },
+  {
+    id: 'm-3',
+    name: 'คลังอาวุธเงามืด',
+    intro: 'ของดีทั้งหมดอยู่ที่นี่ และมีคนเฝ้าอยู่ทั้งหมดเหมือนกัน',
+    materialStage: true,
+    exp: 4000,
+    requires: '5-4',
+    drops: { ore: 45, crystal: 12, scroll: 8 },
+    enemies: [e('darkknight', 16), e('sentinel', 16), e('wraith', 17)],
   },
   {
     id: 'm-4',
@@ -52,17 +62,7 @@ export const MATERIAL_STAGES = [
     exp: 9000,
     requires: '7-3',
     drops: { ore: 110, crystal: 30, scroll: 20 },
-    enemies: [e('automaton', 1), e('stormcaller', 1)],
-  },
-  {
-    id: 'm-3',
-    name: 'คลังอาวุธเงามืด',
-    intro: 'ของดีทั้งหมดอยู่ที่นี่ และมีคนเฝ้าอยู่ทั้งหมดเหมือนกัน',
-    materialStage: true,
-    exp: 4000,
-    requires: '4-6',
-    drops: { ore: 45, crystal: 12, scroll: 8 },
-    enemies: [e('darkknight', 3), e('sentinel', 3), e('wraith', 4)],
+    enemies: [e('automaton', 7), e('stormcaller', 7), e('seraph', 7)],
   },
 ]
 
