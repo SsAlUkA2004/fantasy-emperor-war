@@ -42,7 +42,7 @@ export const MATERIAL_STAGES = [
     exp: 1400,
     requires: '3-2',
     drops: { ore: 20, crystal: 4, scroll: 3 },
-    enemies: [e('mummy', 6), e('efreet', 6), e('scorpion', 7)],
+    enemies: [e('mummy', 2), e('efreet', 2), e('scorpion', 3)],
   },
   {
     id: 'm-4',
@@ -62,7 +62,7 @@ export const MATERIAL_STAGES = [
     exp: 4000,
     requires: '4-6',
     drops: { ore: 45, crystal: 12, scroll: 8 },
-    enemies: [e('darkknight', 9), e('sentinel', 9), e('wraith', 10)],
+    enemies: [e('darkknight', 3), e('sentinel', 3), e('wraith', 4)],
   },
 ]
 

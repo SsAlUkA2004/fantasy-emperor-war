@@ -376,10 +376,14 @@ export const TARGET_LEVEL = {
  * ต้องคูณสามสิบเท่าจึงจะเทียบเท่าบอสบทสุดท้าย
  */
 export const STAGE_SCALE = {
-  // บทที่ 5 ถึง 7 คิดจากทีม SSR จึงคูณ 1.18 ชดเชยที่ยกฐาน SSR ขึ้น
-  normal: [1, 1, 1, 0.82, 1.18, 0.963, 1.025],
-  hard: [36.134, 11.792, 4.809, 5.318, 5.377, 1.366, 1.302],
-  demon: [45.835, 14.683, 5.883, 6.325, 6.239, 1.546, 1.438],
+  // บทที่ 1 ถึง 4 ปรับด้วยมือจากการจำลอง เพราะผู้เล่นตอนนั้นยังไม่มีทีมครบห้าตัว
+  // สูตรคำนวณจากทีมอ้างอิงใช้ไม่ได้ จะได้ตัวเลขที่คนเพิ่งเริ่มเล่นไม่มีทางผ่าน
+  normal: [1, 1, 0.75, 1.0, 1.6, 0.963, 0.97],
+
+  // ตั้งแต่บทที่ 5 ขึ้นไปคำนวณจากค่าพลังทีมที่ควรมี คูณ 1.35
+  // บทแรกของแต่ละโหมดจึงต่อจากบทสุดท้ายของโหมดก่อนหน้าพอดี
+  hard: [45.2, 12.403, 4.778, 5.35, 5.45, 1.302, 1.239],
+  demon: [57.5, 15.514, 5.871, 6.389, 6.345, 1.477, 1.374],
 }
 
 export function stageScale(chapter, difficultyId = 'normal') {
@@ -449,7 +453,7 @@ export const TRAINING = [
   {
     id: 't-4', name: 'ลานฝึกยอดยุทธ์', intro: 'คู่ซ้อมระดับที่เจอในทะเลทราย',
     training: true, exp: 1200, requires: '3-4',
-    enemies: [e('efreet', 8), e('mummy', 9), e('scorpion', 10)],
+    enemies: [e('efreet', 3), e('mummy', 4), e('scorpion', 5)],
   },
   {
     id: 't-5', name: 'ลานฝึกเพลิงนิทรา', intro: 'ซ้อมกับของจริงจากยอดเขา',
@@ -469,7 +473,7 @@ export const TRAINING = [
   {
     id: 't-8', name: 'ลานฝึกนภา', intro: 'จักรกลที่ไม่รู้จักเหนื่อย เหมาะกับการซ้อมที่สุด',
     training: true, exp: 48000, requires: '7-4',
-    enemies: [e('automaton', 2), e('seraph', 2), e('stormcaller', 2)],
+    enemies: [e('automaton', 1), e('seraph', 1), e('stormcaller', 1)],
   },
 ]
 
@@ -498,13 +502,14 @@ export const GEM_STAGES = [
   {
     id: 'g-3', accountExp: 5000, name: 'เหมืองแก้วทะเลทราย', intro: 'ทรายหลอมเป็นแก้วจากความร้อนใต้ดิน',
     gemStage: true, gems: 180, exp: 620, requires: '3-4',
-    enemies: [e('sandwyrm', 2), e('efreet', 7), e('mummy', 7)],
+    enemies: [e('sandwyrm', 1), e('efreet', 2), e('mummy', 2)],
   },
   {
     id: 'g-4', accountExp: 12000, name: 'เหมืองแก่นภูเขาไฟ', intro: 'คริสตัลที่นี่ยังร้อนอยู่ และเจ้าของมันยังไม่ตาย',
     gemStage: true, gems: 280, exp: 1500, requires: '4-4',
-    enemies: [e('emberlord', 4), e('ashmage', 10), e('rocdrake', 10)],
-  },  {
+    enemies: [e('emberlord', 2), e('ashmage', 4), e('rocdrake', 4)],
+  },
+  {
     id: 'g-5', accountExp: 24000, name: 'คลังสมบัตินภา', intro: 'เมืองที่คนทิ้งไปแต่สมบัติยังอยู่',
     gemStage: true, gems: 480, exp: 9000, requires: '7-2',
     enemies: [e('automaton', 1), e('seraph', 1)],
