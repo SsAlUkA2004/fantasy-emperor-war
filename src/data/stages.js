@@ -213,9 +213,12 @@ export const ENEMIES = {
     stats: { hp: 18406, atk: 848, def: 490, spd: 120, crit: 18 },
     skill: {
       name: 'ปีกหกคู่', mp: 3,
+      // ฟื้นพลังตัวเองแค่ 5% ไม่ใช่ 15%
+      // ตอน 15% มันฟื้นเร็วกว่าที่ทีมตีเข้า การต่อสู้จึงไม่มีวันจบ
+      // แล้วหมดเวลาไปเองทั้งที่ค่าพลังบอกว่าด่านนี้ง่ายกว่าบอส
       effects: [
         { kind: 'damage', mult: 1.9, target: 'allFoes' },
-        { kind: 'heal', percent: 0.15, target: 'self' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
       ],
     },
   },
@@ -386,9 +389,87 @@ export const STAGE_SCALE = {
   demon: [57.5, 15.514, 5.871, 6.389, 6.345, 1.477, 1.374],
 }
 
+/**
+ * ความยากของด่านย่อยภายในบท เทียบกับบอสของบทนั้น
+ *
+ * ก่อนหน้านี้ค่าพลังของด่านย่อยเป็นตัวเลขที่ตั้งไว้ตั้งแต่แรกแล้วแก้ทีละด่านหลายรอบ
+ * ผลคือด่าน 4 กับ 5 ของเกือบทุกบทแรงกว่าบอสของบทนั้นเอง
+ * และบทที่ 7 ด่านย่อยอยู่แค่สามสิบกว่าเปอร์เซ็นต์แล้วกระโดดไปร้อยที่บอส
+ *
+ * เปลี่ยนมาคำนวณให้ทุกด่านอยู่บนเส้นเดียวกัน โดยบอสเป็นจุดสูงสุดของบทเสมอ
+ */
+export const WITHIN_CHAPTER = [0.45, 0.56, 0.67, 0.78, 0.89, 1]
+
+/**
+ * ค่าพลังดิบของด่าน ใช้เป็นตัวหารเพื่อหาตัวคูณที่ต้องใช้
+ *
+ * คำนวณในไฟล์นี้เองด้วยสูตรเดียวกับ combatPower แทนการนำเข้าจาก power.js
+ * เพราะ power.js นำเข้า stats.js ซึ่งนำเข้าไฟล์นี้ จะกลายเป็นวงทันที
+ */
+function rawPower(stage, scale = 1) {
+  return (stage.enemies ?? []).reduce((sum, x) => {
+    const m = ENEMIES[x.id]
+    if (!m) return sum
+    const g = 1 + ((x.level ?? 1) - 1) * 0.08
+    const s = m.stats
+    // พลังป้องกันคูณด้วยเลขยกกำลัง 0.6 ไม่ใช่เชิงเส้น ต้องคิดแยก
+    return (
+      sum +
+      s.hp * g * scale * 0.3 +
+      s.atk * g * scale * 4.2 +
+      s.def * g * Math.pow(scale, 0.6) * 3 +
+      s.spd * 2.5 +
+      s.crit * 6
+    )
+  }, 0)
+}
+
+/**
+ * หาตัวคูณที่ทำให้ค่าพลังของด่านเท่ากับเป้าหมาย
+ *
+ * แก้ด้วยการแบ่งครึ่งช่วงแทนการหารตรง ๆ
+ * เพราะค่าพลังไม่ได้เป็นสัดส่วนตรงกับตัวคูณ มีทั้งพจน์ที่ไม่คูณเลย
+ * (ความเร็วกับคริติคอล) และพจน์ที่คูณแบบยกกำลัง (พลังป้องกัน)
+ */
+function solveScale(stage, want) {
+  let lo = 0.01
+  let hi = 200
+  for (let i = 0; i < 40; i += 1) {
+    const mid = (lo + hi) / 2
+    if (rawPower(stage, mid) < want) lo = mid
+    else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+const scaleCache = new Map()
+
 export function stageScale(chapter, difficultyId = 'normal') {
   const table = STAGE_SCALE[difficultyId] ?? STAGE_SCALE.normal
   return table[Math.max(0, Math.min(table.length - 1, chapter - 1))]
+}
+
+/**
+ * ตัวคูณของด่านหนึ่งด่าน รวมทั้งระดับความยากและตำแหน่งในบท
+ * บอสของบทได้ตัวคูณเต็ม ด่านก่อนหน้าลดหลั่นลงไปตามเส้น
+ */
+export function scaleForStage(stage, difficultyId = 'normal') {
+  const key = `${stage.id}:${difficultyId}`
+  if (scaleCache.has(key)) return scaleCache.get(key)
+
+  const chapter = CHAPTERS[(stage.chapter ?? 1) - 1]
+  if (!chapter) return stageScale(stage.chapter ?? 1, difficultyId)
+
+  const index = chapter.stages.findIndex((x) => x.id === stage.id)
+  if (index < 0) return stageScale(stage.chapter ?? 1, difficultyId)
+
+  const boss = chapter.stages[chapter.stages.length - 1]
+  const bossScale = stageScale(stage.chapter, difficultyId)
+  const want = rawPower(boss, bossScale) * (WITHIN_CHAPTER[index] ?? 1)
+
+  const scale = solveScale(stage, want)
+  scaleCache.set(key, scale)
+  return scale
 }
 
 export function difficultyOf(id) {
@@ -406,7 +487,7 @@ export function stageAt(baseId, difficultyId = 'normal') {
   const base = STAGES.find((s) => s.id === baseId)
   if (!base) return null
   const d = DIFFICULTIES.find((x) => x.id === difficultyId) ?? DIFFICULTIES[0]
-  const scale = stageScale(base.chapter ?? 1, d.id)
+  const scale = scaleForStage(base, d.id)
 
   return {
     ...base,
