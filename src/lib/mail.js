@@ -11,7 +11,14 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { dailyGemsFor, dailyMailId } from '../data/mail'
+import {
+  LEVEL_REWARD_STEP,
+  dailyGemsFor,
+  dailyMailId,
+  levelMailId,
+  levelRewardGems,
+} from '../data/mail'
+import { PLAYER_MAX_LEVEL } from './leveling'
 import { rankOf } from '../data/ranks'
 import { todayKey } from './dayclock'
 import { EMPTY_POOL } from '../data/exchange'
@@ -48,6 +55,39 @@ export async function issueDailyMail(player) {
     // มีอยู่แล้วหรือกฎปฏิเสธ ไม่ถือเป็นข้อผิดพลาดที่ต้องแจ้งผู้เล่น
     return false
   }
+}
+
+/**
+ * ออกจดหมายรางวัลเลื่อนเลเวลที่ยังไม่เคยออกให้ครบทุกจุดที่ผ่านมาแล้ว
+ *
+ * ไล่ออกทีละจุด (10, 20, 30, ...) จนถึงเลเวลปัจจุบัน แทนที่จะออกจุดล่าสุดจุดเดียว
+ * เพราะผู้เล่นอาจฟาร์มทีเดียวข้ามหลายจุดจนเปิดกล่องจดหมายไม่ทันทุกจุด
+ * รหัสเอกสารผูกกับเลขจุดเลเวลอยู่แล้ว จึงออกซ้ำจุดเดิมไม่ได้ ไม่ต้องกันเองในนี้
+ */
+export async function issueLevelMail(player) {
+  const level = Math.min(player.playerLevel ?? 1, PLAYER_MAX_LEVEL)
+  const reached = Math.floor(level / LEVEL_REWARD_STEP) * LEVEL_REWARD_STEP
+  if (reached < LEVEL_REWARD_STEP) return 0
+
+  let issued = 0
+  for (let milestone = LEVEL_REWARD_STEP; milestone <= reached; milestone += LEVEL_REWARD_STEP) {
+    try {
+      await setDoc(doc(box(player.uid), levelMailId(milestone)), {
+        kind: 'levelReward',
+        title: `รางวัลเลื่อนเลเวล · เลเวล ${milestone}`,
+        body: `ของขวัญสำหรับผู้เล่นที่ถึงเลเวล ${milestone}`,
+        gems: levelRewardGems(milestone),
+        pool: {},
+        milestone,
+        claimed: false,
+        createdAt: serverTimestamp(),
+      })
+      issued += 1
+    } catch {
+      // จุดนี้เคยออกไปแล้วหรือกฎปฏิเสธ ไม่ถือเป็นข้อผิดพลาดที่ต้องแจ้งผู้เล่น
+    }
+  }
+  return issued
 }
 
 export async function loadMail(uid) {

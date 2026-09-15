@@ -4,7 +4,14 @@ import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { MAIL_KINDS } from '../data/mail'
 import { POOL_MARKS } from '../data/exchange'
-import { claimAll, claimMail, issueDailyMail, loadMail, removeMail } from '../lib/mail'
+import {
+  claimAll,
+  claimMail,
+  issueDailyMail,
+  issueLevelMail,
+  loadMail,
+  removeMail,
+} from '../lib/mail'
 
 export default function Mailbox() {
   const { user, player, refresh } = usePlayer()
@@ -18,8 +25,11 @@ export default function Mailbox() {
   }
 
   useEffect(() => {
-    // ออกจดหมายรายวันให้ก่อนถ้ายังไม่มีของวันนี้ แล้วค่อยอ่านทั้งกล่อง
-    issueDailyMail({ ...player, uid: user.uid })
+    // ออกจดหมายรายวันกับจดหมายรางวัลเลื่อนเลเวลที่ยังไม่มีก่อน แล้วค่อยอ่านทั้งกล่อง
+    Promise.all([
+      issueDailyMail({ ...player, uid: user.uid }),
+      issueLevelMail({ ...player, uid: user.uid }),
+    ])
       .then(reload)
       .catch((e) => setError(explainError('อ่านกล่องจดหมายไม่สำเร็จ', e)))
   }, [user.uid])
@@ -137,6 +147,7 @@ export default function Mailbox() {
 
         <p className="meta tiny">
           รางวัลประจำวันออกให้อัตโนมัติเมื่อเปิดหน้านี้ในแต่ละวัน ยิ่งแรงค์สูงยิ่งได้มาก
+          รางวัลเลื่อนเลเวลผู้เล่นก็ออกอัตโนมัติทุก 10 เลเวลเช่นกัน
         </p>
       </div>
     </main>

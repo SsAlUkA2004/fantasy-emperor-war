@@ -12,6 +12,7 @@
 export const MAIL_KINDS = {
   dailyRank: 'รางวัลประจำวันตามแรงค์',
   season: 'รางวัลปลายฤดูกาล',
+  levelReward: 'รางวัลเลื่อนเลเวลผู้เล่น',
   system: 'จากระบบ',
 }
 
@@ -25,4 +26,21 @@ export function dailyGemsFor(rankIndex = 0) {
 /** รหัสจดหมายรางวัลประจำวัน หนึ่งฉบับต่อหนึ่งวัน */
 export function dailyMailId(dayKey) {
   return `daily-${dayKey}`
+}
+
+/**
+ * รางวัลเลื่อนเลเวลผู้เล่น ได้ทุก 10 เลเวล ตั้งแต่ 10 ถึงเพดาน PLAYER_MAX_LEVEL
+ *
+ * ยิ่งเลเวลสูงยิ่งได้มาก (100 เพชรต่อหนึ่งขั้น) เพื่อให้รางวัลช่วงท้ายเกมยังมีความหมาย
+ * ไม่ใช่แค่จำนวนคงที่ที่ค่ามันจางลงเรื่อย ๆ เมื่อเทียบกับเศรษฐกิจเกมที่โตขึ้น
+ */
+export const LEVEL_REWARD_STEP = 10
+
+export function levelRewardGems(milestone) {
+  return 100 * (milestone / LEVEL_REWARD_STEP)
+}
+
+/** รหัสจดหมายรางวัลเลื่อนเลเวล หนึ่งฉบับต่อหนึ่งจุดเลเวล (10, 20, 30, ...) */
+export function levelMailId(milestone) {
+  return `level-${milestone}`
 }
