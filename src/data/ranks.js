@@ -19,7 +19,7 @@ export const RANKS = [
 ]
 
 export const DIVISION_SIZE = 120
-export const MATCHES_PER_DAY = 10
+export const MATCHES_PER_DAY = 20
 
 /** ฉายาปลดล็อกตามแรงค์สูงสุดที่เคยไปถึง */
 export const TITLES = [
