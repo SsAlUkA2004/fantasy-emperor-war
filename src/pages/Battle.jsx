@@ -13,6 +13,7 @@ import { runCharDungeon } from '../lib/chardungeon'
 import { spendHelper } from '../lib/helper'
 import { ROUND_LIMIT, decideByHp } from '../lib/pvp'
 import { DIFFICULTIES, STORY_ROUND_LIMIT } from '../data/stages'
+import { stagePower, teamPower } from '../lib/power'
 import { CHARACTERS } from '../data/characters'
 import { MATERIALS, MATERIAL_IDS } from '../data/materials'
 import { GRADES, SLOTS } from '../data/gear'
@@ -100,9 +101,26 @@ export default function Battle() {
   useEffect(() => {
     if (!state || state.outcome) return
 
-    // ด่านรอยอดีตตัดสินด้วยเลือดที่เหลือ เพราะบอสเป็นตัวละครที่อาจฟื้นพลังได้
+    // ด่านรอยอดีต ครบรอบแล้วยังไม่จบ ปกติตัดสินด้วยเลือดที่เหลือ เพราะบอสเป็นตัวละคร
+    // ที่อาจมีสกิลฟื้นพลังทำให้ต่อสู้ยืดเยื้อ แต่ถ้าค่าพลังทีมเรามากกว่าศัตรูอยู่แล้ว
+    // ให้ตัดสินว่าชนะไปเลย ไม่ต้องรอลุ้นเลือดที่เหลือ เพราะทีมที่แรงกว่าจริงไม่ควรแพ้
+    // แค่เพราะสู้ยืดเยื้อเกินไปจนหมดเวลา
     if (stage?.charDungeon && state.round > ROUND_LIMIT) {
-      setState((s) => decideByHp(s))
+      setState((s) => {
+        const myPower = teamPower(roster.current)
+        const foePower = stagePower(stage)
+        if (myPower > foePower) {
+          return {
+            ...s,
+            outcome: 'won',
+            log: [
+              ...s.log,
+              { text: `ครบ ${ROUND_LIMIT} รอบ แต่ทีมแรงกว่าศัตรู ตัดสินให้ชนะ`, kind: 'win' },
+            ],
+          }
+        }
+        return decideByHp(s)
+      })
       return
     }
 
