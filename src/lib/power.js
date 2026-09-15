@@ -13,7 +13,7 @@ import { effectiveStats, entryStats, skillScale } from './stats'
 // ตัวเลขนี้ใช้เทียบความแข็งแกร่งเท่านั้น ไม่ได้เข้าไปอยู่ในสูตรการต่อสู้
 // ─────────────────────────────────────────────────────────────
 
-const WEIGHTS = { hp: 0.3, atk: 4.2, def: 3, spd: 2.5, crit: 6 }
+const WEIGHTS = { hp: 0.3, atk: 4.2, def: 3, spd: 2.5, crit: 6, critRate: 8 }
 
 export function combatPower(stats, star = 1) {
   const raw =
@@ -21,7 +21,8 @@ export function combatPower(stats, star = 1) {
     stats.atk * WEIGHTS.atk +
     stats.def * WEIGHTS.def +
     stats.spd * WEIGHTS.spd +
-    stats.crit * WEIGHTS.crit
+    stats.crit * WEIGHTS.crit +
+    (stats.critRate ?? 0) * WEIGHTS.critRate
 
   return Math.round(raw * skillScale(star))
 }

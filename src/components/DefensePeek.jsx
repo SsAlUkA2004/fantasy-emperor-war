@@ -102,7 +102,8 @@ function UnitDetail({ entry, char }) {
           ['พลังโจมตี', st.atk],
           ['พลังป้องกัน', st.def],
           ['ความเร็ว', st.spd],
-          ['คริติคอล', st.crit + '%'],
+          ['โอกาสคริติคอล', st.critRate + '%'],
+          ['ความแรงคริ', '+' + st.crit + '%'],
         ].map(([k, v]) => (
           <div className="ledger-row" key={k}>
             <dt>{k}</dt>

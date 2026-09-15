@@ -286,7 +286,8 @@ export default function Hero() {
             ['พลังโจมตี', stats.atk],
             ['พลังป้องกัน', stats.def],
             ['ความเร็ว', stats.spd],
-            ['โอกาสคริติคอล', stats.crit + '%'],
+            ['โอกาสคริติคอล', stats.critRate + '%'],
+            ['ความแรงคริ', '+' + stats.crit + '%'],
           ].map(([label, value]) => (
             <div className="ledger-row" key={label}>
               <dt>{label}</dt>

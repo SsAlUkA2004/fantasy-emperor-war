@@ -15,6 +15,18 @@ export const STAR_GROWTH = 0.15
 export const STAR_SKILL_GROWTH = 0.1
 
 /**
+ * เพดานความเร็วรวม (ตัวละคร + อุปกรณ์) ตัวเลขทุกตัวที่เกี่ยวกับความเร็วในเกมนี้ถูกออกแบบ
+ * ให้ราว 130 ถือว่าเร็วมากแล้ว ตัวที่ปั้นสุดจริง ๆ ถึงจะแตะเพดานนี้ได้
+ */
+export const SPD_CAP = 149
+
+/** อัตราคริพื้นฐานที่ทุกตัวละครมีเท่ากัน สร้างความต่างด้วยอุปกรณ์แทนการไล่ปรับทีละตัว */
+export const BASE_CRIT_RATE = 5
+
+/** เพดานอัตราคริรวม (ตัวละคร + อุปกรณ์) แตะร้อยละหกสิบคือสุดทางแล้ว */
+export const CRIT_RATE_CAP = 60
+
+/**
  * ตัวคูณที่ดาวเพิ่มให้กับสกิลและท่าไม้ตาย
  * ดาวจึงไม่ได้แค่ดันเพดานเลเวล แต่ทำให้ท่าแรงขึ้นจริง
  * ดาว 5 = สกิลแรงกว่าดาว 1 อยู่ 40%
@@ -40,6 +52,7 @@ export function effectiveStats(base, level = 1, star = 1) {
     def: Math.round(base.def * scale),
     spd: base.spd,
     crit: base.crit,
+    critRate: base.critRate ?? BASE_CRIT_RATE,
   }
 }
 
@@ -75,8 +88,11 @@ export function entryStats(charId, entry = {}) {
     hp: Math.round(base.hp * boost) + gear.hp,
     atk: Math.round(base.atk * boost) + gear.atk,
     def: Math.round(base.def * boost) + gear.def,
-    spd: Math.round(base.spd * boost) + gear.spd,
+    // ความเร็วกับอัตราคริไม่คูณด้วย boost (ยกระดับ/ปลุกร่าง/ความหายาก) เพราะสองค่านี้
+    // มีเพดานความหมายของตัวเองอยู่แล้ว ให้ยิ่งพัฒนาตัวละครแล้วยิ่งเร็ว/คริขึ้นเรื่อย ๆ ไม่ได้
+    spd: Math.min(SPD_CAP, base.spd + gear.spd),
     crit: base.crit + gear.crit,
+    critRate: Math.min(CRIT_RATE_CAP, base.critRate + (gear.critRate ?? 0)),
   }
 }
 

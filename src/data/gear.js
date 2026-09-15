@@ -15,7 +15,9 @@ export const SLOTS = {
   helmet: { id: 'helmet', name: 'หมวก', mark: '🪖', stat: 'hp', base: 140 },
   armor: { id: 'armor', name: 'เสื้อเกราะ', mark: '🛡️', stat: 'def', base: 20 },
   pants: { id: 'pants', name: 'กางเกง', mark: '👖', stat: 'hp', base: 180 },
+  // ความเร็วของรองเท้าคำนวณผ่านสูตรแยก (ดู NARROW_STATS/narrowGearStat) ไม่ใช้ base ตรงนี้
   boots: { id: 'boots', name: 'รองเท้า', mark: '👢', stat: 'spd', base: 6 },
+  // 'crit' ของแหวนคือความแรงคริ (โบนัสดาเมจตอนติดคริ) ไม่ใช่อัตราคริ — อัตราคริเป็นค่ารองแยกต่างหาก
   ring: { id: 'ring', name: 'แหวน', mark: '💍', stat: 'crit', base: 2 },
 }
 
@@ -48,17 +50,51 @@ export const SUBSTAT_COUNT = {
   pink: 3,
 }
 
-/** ค่าฐานของค่ารองแต่ละชนิด ก่อนคูณเกรด ระดับไอเทม และตีบวก */
+/** ค่าฐานของค่ารองแต่ละชนิด ก่อนคูณเกรด ระดับไอเทม และตีบวก (กลุ่มที่ยิ่งเพิ่มยิ่งดีไม่มีเพดาน) */
 export const SUBSTAT_BASE = {
   hp: 70,
   atk: 14,
   def: 10,
-  spd: 3,
   crit: 1,
 }
 
 /** ค่ารองอ่อนกว่าค่าหลักของเกรดเดียวกันครึ่งหนึ่ง เพราะเป็นของแถม ไม่ใช่ของหลัก */
 export const SUBSTAT_MULT = 0.5
+
+/**
+ * ความเร็วกับอัตราคริ มีความหมายอยู่แค่ในช่วงแคบ ๆ เท่านั้น (เร็วเกินไปก็ไม่มีประโยชน์เพิ่ม
+ * คริ 100% ก็สุดทางแล้ว) ต่างจาก hp/atk/def/ความแรงคริ ที่ยิ่งเพิ่มยิ่งดีไม่มีเพดาน
+ *
+ * ถ้าใช้สูตรคูณทบต้นแบบเดียวกับค่าอื่น (ดู gearStat/substatValue ด้านล่าง) ของเกรดสูงสุด
+ * ตีบวกเต็มจะดันค่านี้แตกหลักร้อยหลักพันจนคำว่า "เร็ว" หรือ "อัตราคริ" ไม่มีความหมายอีกต่อไป
+ * จึงแยกสูตรบวกตรงมาต่างหาก ไม่ผ่านตัวคูณระดับไอเทม/ตีบวกที่รุนแรงแบบค่าอื่น
+ */
+export const NARROW_STATS = ['spd', 'critRate']
+
+export const NARROW_STAT_GRADE = {
+  white: 1,
+  green: 2,
+  blue: 3,
+  purple: 4,
+  orange: 6,
+  red: 8,
+  pink: 10,
+}
+
+export const NARROW_STAT_ILVL_STEP = 0.15
+export const NARROW_STAT_PLUS_STEP = 0.015
+
+/** ค่าความเร็ว/อัตราคริของชิ้นหนึ่ง isMain=true ตอนเป็นค่าหลักของช่อง, false ตอนเป็นค่ารอง (อ่อนกว่าครึ่งหนึ่ง) */
+export function narrowGearStat(gear, isMain = true) {
+  if (!gear) return 0
+  const perGrade = NARROW_STAT_GRADE[gear.grade] ?? 0
+  if (!perGrade) return 0
+
+  const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * NARROW_STAT_ILVL_STEP
+  const byPlus = 1 + (gear.plus ?? 0) * NARROW_STAT_PLUS_STEP
+  const mult = isMain ? 1 : SUBSTAT_MULT
+  return Math.round(perGrade * byIlvl * byPlus * mult)
+}
 
 /** เฉพาะอมตะเท่านั้นที่มีสิทธิ์ติดค่ารองพิเศษนี้ เพิ่มดาเมจสกิลและท่าไม้ตายโดยตรง */
 export const SKILL_POWER_BASE = 8
@@ -86,13 +122,17 @@ export function gearStat(gear) {
   const grade = GRADES[gear.grade]
   if (!slot || !grade) return 0
 
+  if (NARROW_STATS.includes(slot.stat)) return narrowGearStat(gear, true)
+
   const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * ILVL_STEP
   const byPlus = 1 + (gear.plus ?? 0) * PLUS_STEP
   return Math.round(slot.base * grade.mult * byIlvl * byPlus)
 }
 
-/** ค่าของค่ารองหนึ่งชนิดบนของชิ้นหนึ่ง (hp/atk/def/spd/crit) */
+/** ค่าของค่ารองหนึ่งชนิดบนของชิ้นหนึ่ง (hp/atk/def/ความแรงคริ/ความเร็ว/อัตราคริ) */
 export function substatValue(statKey, gear) {
+  if (NARROW_STATS.includes(statKey)) return narrowGearStat(gear, false)
+
   const base = SUBSTAT_BASE[statKey]
   const grade = GRADES[gear?.grade]
   if (!base || !grade) return 0
@@ -124,7 +164,7 @@ export function rollSubstats(grade, slotId) {
   if (count === 0) return []
 
   const slot = SLOTS[slotId]
-  const pool = Object.keys(SUBSTAT_BASE).filter((k) => k !== slot?.stat)
+  const pool = [...Object.keys(SUBSTAT_BASE), ...NARROW_STATS].filter((k) => k !== slot?.stat)
   const picks = grade === 'pink' ? ['skillPower'] : []
 
   while (picks.length < count && pool.length) {
@@ -137,7 +177,7 @@ export function rollSubstats(grade, slotId) {
 
 /** รวมค่าที่อุปกรณ์ทุกชิ้นของตัวละครหนึ่งตัวให้ */
 export function gearBonus(list = []) {
-  const total = { hp: 0, atk: 0, def: 0, spd: 0, crit: 0, skillPower: 0 }
+  const total = { hp: 0, atk: 0, def: 0, spd: 0, crit: 0, critRate: 0, skillPower: 0 }
   list.forEach((g) => {
     const slot = SLOTS[g.slot]
     if (slot) total[slot.stat] += gearStat(g)
@@ -244,9 +284,13 @@ export const SUBSTAT_LABEL = {
   atk: 'พลังโจมตี',
   def: 'พลังป้องกัน',
   spd: 'ความเร็ว',
-  crit: 'คริติคอล',
+  crit: 'ความแรงคริ',
+  critRate: 'อัตราคริ',
   skillPower: 'พลังสกิล',
 }
+
+/** ค่ารองที่แสดงเป็น % ต่อท้าย (พลังสกิล/ความแรงคริ/อัตราคริ ล้วนเป็นค่าเปอร์เซ็นต์โดยตรง) */
+const PERCENT_SUBSTATS = ['skillPower', 'crit', 'critRate']
 
 /** รายการค่ารองของชิ้นหนึ่ง พร้อมค่าจริงที่คำนวณแล้ว ไว้ให้ UI วนแสดงได้ตรง ๆ */
 export function gearSubstatLines(gear) {
@@ -255,6 +299,6 @@ export function gearSubstatLines(gear) {
     key,
     label: SUBSTAT_LABEL[key] ?? key,
     value: key === 'skillPower' ? skillPowerValue(gear) : substatValue(key, gear),
-    isPercent: key === 'skillPower',
+    isPercent: PERCENT_SUBSTATS.includes(key),
   }))
 }

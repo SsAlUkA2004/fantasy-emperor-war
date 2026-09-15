@@ -34,10 +34,13 @@ function statAfterBuffs(unit, key) {
 function computeDamage(attacker, defender, multiplier) {
   const mitigated = 100 / (100 + statAfterBuffs(defender, 'def'))
   const element = elementBonus(attacker.element, defender.element)
-  const crit = Math.random() * 100 < attacker.crit
+  // 'crit' ของผู้โจมตีคือ "ความแรงคริ" (โบนัสดาเมจตอนติดคริ) ไม่ใช่โอกาสติดคริอีกต่อไป
+  // โอกาสติดคริมาจาก critRate แยกต่างหาก (0-60 ตามเพดานที่ตั้งไว้)
+  const crit = Math.random() * 100 < (attacker.critRate ?? 0)
+  const critMult = crit ? 1 + (attacker.crit ?? 0) / 100 : 1
   const variance = 0.95 + Math.random() * 0.1
 
-  const raw = attacker.atk * multiplier * mitigated * element * (crit ? 1.5 : 1) * variance
+  const raw = attacker.atk * multiplier * mitigated * element * critMult * variance
   return { amount: Math.max(1, Math.round(raw)), crit, element: element > 1 }
 }
 
@@ -103,6 +106,7 @@ function makeUnit(base, opts) {
     def: s.def,
     spd: s.spd,
     crit: s.crit,
+    critRate: s.critRate ?? 0,
     mp: 0,
     gauge: 0,
     alive: true,
