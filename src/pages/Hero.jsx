@@ -239,32 +239,38 @@ export default function Hero() {
               </Link>
             </div>
 
-            <div className="slot-grid">
+            <div className="gear-list">
               {SLOT_IDS.map((sid) => {
                 const worn = (entry.gear ?? []).find((g) => g.slot === sid)
                 return (
-                  <div className="gear-slot" key={sid} data-filled={Boolean(worn)}>
-                    <span className="gear-slot-mark">{SLOTS[sid].mark}</span>
-                    <span className="meta tiny">{SLOTS[sid].name}</span>
-                    {worn ? (
-                      <>
-                        <span className="gear-grade" style={{ color: GRADES[worn.grade].color }}>
-                          {GRADES[worn.grade].name}
-                          {worn.plus > 0 && ` +${worn.plus}`}
-                        </span>
-                        <span className="meta tiny">
-                          +{gearStat(worn)} {SLOTS[sid].stat}
-                        </span>
-                        {gearSubstatLines(worn).map((s) => (
-                          <span className="meta tiny substat" key={s.key}>
-                            +{s.value}
-                            {s.isPercent ? '%' : ''} {s.label}
-                          </span>
-                        ))}
-                      </>
-                    ) : (
-                      <span className="meta tiny">ว่าง</span>
-                    )}
+                  <div className="gear-row" key={sid} data-worn={Boolean(worn)}>
+                    <span className="gear-mark">{SLOTS[sid].mark}</span>
+                    <div className="gear-body">
+                      {worn ? (
+                        <>
+                          <h3 style={{ color: GRADES[worn.grade].color }}>
+                            {SLOTS[sid].name}
+                            {GRADES[worn.grade].name}
+                            {worn.plus > 0 && ` +${worn.plus}`}
+                          </h3>
+                          <p className="meta">
+                            +{gearStat(worn)} {SLOTS[sid].stat} · ระดับไอเทม {worn.ilvl}
+                          </p>
+                          {gearSubstatLines(worn).length > 0 && (
+                            <p className="meta tiny substat">
+                              {gearSubstatLines(worn)
+                                .map((s) => `+${s.value}${s.isPercent ? '%' : ''} ${s.label}`)
+                                .join(' · ')}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="meta">{SLOTS[sid].name}</h3>
+                          <p className="meta tiny">ว่าง</p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )
               })}
