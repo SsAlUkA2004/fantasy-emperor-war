@@ -3,7 +3,16 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS } from '../data/characters'
-import { GRADES, GRADE_IDS, SLOTS, SLOT_IDS, enhanceCost, gearStat, maxPlus } from '../data/gear'
+import {
+  GRADES,
+  GRADE_IDS,
+  SLOTS,
+  SLOT_IDS,
+  enhanceCost,
+  gearStat,
+  gearSubstatLines,
+  maxPlus,
+} from '../data/gear'
 import { loadCollection } from '../lib/player'
 import {
   enhance,
@@ -31,6 +40,7 @@ export default function Gear() {
   const [sellGrades, setSellGrades] = useState([])
   const [sort, setSort] = useState('value')
   const [bulk, setBulk] = useState(1)
+  const [hideWorn, setHideWorn] = useState(false)
 
   const who = params.get('char') ?? null
 
@@ -62,6 +72,7 @@ export default function Gear() {
 
   const shown = (gear ?? [])
     .filter((g) => (filter === 'all' ? true : g.slot === filter))
+    .filter((g) => !hideWorn || !g.equippedBy)
     .sort((a, b) => {
       const aMine = a.equippedBy === who ? 1 : 0
       const bMine = b.equippedBy === who ? 1 : 0
@@ -171,6 +182,12 @@ export default function Gear() {
                         <span className="meta tiny">
                           +{gearStat(worn)} {SLOTS[sid].stat}
                         </span>
+                        {gearSubstatLines(worn).map((s) => (
+                          <span className="meta tiny substat" key={s.key}>
+                            +{s.value}
+                            {s.isPercent ? '%' : ''} {s.label}
+                          </span>
+                        ))}
                         <button
                           className="plain-link inline"
                           disabled={busy === worn.id}
@@ -265,6 +282,13 @@ export default function Gear() {
                 {label}
               </button>
             ))}
+            <button
+              className="qty-chip"
+              data-active={hideWorn}
+              onClick={() => setHideWorn((v) => !v)}
+            >
+              ซ่อนของที่สวมอยู่
+            </button>
             <span className="meta tiny count-note">แสดง {shown.length} ชิ้น</span>
           </div>
 
@@ -307,6 +331,13 @@ export default function Gear() {
                   <p className="meta">
                     +{gearStat(g)} {SLOTS[g.slot].stat} · ระดับไอเทม {g.ilvl}
                   </p>
+                  {gearSubstatLines(g).length > 0 && (
+                    <p className="meta tiny substat">
+                      {gearSubstatLines(g)
+                        .map((s) => `+${s.value}${s.isPercent ? '%' : ''} ${s.label}`)
+                        .join(' · ')}
+                    </p>
+                  )}
                   {owner && <p className="meta cp">สวมอยู่กับ {owner.name}</p>}
                 </div>
                 <div className="card-actions">
