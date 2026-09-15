@@ -17,7 +17,6 @@ import { defenseEntries } from '../lib/pvp'
 export default function DefensePeek({ foe, title, onClose }) {
   const team = defenseEntries(foe)
   const total = team.reduce((s, e) => s + entryPower(e), 0)
-  const [open, setOpen] = useState(null)
 
   return (
     <div className="veil" role="dialog" aria-modal="true">
@@ -27,54 +26,64 @@ export default function DefensePeek({ foe, title, onClose }) {
           {rankOf(foe.pvpPoints ?? 0).mark} {rankLabel(foe.pvpPoints ?? 0)} · ⚔ {formatPower(total)}
         </p>
 
-        {team.length === 0 && <p className="meta">ยังไม่ได้ตั้งทีมตั้งรับ</p>}
-
-        <div className="peek-team">
-          {team.map((e, i) => {
-            const c = CHARACTERS[e.id]
-            if (!c) return null
-            return (
-              <button
-                className="card peek-unit"
-                key={i}
-                data-open={open === i}
-                onClick={() => setOpen(open === i ? null : i)}
-              >
-                <span className="card-mark">{ELEMENTS[c.element].mark}</span>
-                <div className="card-body">
-                  <h3>
-                    {c.name}
-                    <span
-                      className="rarity"
-                      data-rarity={effectiveRarity(e.id, e.tier)}
-                      data-upgraded={(e.tier ?? 0) > 0}
-                    >
-                      {effectiveRarity(e.id, e.tier)}
-                    </span>
-                    {(e.awaken ?? 0) > 0 && (
-                      <span className="awaken-tag">{awakenName(e.awaken)}</span>
-                    )}
-                  </h3>
-                  <p className="meta">
-                    {ROLES[c.role]} · เลเวล {e.level}/{entryLevelCap(e.id, e)} ·{' '}
-                    {'★'.repeat(e.star ?? 1)}
-                  </p>
-                  <p className="meta cp">
-                    ⚔ {formatPower(entryPower(e))}
-                    <span className="peek-more">{open === i ? ' ▲' : ' ▼ ดูรายละเอียด'}</span>
-                  </p>
-
-                  {open === i && <UnitDetail entry={e} char={c} />}
-                </div>
-              </button>
-            )
-          })}
-        </div>
+        <TeamList team={team} />
 
         <button className="rune-link block primary" onClick={onClose}>
           ปิด
         </button>
       </section>
+    </div>
+  )
+}
+
+/**
+ * รายชื่อตัวละครในทีม กดแต่ละตัวเพื่อกางดูสถานะ/สกิล/อุปกรณ์
+ *
+ * แยกออกมาเพราะใช้ซ้ำทั้งในป็อปอัปนี้และแบบฝังในหน้าอื่น (เช่นบอร์ดอันดับ)
+ */
+export function TeamList({ team }) {
+  const [open, setOpen] = useState(null)
+
+  if (!team.length) return <p className="meta">ยังไม่ได้ตั้งทีมตั้งรับ</p>
+
+  return (
+    <div className="peek-team">
+      {team.map((e, i) => {
+        const c = CHARACTERS[e.id]
+        if (!c) return null
+        return (
+          <button
+            className="card peek-unit"
+            key={i}
+            data-open={open === i}
+            onClick={() => setOpen(open === i ? null : i)}
+          >
+            <span className="card-mark">{ELEMENTS[c.element].mark}</span>
+            <div className="card-body">
+              <h3>
+                {c.name}
+                <span
+                  className="rarity"
+                  data-rarity={effectiveRarity(e.id, e.tier)}
+                  data-upgraded={(e.tier ?? 0) > 0}
+                >
+                  {effectiveRarity(e.id, e.tier)}
+                </span>
+                {(e.awaken ?? 0) > 0 && <span className="awaken-tag">{awakenName(e.awaken)}</span>}
+              </h3>
+              <p className="meta">
+                {ROLES[c.role]} · เลเวล {e.level}/{entryLevelCap(e.id, e)} · {'★'.repeat(e.star ?? 1)}
+              </p>
+              <p className="meta cp">
+                ⚔ {formatPower(entryPower(e))}
+                <span className="peek-more">{open === i ? ' ▲' : ' ▼ ดูรายละเอียด'}</span>
+              </p>
+
+              {open === i && <UnitDetail entry={e} char={c} />}
+            </div>
+          </button>
+        )
+      })}
     </div>
   )
 }

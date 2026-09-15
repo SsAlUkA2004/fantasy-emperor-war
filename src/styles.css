@@ -1969,6 +1969,27 @@ a {
   background: rgba(36, 27, 79, 0.85);
 }
 
+.board-row-btn {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--body);
+  color: inherit;
+}
+
+.board-caret {
+  flex: none;
+  color: var(--parchment-dim);
+  font-size: 0.8rem;
+}
+
+.board-detail {
+  margin-top: 0.35rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(20, 16, 43, 0.4);
+  border: 1px solid rgba(200, 164, 77, 0.15);
+}
+
 .board-place {
   flex: none;
   width: 2rem;
@@ -2428,6 +2449,10 @@ a {
 .gear-grade {
   font-family: var(--display);
   font-size: 0.88rem;
+}
+
+.substat {
+  color: #8fd6c4;
 }
 
 .gear-list {

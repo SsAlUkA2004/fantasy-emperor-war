@@ -80,12 +80,19 @@ export function entryStats(charId, entry = {}) {
   }
 }
 
-/** ตัวคูณความแรงของสกิล รวมดาว ระดับสกิล และการปลุกร่าง */
+/**
+ * ตัวคูณความแรงของสกิล รวมดาว ระดับสกิล การปลุกร่าง และค่ารองพลังสกิลจากของอมตะ
+ *
+ * ค่ารองพลังสกิลมีเฉพาะของเกรดอมตะ (ดู skillPowerValue ใน data/gear)
+ * จึงเป็นเหตุผลเดียวที่ดันให้อมตะน่าฟาร์มกว่าเทพ ทั้งที่ค่าสถานะหลักต่างกันไม่มาก
+ */
 export function entrySkillScale(entry = {}) {
+  const skillPower = gearBonus(entry.gear ?? []).skillPower ?? 0
   return (
     skillScale(entry.star ?? 1) *
     skillLevelScale(entry.skillLevel ?? 1) *
-    awakenSkillBoost(entry.awaken ?? 0)
+    awakenSkillBoost(entry.awaken ?? 0) *
+    (1 + skillPower / 100)
   )
 }
 

@@ -7,6 +7,8 @@ import { rankLabel, rankOf, titleName } from '../data/ranks'
 import { CHAPTERS, DIFFICULTIES } from '../data/stages'
 import { formatPower } from '../lib/power'
 import { explainError } from '../lib/errors'
+import { defenseEntries } from '../lib/pvp'
+import { TeamList } from '../components/DefensePeek'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
 
@@ -62,6 +64,7 @@ export default function Board() {
   const [rows, setRows] = useState(null)
   const [tab, setTab] = useState('pvp')
   const [error, setError] = useState(null)
+  const [expanded, setExpanded] = useState(null)
 
   useEffect(() => {
     getDocs(query(collection(db, 'users'), orderBy('pvpPoints', 'desc'), limit(100)))
@@ -126,27 +129,40 @@ export default function Board() {
 
         <div className="board">
           {sorted.map((r, i) => (
-            <div className="board-row" key={r.uid} data-me={r.uid === user.uid}>
-              <span className="board-place" data-top={i < 3}>
-                {i + 1}
-              </span>
-              <span className="board-body">
-                <span className="board-name">
-                  {r.username}
-                  {r.guildTag && <span className="guild-tag">[{r.guildTag}]</span>}
-                  {r.titleIndex > 0 && (
-                    <span className="board-title">{titleName(r.titleIndex)}</span>
-                  )}
+            <div className="board-item" key={r.uid}>
+              <button
+                className="board-row board-row-btn"
+                data-me={r.uid === user.uid}
+                onClick={() => setExpanded(expanded === r.uid ? null : r.uid)}
+              >
+                <span className="board-place" data-top={i < 3}>
+                  {i + 1}
                 </span>
-                <span className="meta">
-                  {tab === 'story'
-                    ? `ล่าสุดด่าน ${furthest(r)} · เลเวล ${r.playerLevel ?? 1}`
-                    : `${rankOf(r.pvpPoints ?? 0).mark} ${rankLabel(r.pvpPoints ?? 0)} · เลเวล ${r.playerLevel ?? 1}`}
+                <span className="board-body">
+                  <span className="board-name">
+                    {r.username}
+                    {r.guildTag && <span className="guild-tag">[{r.guildTag}]</span>}
+                    {r.titleIndex > 0 && (
+                      <span className="board-title">{titleName(r.titleIndex)}</span>
+                    )}
+                  </span>
+                  <span className="meta">
+                    {tab === 'story'
+                      ? `ล่าสุดด่าน ${furthest(r)} · เลเวล ${r.playerLevel ?? 1}`
+                      : `${rankOf(r.pvpPoints ?? 0).mark} ${rankLabel(r.pvpPoints ?? 0)} · เลเวล ${r.playerLevel ?? 1}`}
+                  </span>
                 </span>
-              </span>
-              <span className="board-points">
-                {tab === 'power' ? `⚔ ${formatPower(r.score)}` : `${fmt(r.score)} ${unit}`}
-              </span>
+                <span className="board-points">
+                  {tab === 'power' ? `⚔ ${formatPower(r.score)}` : `${fmt(r.score)} ${unit}`}
+                </span>
+                <span className="board-caret">{expanded === r.uid ? '▲' : '▼'}</span>
+              </button>
+
+              {expanded === r.uid && (
+                <div className="board-detail">
+                  <TeamList team={defenseEntries(r)} />
+                </div>
+              )}
             </div>
           ))}
           {sorted.length === 0 && rows && <p className="meta">ยังไม่มีข้อมูล</p>}

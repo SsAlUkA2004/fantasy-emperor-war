@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { heroStats, entryStats, entryLevelCap, elementMatchup, entrySkillScale } from '../lib/stats'
 import { heroPower, entryPower, formatPower } from '../lib/power'
-import { GRADES, SLOTS, SLOT_IDS, gearStat } from '../data/gear'
+import { GRADES, SLOTS, SLOT_IDS, gearStat, gearSubstatLines } from '../data/gear'
 import { expToNext, levelCap, RARITY_CAPS, MAX_STAR } from '../lib/leveling'
 import { loadCollection } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
@@ -255,6 +255,12 @@ export default function Hero() {
                         <span className="meta tiny">
                           +{gearStat(worn)} {SLOTS[sid].stat}
                         </span>
+                        {gearSubstatLines(worn).map((s) => (
+                          <span className="meta tiny substat" key={s.key}>
+                            +{s.value}
+                            {s.isPercent ? '%' : ''} {s.label}
+                          </span>
+                        ))}
                       </>
                     ) : (
                       <span className="meta tiny">ว่าง</span>
