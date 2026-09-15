@@ -291,6 +291,13 @@ a {
   color: var(--parchment);
 }
 
+/* ตารางสถานะฮีโร่แบบสองคอลัมน์ ใช้ตอนพื้นที่จำกัด (การ์ดฮีโร่ ป็อปอัปทีม แถวบอร์ด) */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 1.25rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sigil-outer,
   .sigil-inner,

@@ -160,7 +160,7 @@ export default function Board() {
 
               {expanded === r.uid && (
                 <div className="board-detail">
-                  <TeamList team={defenseEntries(r)} />
+                  <TeamList team={defenseEntries(r)} compact />
                 </div>
               )}
             </div>

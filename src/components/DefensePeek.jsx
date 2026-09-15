@@ -41,7 +41,7 @@ export default function DefensePeek({ foe, title, onClose }) {
  *
  * แยกออกมาเพราะใช้ซ้ำทั้งในป็อปอัปนี้และแบบฝังในหน้าอื่น (เช่นบอร์ดอันดับ)
  */
-export function TeamList({ team }) {
+export function TeamList({ team, compact }) {
   const [open, setOpen] = useState(null)
 
   if (!team.length) return <p className="meta">ยังไม่ได้ตั้งทีมตั้งรับ</p>
@@ -79,7 +79,7 @@ export function TeamList({ team }) {
                 <span className="peek-more">{open === i ? ' ▲' : ' ▼ ดูรายละเอียด'}</span>
               </p>
 
-              {open === i && <UnitDetail entry={e} char={c} />}
+              {open === i && <UnitDetail entry={e} char={c} compact={compact} />}
             </div>
           </button>
         )
@@ -88,15 +88,20 @@ export function TeamList({ team }) {
   )
 }
 
-/** รายละเอียดของตัวละครหนึ่งตัวในทีมตั้งรับ กางออกเมื่อกด */
-function UnitDetail({ entry, char }) {
+/**
+ * รายละเอียดของตัวละครหนึ่งตัวในทีมตั้งรับ กางออกเมื่อกด
+ *
+ * โหมด compact โชว์แค่สตัสกับอุปกรณ์ที่สวมอยู่ ตัดสกิล/ท่าไม้ตายออก
+ * ใช้ตอนพื้นที่จำกัดอย่างแถวบอร์ดอันดับ
+ */
+function UnitDetail({ entry, char, compact }) {
   const st = entryStats(entry.id, entry)
   const scale = entrySkillScale(entry)
   const gear = entry.gear ?? []
 
   return (
     <div className="unit-detail">
-      <dl className="ledger">
+      <dl className="ledger stat-grid">
         {[
           ['พลังชีวิต', st.hp],
           ['พลังโจมตี', st.atk],
@@ -111,25 +116,31 @@ function UnitDetail({ entry, char }) {
         ))}
       </dl>
 
-      <div className="move">
-        <h3>{char.skill.name}</h3>
-        <p>{char.skill.desc}</p>
-      </div>
-      <div className="move ult">
-        <h3>{char.ultimate.name}</h3>
-        <p>{char.ultimate.desc}</p>
-      </div>
-      <p className="meta tiny">
-        ระดับสกิล {entry.skillLevel ?? 1} · ความแรงสกิลรวม {Math.round(scale * 100)}%
-      </p>
+      {!compact && (
+        <>
+          <div className="move">
+            <h3>{char.skill.name}</h3>
+            <p>{char.skill.desc}</p>
+          </div>
+          <div className="move ult">
+            <h3>{char.ultimate.name}</h3>
+            <p>{char.ultimate.desc}</p>
+          </div>
+          <p className="meta tiny">
+            ระดับสกิล {entry.skillLevel ?? 1} · ความแรงสกิลรวม {Math.round(scale * 100)}%
+          </p>
+        </>
+      )}
 
-      {gear.length > 0 && (
+      {gear.length > 0 ? (
         <p className="meta tiny">
           อุปกรณ์{' '}
           {gear
             .map((g) => `${SLOTS[g.slot].name}${GRADES[g.grade].name}+${g.plus ?? 0}`)
             .join(' · ')}
         </p>
+      ) : (
+        compact && <p className="meta tiny">ยังไม่ได้ใส่อุปกรณ์</p>
       )}
     </div>
   )

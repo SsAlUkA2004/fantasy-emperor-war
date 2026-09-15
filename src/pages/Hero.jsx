@@ -280,7 +280,7 @@ export default function Hero() {
         )}
 
         <h2 className="section-title">ค่าพลัง</h2>
-        <dl className="ledger">
+        <dl className="ledger stat-grid">
           {[
             ['พลังชีวิต', stats.hp],
             ['พลังโจมตี', stats.atk],
