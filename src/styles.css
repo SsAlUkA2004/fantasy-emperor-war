@@ -1999,15 +1999,18 @@ a {
 
 .unit-row-list {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  flex-flow: row wrap;
+  gap: 0.5rem;
 }
 
 .unit-row {
   display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  flex: 1 1 9.5rem;
+  width: auto;
+  min-width: 0;
   padding: 0.5rem 0.7rem;
   background: rgba(20, 16, 43, 0.55);
   border: 1px solid rgba(200, 164, 77, 0.15);
@@ -2019,6 +2022,13 @@ a {
 
 .unit-row:hover {
   border-color: var(--gold);
+}
+
+.unit-row-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
 }
 
 .unit-row-mark {
@@ -2039,13 +2049,11 @@ a {
 }
 
 .unit-row-meta {
-  flex: none;
   font-size: 0.74rem;
   color: var(--parchment-dim);
 }
 
 .unit-row-power {
-  flex: none;
   font-family: var(--display);
   font-size: 0.85rem;
   color: var(--parchment);
