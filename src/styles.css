@@ -2468,6 +2468,13 @@ a {
   gap: 0.5rem;
 }
 
+.gear-list.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
 .gear-row {
   display: flex;
   align-items: center;
