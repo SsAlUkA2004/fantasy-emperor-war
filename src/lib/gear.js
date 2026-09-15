@@ -30,7 +30,7 @@ const bag = (uid) => collection(db, 'users', uid, 'gear')
  */
 async function backfillSubstats(uid, list) {
   const missing = list.filter(
-    (g) => (SUBSTAT_COUNT[g.grade] ?? 0) > 0 && !Array.isArray(g.substats)
+    (g) => (g.substats ?? []).length < (SUBSTAT_COUNT[g.grade] ?? 0)
   )
   if (!missing.length) return list
 
