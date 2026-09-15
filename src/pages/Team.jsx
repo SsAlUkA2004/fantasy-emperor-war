@@ -88,6 +88,15 @@ export default function Team() {
   const delta = current - powerOf(savedIds(mode))
   const dirty = JSON.stringify(picks) !== JSON.stringify(savedIds(mode))
 
+  // ทีมตั้งรับเก็บเป็นสำเนา ณ ตอนบันทึก ถ้าตัวละครในทีมได้อุปกรณ์ใหม่/เลเวลขึ้นหลังจากนั้น
+  // สำเนาเก่าจะไม่ขยับตาม ต้องกดบันทึกซ้ำเพื่อดันค่าล่าสุดขึ้นบอร์ด แม้รายชื่อทีมจะไม่เปลี่ยนก็ตาม
+  const stale =
+    mode === 'defense' &&
+    (player.defense ?? []).some((stored) => {
+      const live = owned?.find((o) => o.id === stored.id)
+      return live && entryPower(live) !== entryPower(stored)
+    })
+
   return (
     <main className="screen top">
       <div className="sheet">
@@ -168,7 +177,13 @@ export default function Team() {
 
         {error && <div className="trace">{error}</div>}
 
-        {dirty && (
+        {!dirty && stale && (
+          <p className="meta tiny">
+            ตัวละครในทีมตั้งรับมีค่าพลังเปลี่ยนไปจากตอนที่บันทึกไว้ (เช่น ได้อุปกรณ์ใหม่) กดบันทึกซ้ำเพื่ออัปเดตค่าที่คนอื่นเห็น
+          </p>
+        )}
+
+        {(dirty || stale) && (
           <button className="rune-link block primary" onClick={save} disabled={saving}>
             {saving ? 'กำลังบันทึก' : `บันทึกทีม${config.label}`}
           </button>
