@@ -241,7 +241,7 @@ export const FIRST_CLEAR_GEMS = 30
  * เล่นด่านเนื้อเรื่องซ้ำ (ไม่ใช่ผ่านครั้งแรก) ก็ได้ค่าประสบการณ์ผู้เล่นด้วย แต่มีโควตารายวัน
  * กันไม่ให้ฟาร์มด่านเดียวรวดเดียวจบเกม ตามหลักที่ว่าเลเวลผู้เล่นต้องมาจากของจำกัดต่อวันเท่านั้น
  */
-export const STORY_EXP_RUNS_PER_DAY = 10
+export const STORY_EXP_RUNS_PER_DAY = 15
 
 /** ตัวช่วยประกอบบท ลดการพิมพ์ซ้ำของด่านสามสิบด่าน */
 function chapter(number, name, subtitle, rows) {
