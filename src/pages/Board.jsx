@@ -176,8 +176,10 @@ export default function Board() {
                           key={idx}
                           onClick={() => setUnitPeek(e)}
                         >
-                          <span className="unit-row-mark">{ELEMENTS[c.element].mark}</span>
-                          <span className="unit-row-name">{c.name}</span>
+                          <span className="unit-row-head">
+                            <span className="unit-row-mark">{ELEMENTS[c.element].mark}</span>
+                            <span className="unit-row-name">{c.name}</span>
+                          </span>
                           <span className="unit-row-meta">
                             {effectiveRarity(e.id, e.tier)} · เลเวล {e.level}
                           </span>
