@@ -14,17 +14,39 @@ import {
   GEAR_BOXES,
   GRADES,
   SLOT_IDS,
+  SUBSTAT_COUNT,
   enhanceCost,
   gearStat,
   maxPlus,
   rollGear,
+  rollSubstats,
 } from '../data/gear'
 
 const bag = (uid) => collection(db, 'users', uid, 'gear')
 
+/**
+ * ของเก่าที่ดรอปก่อนมีระบบค่ารองจะไม่มีฟิลด์ substats ติดมาเลย
+ * เจอของเกรดที่ควรมีค่ารองแต่ไม่มีฟิลด์นี้ ให้สุ่มแล้วบันทึกกลับครั้งเดียวถาวร
+ */
+async function backfillSubstats(uid, list) {
+  const missing = list.filter(
+    (g) => (SUBSTAT_COUNT[g.grade] ?? 0) > 0 && !Array.isArray(g.substats)
+  )
+  if (!missing.length) return list
+
+  const batch = writeBatch(db)
+  missing.forEach((g) => {
+    g.substats = rollSubstats(g.grade, g.slot)
+    batch.update(doc(bag(uid), g.id), { substats: g.substats })
+  })
+  await batch.commit()
+  return list
+}
+
 export async function loadGear(uid) {
   const snap = await getDocs(bag(uid))
-  return snap.docs.map((d) => ({ id: d.id, plus: 0, ...d.data() }))
+  const list = snap.docs.map((d) => ({ id: d.id, plus: 0, ...d.data() }))
+  return backfillSubstats(uid, list)
 }
 
 /** จัดกลุ่มอุปกรณ์ที่สวมอยู่ตามตัวละคร ใช้ตอนคำนวณค่าพลัง */
