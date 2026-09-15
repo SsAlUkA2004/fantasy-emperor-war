@@ -8,6 +8,7 @@ import { entryStats, entryLevelCap } from '../lib/stats'
 import { entryPower, teamPower, formatPower } from '../lib/power'
 import { effectiveRarity, awakenName } from '../data/ascension'
 import { titlesFor, TITLES, claimableRanks } from '../data/ranks'
+import { PERMANENT_QUESTS } from '../data/quests'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
@@ -32,7 +33,7 @@ function statRows(entry) {
 
 export default function Lobby() {
   const [pickingTitle, setPickingTitle] = useState(false)
-  const { user, player, refresh } = usePlayer()
+  const { user, player, refresh, attacked, clearAttacked } = usePlayer()
   const [owned, setOwned] = useState(null)
 
   useEffect(() => {
@@ -52,6 +53,11 @@ export default function Lobby() {
     ? (player.team ?? []).map((id) => owned.find((o) => o.id === id)).filter(Boolean)
     : null
 
+  // ฉายาจากเควสถาวรโชว์ตัวสูงสุดที่ปลดล็อกแล้วอัตโนมัติ ไม่ต้องมีตัวเลือกแยกเหมือนฉายาตามแรงค์
+  const earnedLevelTitle = [...PERMANENT_QUESTS]
+    .reverse()
+    .find((q) => (player.levelTitles ?? []).includes(q.level))
+
   return (
     <main className="screen top">
       <div className="sheet">
@@ -66,6 +72,7 @@ export default function Lobby() {
               {titleName(player.titleIndex ?? 0)}
               <span className="title-edit">เปลี่ยน</span>
             </button>
+            {earnedLevelTitle && <span className="chip gold">{earnedLevelTitle.title}</span>}
             {player.guildTag && (
               <p className="meta guild-line">
                 <Link to="/guild">
@@ -96,7 +103,7 @@ export default function Lobby() {
                     />
                   </div>
                   <p className="meta tiny source-note">
-                    ได้จากผ่านด่านครั้งแรกและเหมืองคริสตัลเท่านั้น ลานฝึกไม่ให้
+                    ได้จากด่านผจญภัย (ครั้งแรกเต็มอัตรา เล่นซ้ำมีโควตา) และเหมืองคริสตัล ลานฝึกไม่ให้
                   </p>
                   <p className="meta tiny">
                     อีก{' '}
@@ -127,6 +134,15 @@ export default function Lobby() {
             )}
           </div>
         </header>
+
+        {attacked && (
+          <p className="meta defense-note">
+            ระหว่างที่ไม่อยู่ มีคนมาท้าและชนะ {attacked.count} ครั้ง เสียไป {attacked.lost} แต้ม
+            <button className="plain-link inline" onClick={clearAttacked}>
+              รับทราบ
+            </button>
+          </p>
+        )}
 
         {pickingTitle && (
           <div className="title-picker">

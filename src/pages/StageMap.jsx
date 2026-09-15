@@ -9,6 +9,8 @@ import {
   TRAINING,
   GEM_STAGES,
   GEM_RUNS_PER_DAY,
+  STORY_EXP_RUNS_PER_DAY,
+  difficultyGateStageId,
   ENEMIES,
 } from '../data/stages'
 import { ELEMENTS } from '../data/characters'
@@ -61,15 +63,18 @@ export default function StageMap() {
   const progress = player.stageProgress ?? {}
   const left = runsLeft(player, GEM_RUNS_PER_DAY)
   const matLeft = runsLeft(player, MATERIAL_RUNS_PER_DAY, 'matRunAt', 'matRunCount')
+  const storyExpLeft = runsLeft(player, STORY_EXP_RUNS_PER_DAY, 'storyExpRunAt', 'storyExpRunCount')
 
   const cleared = (id) => (progress[id] ?? 0) > 0
   const suffix = DIFFICULTIES.find((d) => d.id === diff)?.suffix ?? ''
 
   /**
-   * โหมดถัดไปเปิดเมื่อผ่านด่านสุดท้ายของโหมดก่อนหน้าแล้ว ไม่ใช่ทีละบท
+   * โหมดถัดไปเปิดเมื่อผ่านด่านเช็คพอยต์ของโหมดก่อนหน้าแล้ว ไม่ใช่ทีละบท
    * เพราะแต่ละโหมดต้องไต่ใหม่ตั้งแต่บทที่ 1 เหมือนเริ่มเกมรอบใหม่
+   *
+   * เช็คพอยต์ตรึงไว้ที่บทที่กำหนด ไม่ใช่ด่านสุดท้ายที่มีอยู่จริง — ดูเหตุผลใน data/stages.js
    */
-  const lastId = STAGES[STAGES.length - 1].id
+  const lastId = difficultyGateStageId()
 
   function diffOpen(id) {
     if (id === 'normal') return true
@@ -189,6 +194,10 @@ export default function StageMap() {
             ผ่านด่าน {lastId} ให้จบเพื่อเปิดโหมดยาก · ผ่านโหมดยากจนจบเพื่อเปิดโหมดปีศาจ
           </p>
         )}
+        <p className="meta tiny">
+          เล่นด่านเนื้อเรื่องซ้ำก็ได้เลเวลผู้เล่นด้วย วันนี้เหลือ {storyExpLeft} จาก{' '}
+          {STORY_EXP_RUNS_PER_DAY} ครั้ง (ผ่านครั้งแรกไม่กินโควตานี้)
+        </p>
 
         {!open ? (
           <p className="meta center locked-note">

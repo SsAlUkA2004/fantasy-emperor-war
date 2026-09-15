@@ -1,4 +1,5 @@
 import {
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -21,7 +22,16 @@ import {
 import { PLAYER_MAX_LEVEL } from './leveling'
 import { rankOf } from '../data/ranks'
 import { todayKey } from './dayclock'
+import { weekIndex } from '../data/worldboss'
 import { EMPTY_POOL } from '../data/exchange'
+import {
+  DAILY_QUESTS,
+  PERMANENT_QUESTS,
+  WEEKLY_QUESTS,
+  dailyQuestMailId,
+  permQuestMailId,
+  weeklyQuestMailId,
+} from '../data/quests'
 
 const box = (uid) => collection(db, 'users', uid, 'mail')
 
@@ -88,6 +98,77 @@ export async function issueLevelMail(player) {
     }
   }
   return issued
+}
+
+/**
+ * เควสรายวัน/รายสัปดาห์ กดรับเองหลังทำครบเป้า (ไม่ออกอัตโนมัติเหมือนรางวัลรายวัน)
+ *
+ * รหัสเอกสารผูกกับวัน/สัปดาห์อยู่แล้ว กดรับซ้ำจึงชนกฎ create เดิมและถูกปฏิเสธ
+ * ความคืบหน้าที่ใช้เทียบเป้าอ่านจากตัวนับของแต่ละกิจกรรมที่มีอยู่แล้วในเอกสารผู้เล่น
+ */
+export async function claimDailyQuest(player, questId) {
+  const q = DAILY_QUESTS.find((x) => x.id === questId)
+  if (!q) throw new Error('ไม่พบเควสนี้')
+  if ((player[q.countField] ?? 0) < q.target) throw new Error('ยังทำไม่ครบเป้า')
+
+  const day = todayKey()
+  await setDoc(doc(box(player.uid), dailyQuestMailId(q.id, day)), {
+    kind: 'questDaily',
+    questId: q.id,
+    title: `เควสรายวัน · ${q.name}`,
+    body: `ทำ${q.name}ครบ ${q.target} ครั้งในวันนี้`,
+    gems: q.gems,
+    pool: {},
+    day,
+    claimed: false,
+    createdAt: serverTimestamp(),
+  })
+}
+
+export async function claimWeeklyQuest(player, questId) {
+  const q = WEEKLY_QUESTS.find((x) => x.id === questId)
+  if (!q) throw new Error('ไม่พบเควสนี้')
+  if ((player[q.countField] ?? 0) < q.target) throw new Error('ยังทำไม่ครบเป้า')
+
+  const week = weekIndex()
+  await setDoc(doc(box(player.uid), weeklyQuestMailId(q.id, week)), {
+    kind: 'questWeekly',
+    questId: q.id,
+    title: `เควสรายสัปดาห์ · ${q.name}`,
+    body: `ทำ${q.name}ครบ ${q.target} ครั้งในสัปดาห์นี้`,
+    gems: q.gems,
+    pool: {},
+    week,
+    claimed: false,
+    createdAt: serverTimestamp(),
+  })
+}
+
+/**
+ * เควสถาวรผูกกับเลเวล ได้เพชรผ่านกล่องจดหมายเหมือนเควสอื่น
+ * และปลดล็อกฉายาประจำเลเวลนั้นเข้า levelTitles ของผู้เล่นในคำขอเดียวกัน
+ */
+export async function claimPermanentQuest(player, level) {
+  const q = PERMANENT_QUESTS.find((x) => x.level === level)
+  if (!q) throw new Error('ไม่พบเควสนี้')
+  if ((player.playerLevel ?? 1) < level) throw new Error('เลเวลยังไม่ถึง')
+  if ((player.levelTitles ?? []).includes(level)) throw new Error('รับรางวัลนี้ไปแล้ว')
+
+  const batch = writeBatch(db)
+  batch.set(doc(box(player.uid), permQuestMailId(level)), {
+    kind: 'questPermanent',
+    level,
+    title: `เควสถาวร · เลเวล ${level}`,
+    body: `ปลดล็อกฉายา "${q.title}" และรับเพชรรางวัล`,
+    gems: q.gems,
+    pool: {},
+    claimed: false,
+    createdAt: serverTimestamp(),
+  })
+  batch.update(doc(db, 'users', player.uid), {
+    levelTitles: arrayUnion(level),
+  })
+  await batch.commit()
 }
 
 export async function loadMail(uid) {

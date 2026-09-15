@@ -19,6 +19,7 @@ import PvpMatch from './pages/PvpMatch'
 import WorldBoss from './pages/WorldBoss'
 import BossFight from './pages/BossFight'
 import Mailbox from './pages/Mailbox'
+import Quests from './pages/Quests'
 import Gear from './pages/Gear'
 import Dungeon from './pages/Dungeon'
 import Guild from './pages/Guild'
@@ -79,6 +80,7 @@ export default function App() {
           <Route path="/boss" element={<Gate><WorldBoss /></Gate>} />
           <Route path="/boss/fight" element={<Gate><BossFight /></Gate>} />
           <Route path="/mail" element={<Gate><Mailbox /></Gate>} />
+          <Route path="/quests" element={<Gate><Quests /></Gate>} />
           <Route path="/gear" element={<Gate><Gear /></Gate>} />
           <Route path="/dungeon" element={<Gate><Dungeon /></Gate>} />
           <Route path="/hunt" element={<Gate><CharDungeon /></Gate>} />

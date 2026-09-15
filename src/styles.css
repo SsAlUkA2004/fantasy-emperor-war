@@ -2059,6 +2059,23 @@ a {
   color: var(--parchment);
 }
 
+/* ───────── เควส ───────── */
+
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.quest-card[data-done='true'] {
+  border-color: var(--gold);
+}
+
+.quest-card .bar {
+  max-width: 14rem;
+}
+
 .board-place {
   flex: none;
   width: 2rem;

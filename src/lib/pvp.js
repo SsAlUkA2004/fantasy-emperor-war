@@ -14,6 +14,7 @@ import { createBattle, takeTurn, currentUnit } from './battle'
 import { applyDelta, pointDelta, rankOf, MATCHES_PER_DAY } from '../data/ranks'
 import { isSameThaiDay, runsLeft } from './dayclock'
 import { makeBots } from '../data/bots'
+import { weekIndex } from '../data/worldboss'
 
 /**
  * หาคู่แข่งที่แต้มใกล้เคียงกัน
@@ -170,6 +171,7 @@ export async function saveMatch(player, foe, won) {
   const highest = Math.max(player.highestRank ?? 0, rankOf(points).index)
   const seasonHighest = Math.max(player.seasonHighest ?? 0, rankOf(points).index)
   const sameDay = isSameThaiDay(player.pvpRunAt)
+  const sameWeek = (player.pvpWeekIndex ?? -1) === weekIndex()
 
   await updateDoc(doc(db, 'users', player.uid), {
     pvpPoints: points,
@@ -177,6 +179,8 @@ export async function saveMatch(player, foe, won) {
     seasonHighest,
     pvpRunAt: serverTimestamp(),
     pvpRunCount: sameDay ? (player.pvpRunCount ?? 0) + 1 : 1,
+    pvpWeekIndex: weekIndex(),
+    pvpWeekCount: sameWeek ? (player.pvpWeekCount ?? 0) + 1 : 1,
   })
 
   return { delta, points, highest, seasonHighest }

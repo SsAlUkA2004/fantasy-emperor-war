@@ -22,7 +22,7 @@ import {
 import { hoursUntilReset } from '../lib/dayclock'
 import { SEASON_DAYS, daysLeft, seasonIndex } from '../data/season'
 import { closeSeasonIfNeeded } from '../lib/season'
-import { logAttack, settleLogs } from '../lib/defenselog'
+import { logAttack } from '../lib/defenselog'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
@@ -42,21 +42,15 @@ export default function Arena() {
   const unlocked = chapterCleared(player.stageProgress, UNLOCKS.arena.chapter)
 
   const [closed, setClosed] = useState(null)
-  const [settled, setSettled] = useState(null)
 
   useEffect(() => {
     loadCollection(user.uid).then(setRoster)
     // ปิดฤดูกาลเก่าให้เองถ้าเปลี่ยนฤดูกาลแล้ว รางวัลส่งเข้ากล่องจดหมาย
+    // ใบบันทึกการถูกโจมตีถูกเคลียร์ไปแล้วตอนล็อกอินใน PlayerContext ไม่ต้องทำซ้ำที่นี่
     closeSeasonIfNeeded({ ...player, uid: user.uid })
       .then(async (r) => {
         if (r) {
           setClosed(r)
-          await refresh()
-        }
-        // เคลียร์ใบบันทึกการถูกโจมตีที่ค้างอยู่
-        const s2 = await settleLogs({ ...player, uid: user.uid }).catch(() => null)
-        if (s2) {
-          setSettled(s2)
           await refresh()
         }
       })
@@ -171,11 +165,6 @@ export default function Arena() {
 
         {error && <div className="trace">{error}</div>}
 
-        {settled && (
-          <p className="meta defense-note">
-            ระหว่างที่ไม่อยู่ มีคนมาท้าและชนะ {settled.count} ครั้ง เสียไป {settled.lost} แต้ม
-          </p>
-        )}
         {closed && (
           <p className="levelup">
             ฤดูกาลที่ {closed.season} จบแล้ว · แต้มรีเซ็ตจาก {closed.from} เหลือ {closed.to} ·

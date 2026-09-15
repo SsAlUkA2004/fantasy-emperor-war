@@ -80,10 +80,13 @@ export async function submitRaidDamage(player, guildId, week, rawDamage) {
 
   const coins = coinsFromDamage(result.dealt)
   const sameDay = isSameThaiDay(player.raidRunAt)
+  const sameRaidWeek = (player.raidWeekIndex ?? -1) === raidWeek()
   await updateDoc(doc(db, 'users', player.uid), {
     guildCoins: (player.guildCoins ?? 0) + coins,
     raidRunAt: serverTimestamp(),
     raidRunCount: sameDay ? (player.raidRunCount ?? 0) + 1 : 1,
+    raidWeekIndex: raidWeek(),
+    raidWeekCount: sameRaidWeek ? (player.raidWeekCount ?? 0) + 1 : 1,
   })
 
   return { ...result, coins }

@@ -13,6 +13,9 @@ export const MAIL_KINDS = {
   dailyRank: 'รางวัลประจำวันตามแรงค์',
   season: 'รางวัลปลายฤดูกาล',
   levelReward: 'รางวัลเลื่อนเลเวลผู้เล่น',
+  questDaily: 'เควสรายวัน',
+  questWeekly: 'เควสรายสัปดาห์',
+  questPermanent: 'เควสถาวร',
   system: 'จากระบบ',
 }
 

@@ -107,9 +107,12 @@ export async function submitDamage(player, week, rawDamage) {
 
   // นับโควตารายวันแยกจาก transaction เพราะอยู่คนละเอกสารและไม่ต้องอะตอมมิกร่วมกัน
   const sameDay = isSameThaiDay(player.bossRunAt)
+  const sameBossWeek = (player.bossWeekIndex ?? -1) === week
   await updateDoc(doc(db, 'users', player.uid), {
     bossRunAt: serverTimestamp(),
     bossRunCount: sameDay ? (player.bossRunCount ?? 0) + 1 : 1,
+    bossWeekIndex: week,
+    bossWeekCount: sameBossWeek ? (player.bossWeekCount ?? 0) + 1 : 1,
   })
 
   // บอสโลกดรอปของสีม่วงถึงแดง เป็นแหล่งเดียวของสองสีนั้นนอกจากดันเจี้ยน

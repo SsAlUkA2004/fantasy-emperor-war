@@ -237,6 +237,12 @@ export const ENEMIES = {
 
 export const FIRST_CLEAR_GEMS = 30
 
+/**
+ * เล่นด่านเนื้อเรื่องซ้ำ (ไม่ใช่ผ่านครั้งแรก) ก็ได้ค่าประสบการณ์ผู้เล่นด้วย แต่มีโควตารายวัน
+ * กันไม่ให้ฟาร์มด่านเดียวรวดเดียวจบเกม ตามหลักที่ว่าเลเวลผู้เล่นต้องมาจากของจำกัดต่อวันเท่านั้น
+ */
+export const STORY_EXP_RUNS_PER_DAY = 10
+
 /** ตัวช่วยประกอบบท ลดการพิมพ์ซ้ำของด่านสามสิบด่าน */
 function chapter(number, name, subtitle, rows) {
   return {
@@ -345,6 +351,21 @@ export const DIFFICULTIES = [
   { id: 'hard', name: 'ยาก', suffix: '@hard', reward: 2, gems: 50, ilvlBonus: 1 },
   { id: 'demon', name: 'ปีศาจ', suffix: '@demon', reward: 6, gems: 100, ilvlBonus: 2 },
 ]
+
+/**
+ * บทเช็คพอยต์ที่ต้องผ่านด่านสุดท้ายให้ครบก่อนถึงจะปลดล็อกระดับความยากถัดไป
+ *
+ * ตรึงไว้ที่บทนี้เสมอ ไม่ใช่คำนวณจากด่านสุดท้ายที่มีอยู่จริงตอนนั้น (STAGES.length - 1)
+ * เพราะถ้าผูกกับด่านสุดท้าย พอเพิ่มบทใหม่ต่อจากนี้เข้าไปใน CHAPTERS ระดับยาก/ปีศาจ
+ * จะเลื่อนเงื่อนไขปลดล็อกตามไปด้วยทันทีโดยไม่ได้ตั้งใจ ทั้งที่อยากให้ปลดล็อกทันทีที่ผ่านบทนี้
+ * ไม่ต้องรอผู้เล่นผ่านบทใหม่ ๆ ที่เพิ่งเพิ่มเข้ามาก่อน
+ */
+export const DIFFICULTY_GATE_CHAPTER = 7
+
+export function difficultyGateStageId() {
+  const ch = CHAPTERS[DIFFICULTY_GATE_CHAPTER - 1]
+  return ch.stages[ch.stages.length - 1].id
+}
 
 // ─────────────────────────────────────────────────────────────
 // ความยากไล่ต่อเนื่องข้ามโหมด

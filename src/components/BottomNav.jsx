@@ -54,6 +54,7 @@ const GROUPS = [
     items: [
       { to: '/shop', label: 'ร้านค้า', mark: '🏪' },
       { to: '/mail', label: 'กล่องจดหมาย', mark: '✉️' },
+      { to: '/quests', label: 'เควส', mark: '📜' },
       { to: '/redeem', label: 'แลกโค้ด', mark: '🎟️' },
       { to: '/status', label: 'ระบบ', mark: '⚙️' },
     ],
