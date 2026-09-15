@@ -1,28 +1,113 @@
 import { invalidateRoster } from './rostercache'
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
-import { CHARACTERS, RARITIES } from '../data/characters'
-import { EMPTY_POOL, EXCHANGE_COST } from '../data/exchange'
+import { CHARACTERS, RARITIES, BY_RARITY } from '../data/characters'
+import { EMPTY_POOL, EXCHANGE_COST, SHARDS_PER_DUPE } from '../data/exchange'
 
 /**
- * แลกเศษวิญญาณเป็นตัวละครใหม่
+ * รอบหอแลกเปลี่ยน รีทุก 4 ชั่วโมง
  *
- * แลกได้เฉพาะตัวที่ยังไม่มี เพราะถ้าแลกตัวที่มีอยู่แล้วจะได้แค่ชิ้นส่วนคืน
- * ซึ่งเป็นการวนเปล่า ๆ ที่ทำให้ผู้เล่นเสียของโดยไม่ได้อะไร
+ * แบ่งเป็นช่องตายตัวต่อรอบ: SSR 3 ตัว, SR 5 ตัว, R 5 ตัว
+ * R มีแค่ 5 ตัวทั้งเกมพอดี เลยใส่มาครบทุกตัวเสมอโดยไม่ต้องสุ่ม
+ * มีแต่ SSR (จากทั้งหมด) และ SR ที่ต้องสุ่มเลือกมาบางส่วน
+ *
+ * ใช้เวลาปัจจุบันเป็นเมล็ดสุ่ม แบ่งเป็นช่วงละ 4 ชั่วโมง (epoch)
+ * ผู้เล่นทุกคนที่เข้ามาในช่วงเวลาเดียวกันจึงเห็นรอบเดียวกันเป๊ะ
+ * ไม่ต้องเก็บสถานะรอบไว้ใน Firestore หรือรอฟังก์ชันฝั่งเซิร์ฟเวอร์รีเซ็ตให้
+ */
+const ROTATE_HOURS = 4
+const SHOP_SLOTS = { SSR: 3, SR: 5, R: 5 }
+
+function shopPeriodMs() {
+  return ROTATE_HOURS * 60 * 60 * 1000
+}
+
+function shopEpoch(now) {
+  return Math.floor(now.getTime() / shopPeriodMs())
+}
+
+// mulberry32: PRNG ตัวเล็กจากเมล็ดข้อความ พอสำหรับสุ่มหน้าร้าน ไม่ต้องปลอดภัยระดับรหัสผ่าน
+function seededRandom(seedText) {
+  let h = 1779033703 ^ seedText.length
+  for (let i = 0; i < seedText.length; i++) {
+    h = Math.imul(h ^ seedText.charCodeAt(i), 3432918353)
+    h = (h << 13) | (h >>> 19)
+  }
+  return function next() {
+    h = Math.imul(h ^ (h >>> 16), 2246822507)
+    h = Math.imul(h ^ (h >>> 13), 3266489909)
+    h ^= h >>> 16
+    return (h >>> 0) / 4294967296
+  }
+}
+
+function pickRandom(ids, count, rng) {
+  const pool = [...ids]
+  const picked = []
+  while (picked.length < count && pool.length) {
+    const i = Math.floor(rng() * pool.length)
+    picked.push(pool.splice(i, 1)[0])
+  }
+  return picked
+}
+
+/** รายชื่อตัวละครในหอแลกเปลี่ยนรอบปัจจุบัน แยกตามระดับหายาก */
+export function currentShop(now = new Date()) {
+  const rng = seededRandom(`exchange-shop-${shopEpoch(now)}`)
+  return RARITIES.reduce((acc, r) => {
+    const pool = BY_RARITY[r] ?? []
+    const want = SHOP_SLOTS[r] ?? pool.length
+    acc[r] = want >= pool.length ? [...pool] : pickRandom(pool, want, rng)
+    return acc
+  }, {})
+}
+
+/** เหลืออีกกี่นาทีก่อนรอบหน้า ไว้แสดงนับถอยหลังในหน้าจอ */
+export function minutesUntilShopReset(now = new Date()) {
+  const period = shopPeriodMs()
+  const next = (shopEpoch(now) + 1) * period
+  return Math.max(1, Math.ceil((next - now.getTime()) / 60000))
+}
+
+/**
+ * แลกเศษวิญญาณเป็นตัวละคร
+ *
+ * แลกได้เฉพาะตัวที่อยู่ในรอบหอแลกเปลี่ยนตอนนี้เท่านั้น
+ * ถ้ามีตัวนั้นอยู่แล้ว แลกซ้ำได้ตามปกติ แต่จะได้ชิ้นส่วนของตัวเองแทนตัวใหม่
+ * (เหมือนตัวซ้ำจากกาชา) เอาไว้หลอมดาวต่อ แทนที่จะแลกไม่ได้เลยแล้วเศษวิญญาณกองอยู่เฉย ๆ
  */
 export async function exchangeFor(player, charId, owned) {
   const c = CHARACTERS[charId]
   if (!c) throw new Error('ไม่พบตัวละครนี้')
-  if (owned.some((o) => o.id === charId)) throw new Error('มีตัวนี้อยู่แล้ว')
 
   const rarity = c.rarity
+  const shop = currentShop()
+  if (!(shop[rarity] ?? []).includes(charId)) {
+    throw new Error('ตัวนี้ไม่อยู่ในรอบแลกตอนนี้ รอรอบหน้าอีก 4 ชั่วโมง')
+  }
+
   const cost = EXCHANGE_COST[rarity]
   const pool = { ...EMPTY_POOL, ...(player.shardPool ?? {}) }
   if ((pool[rarity] ?? 0) < cost) throw new Error('เศษวิญญาณไม่พอ')
 
   pool[rarity] -= cost
 
+  const existing = owned.find((o) => o.id === charId)
   const batch = writeBatch(db)
+
+  if (existing) {
+    // แลกซ้ำตัวที่มีอยู่แล้ว ได้ชิ้นส่วนของตัวนั้นสะสมไว้หลอมดาว
+    const gain = SHARDS_PER_DUPE[rarity]
+    batch.update(doc(db, 'users', player.uid, 'collection', charId), {
+      shards: (existing.shards ?? 0) + gain,
+    })
+    batch.update(doc(db, 'users', player.uid), { shardPool: pool })
+    await batch.commit()
+    invalidateRoster()
+
+    return { charId, rarity, cost, pool, dupe: true, shardsGained: gain }
+  }
+
   batch.set(doc(db, 'users', player.uid, 'collection', charId), {
     level: 1,
     exp: 0,
@@ -37,7 +122,7 @@ export async function exchangeFor(player, charId, owned) {
   await batch.commit()
   invalidateRoster()
 
-  return { charId, rarity, cost, pool }
+  return { charId, rarity, cost, pool, dupe: false }
 }
 
 /**
@@ -68,13 +153,12 @@ export async function convertShards(player, entry, amount) {
   return { rarity: c.rarity, amount: take }
 }
 
-/** ตัวที่ยังไม่มี แยกตามระดับหายาก */
-export function missingByRarity(owned) {
+/** ตัวละครในรอบหอแลกเปลี่ยนตอนนี้ พร้อมบอกว่ามีอยู่แล้วหรือยัง แยกตามระดับหายาก */
+export function shopEntries(owned) {
   const have = new Set(owned.map((o) => o.id))
+  const shop = currentShop()
   return RARITIES.reduce((acc, r) => {
-    acc[r] = Object.values(CHARACTERS)
-      .filter((c) => c.rarity === r && !have.has(c.id))
-      .map((c) => c.id)
+    acc[r] = (shop[r] ?? []).map((id) => ({ id, owned: have.has(id) }))
     return acc
   }, {})
 }
