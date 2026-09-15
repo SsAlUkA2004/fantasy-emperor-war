@@ -101,6 +101,9 @@ function makeUnit(base, opts) {
     elementName: ELEMENTS[base.element].name,
     mark: opts.mark,
     maxHp: s.hp,
+    // เลือดจริงก่อนคูณ hpScale (ชดเชยที่สู้คนเดียวกับทีมห้าคน) ใช้เป็นฐานคิด % ฟื้นพลัง
+    // ไม่งั้นฟื้นพลังจะคำนวณจากเลือดที่พองไปแล้ว กลายเป็นฟื้นทีละก้อนใหญ่จนตีเท่าไหร่ก็ไม่ลด
+    baseMaxHp: raw.hp,
     hp: s.hp,
     atk: s.atk,
     def: s.def,
@@ -287,7 +290,9 @@ function runEffects(state, actor, move, chosenKey) {
       }
 
       if (effect.kind === 'heal') {
-        const heal = Math.round(target.maxHp * effect.percent * scale)
+        // ใช้ baseMaxHp (เลือดก่อนคูณ hpScale) ไม่ใช่ maxHp ตรง ๆ
+        // กันบอสที่มีสกิลฟื้นพลังฟื้นเป็นก้อนมหาศาลจากเลือดที่ถูกพองไว้สู้ทีมห้าคน
+        const heal = Math.round((target.baseMaxHp ?? target.maxHp) * effect.percent * scale)
         target.hp = Math.min(target.maxHp, target.hp + heal)
         log(state, `${target.name} ฟื้นพลัง ${heal} หน่วย`, actor.side)
         return

@@ -2,9 +2,11 @@ import { collection, doc, getDoc, serverTimestamp, writeBatch } from 'firebase/f
 import { db } from '../firebase'
 import { invalidateRoster } from './rostercache'
 import { GRADE_IDS, SLOT_IDS, rollSubstats } from '../data/gear'
+import { CHARACTERS } from '../data/characters'
+import { SHARDS_PER_DUPE } from '../data/exchange'
 
 /**
- * แลกโค้ดรับเพชรและ/หรืออุปกรณ์
+ * แลกโค้ดรับเพชร/อุปกรณ์/ตัวละคร
  *
  * ความปลอดภัยอยู่ที่ Security Rules ไม่ใช่โค้ดนี้
  * กฎจะอ่านเอกสารโค้ดเองแล้วตรวจสามอย่าง
@@ -15,6 +17,10 @@ import { GRADE_IDS, SLOT_IDS, rollSubstats } from '../data/gear'
  *
  * อุปกรณ์ที่แจกผ่านโค้ดสร้างเป็นเอกสารในคลังของผู้เล่นตามกฎเดียวกับของที่ดรอปจริง
  * (ช่อง/เกรด/ระดับไอเทมต้องมีอยู่จริงและตีบวกเป็นศูนย์) กฎจึงไม่ต้องแก้เพิ่ม
+ *
+ * ตัวละครที่แจกผ่านโค้ดก็เช่นกัน — เริ่มที่เลเวล 1 ดาว 1 เสมอตามกฎเดียวกับตัวที่ได้จากกาชา
+ * ถ้าผู้เล่นมีตัวนั้นอยู่แล้วจะได้ชิ้นส่วนแทน (เท่ากับตัวซ้ำหนึ่งตัวตามระดับความหายาก)
+ * ไม่ได้ตัวซ้ำเปล่า ๆ โดยไม่ได้อะไรกลับมา
  *
  * ข้อจำกัด: จำกัดจำนวนคนที่แลกได้ทั้งหมด (maxUses) ยังทำไม่ได้ฝั่งนี้
  * เพราะต้องนับรวมข้ามผู้เล่น ต้องรอฟังก์ชันฝั่งเซิร์ฟเวอร์
@@ -35,6 +41,7 @@ export async function redeemCode(player, rawCode) {
 
   const gems = data.gems ?? 0
   const gearSpecs = Array.isArray(data.gear) ? data.gear : []
+  const charIds = Array.isArray(data.characters) ? data.characters : []
 
   const batch = writeBatch(db)
   batch.update(doc(db, 'users', player.uid), {
@@ -65,8 +72,37 @@ export async function redeemCode(player, rawCode) {
     }
   })
 
-  await batch.commit()
-  if (gearCount > 0) invalidateRoster()
+  // ตัวละคร: เช็คทีละตัวว่ามีอยู่แล้วหรือยัง เพราะการมีอยู่แล้วเปลี่ยนพฤติกรรม (ตัวใหม่ vs ชิ้นส่วน)
+  const newChars = []
+  const shardChars = []
+  for (const charId of charIds) {
+    const char = CHARACTERS[charId]
+    if (!char) continue
 
-  return { gems, gearCount, label: data.label ?? null }
+    const charRef = doc(db, 'users', player.uid, 'collection', charId)
+    const ownedSnap = await getDoc(charRef)
+
+    if (!ownedSnap.exists()) {
+      batch.set(charRef, {
+        level: 1,
+        exp: 0,
+        star: 1,
+        shards: 0,
+        skillLevel: 1,
+        tier: 0,
+        awaken: 0,
+        obtainedAt: serverTimestamp(),
+      })
+      newChars.push(char.name)
+    } else {
+      const gain = SHARDS_PER_DUPE[char.rarity] ?? 0
+      batch.update(charRef, { shards: (ownedSnap.data().shards ?? 0) + gain })
+      shardChars.push({ name: char.name, shards: gain })
+    }
+  }
+
+  await batch.commit()
+  if (gearCount > 0 || charIds.length > 0) invalidateRoster()
+
+  return { gems, gearCount, newChars, shardChars, label: data.label ?? null }
 }

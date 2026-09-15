@@ -38,13 +38,12 @@ export async function runCharDungeon(player, stage, owned) {
 
   counts[key] = used + 1
 
-  // เหรียญได้ทุกครั้งที่ชนะ ไม่ผูกกับการได้ตัวละคร
-  patch.coins = (player.coins ?? 0) + (stage.coins ?? 0)
-
   const hit = Math.random() < dropRateFor(stage.rarity)
   const has = owned.some((o) => o.id === stage.charId)
   const batch = writeBatch(db)
   const patch = { charDun: { hour, counts } }
+  // เหรียญได้ทุกครั้งที่ชนะ ไม่ผูกกับการได้ตัวละคร
+  patch.coins = (player.coins ?? 0) + (stage.coins ?? 0)
   let got = null
 
   if (hit) {

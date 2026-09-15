@@ -39,7 +39,7 @@ export default function Redeem() {
         <header className="lobby-head">
           <div>
             <h1>แลกโค้ด</h1>
-            <p className="meta">กรอกโค้ดที่ได้รับมาเพื่อรับเพชรหรืออุปกรณ์</p>
+            <p className="meta">กรอกโค้ดที่ได้รับมาเพื่อรับเพชร อุปกรณ์ หรือตัวละคร</p>
           </div>
           <div className="purse">
             <span className="gem">◆</span>
@@ -69,6 +69,15 @@ export default function Redeem() {
             {won.gems > 0 && <p className="levelup">ได้เพชร {won.gems} เม็ด</p>}
             {won.gearCount > 0 && (
               <p className="levelup">ได้อุปกรณ์ {won.gearCount} ชิ้น เช็คได้ที่คลังอุปกรณ์</p>
+            )}
+            {won.newChars?.length > 0 && (
+              <p className="levelup">ได้ตัวละครใหม่ {won.newChars.join(', ')}</p>
+            )}
+            {won.shardChars?.length > 0 && (
+              <p className="levelup">
+                มีตัวนี้อยู่แล้ว ได้ชิ้นส่วนแทน{' '}
+                {won.shardChars.map((c) => `${c.name} +${c.shards}`).join(', ')}
+              </p>
             )}
             {won.label && <p className="meta">{won.label}</p>}
           </div>
