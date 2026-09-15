@@ -239,7 +239,7 @@ export default function Hero() {
               </Link>
             </div>
 
-            <div className="gear-list">
+            <div className="gear-list grid-2">
               {SLOT_IDS.map((sid) => {
                 const worn = (entry.gear ?? []).find((g) => g.slot === sid)
                 return (
