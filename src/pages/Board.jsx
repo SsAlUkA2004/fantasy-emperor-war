@@ -5,10 +5,12 @@ import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
 import { CHAPTERS, DIFFICULTIES } from '../data/stages'
-import { formatPower } from '../lib/power'
+import { CHARACTERS, ELEMENTS } from '../data/characters'
+import { effectiveRarity } from '../data/ascension'
+import { entryPower, formatPower } from '../lib/power'
 import { explainError } from '../lib/errors'
 import { defenseEntries } from '../lib/pvp'
-import { TeamList } from '../components/DefensePeek'
+import UnitPeek from '../components/UnitPeek'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
 
@@ -65,6 +67,7 @@ export default function Board() {
   const [tab, setTab] = useState('pvp')
   const [error, setError] = useState(null)
   const [expanded, setExpanded] = useState(null)
+  const [unitPeek, setUnitPeek] = useState(null)
 
   useEffect(() => {
     getDocs(query(collection(db, 'users'), orderBy('pvpPoints', 'desc'), limit(100)))
@@ -160,7 +163,31 @@ export default function Board() {
 
               {expanded === r.uid && (
                 <div className="board-detail">
-                  <TeamList team={defenseEntries(r)} compact />
+                  {defenseEntries(r).length === 0 && (
+                    <p className="meta tiny">ยังไม่ได้ตั้งทีมตั้งรับ</p>
+                  )}
+                  <div className="unit-row-list">
+                    {defenseEntries(r).map((e, idx) => {
+                      const c = CHARACTERS[e.id]
+                      if (!c) return null
+                      return (
+                        <button
+                          className="unit-row"
+                          key={idx}
+                          onClick={() => setUnitPeek(e)}
+                        >
+                          <span className="unit-row-mark">{ELEMENTS[c.element].mark}</span>
+                          <span className="unit-row-name">{c.name}</span>
+                          <span className="unit-row-meta">
+                            {effectiveRarity(e.id, e.tier)} · เลเวล {e.level}
+                          </span>
+                          <span className="unit-row-power">
+                            ⚔ {formatPower(entryPower(e))}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -168,6 +195,8 @@ export default function Board() {
           {sorted.length === 0 && rows && <p className="meta">ยังไม่มีข้อมูล</p>}
         </div>
       </div>
+
+      {unitPeek && <UnitPeek entry={unitPeek} onClose={() => setUnitPeek(null)} />}
     </main>
   )
 }

@@ -1997,6 +1997,60 @@ a {
   border: 1px solid rgba(200, 164, 77, 0.15);
 }
 
+.unit-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.unit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  background: rgba(20, 16, 43, 0.55);
+  border: 1px solid rgba(200, 164, 77, 0.15);
+  color: inherit;
+  font-family: var(--body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.unit-row:hover {
+  border-color: var(--gold);
+}
+
+.unit-row-mark {
+  flex: none;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.unit-row-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--display);
+  color: var(--gold-bright);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit-row-meta {
+  flex: none;
+  font-size: 0.74rem;
+  color: var(--parchment-dim);
+}
+
+.unit-row-power {
+  flex: none;
+  font-family: var(--display);
+  font-size: 0.85rem;
+  color: var(--parchment);
+}
+
 .board-place {
   flex: none;
   width: 2rem;
