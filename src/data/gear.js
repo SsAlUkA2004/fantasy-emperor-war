@@ -33,6 +33,38 @@ export const GRADES = {
 
 export const GRADE_IDS = Object.keys(GRADES)
 
+/**
+ * จำนวนค่ารองที่ของแต่ละเกรดสุ่มติดมาด้วย นอกเหนือจากค่าหลักของช่องสวมใส่
+ *
+ * ต่ำกว่าตำนานไม่มีค่ารอง เพื่อให้ตำนานขึ้นไปรู้สึกต่างชั้นจริง ไม่ใช่แค่สีเปลี่ยน
+ */
+export const SUBSTAT_COUNT = {
+  white: 0,
+  green: 0,
+  blue: 0,
+  purple: 0,
+  orange: 2,
+  red: 3,
+  pink: 3,
+}
+
+/** ค่าฐานของค่ารองแต่ละชนิด ก่อนคูณเกรด ระดับไอเทม และตีบวก */
+export const SUBSTAT_BASE = {
+  hp: 70,
+  atk: 14,
+  def: 10,
+  spd: 3,
+  crit: 1,
+}
+
+/** ค่ารองอ่อนกว่าค่าหลักของเกรดเดียวกันครึ่งหนึ่ง เพราะเป็นของแถม ไม่ใช่ของหลัก */
+export const SUBSTAT_MULT = 0.5
+
+/** เฉพาะอมตะเท่านั้นที่มีสิทธิ์ติดค่ารองพิเศษนี้ เพิ่มดาเมจสกิลและท่าไม้ตายโดยตรง */
+export const SKILL_POWER_BASE = 8
+export const SKILL_POWER_ILVL_STEP = 0.35
+export const SKILL_POWER_PLUS_STEP = 0.03
+
 /** ช่วงสีที่แต่ละแหล่งดรอปได้ ตามที่ออกแบบไว้ */
 export const SOURCE_RANGE = {
   stage: ['white', 'blue'],
@@ -59,12 +91,60 @@ export function gearStat(gear) {
   return Math.round(slot.base * grade.mult * byIlvl * byPlus)
 }
 
+/** ค่าของค่ารองหนึ่งชนิดบนของชิ้นหนึ่ง (hp/atk/def/spd/crit) */
+export function substatValue(statKey, gear) {
+  const base = SUBSTAT_BASE[statKey]
+  const grade = GRADES[gear?.grade]
+  if (!base || !grade) return 0
+
+  const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * ILVL_STEP
+  const byPlus = 1 + (gear.plus ?? 0) * PLUS_STEP
+  return Math.round(base * grade.mult * SUBSTAT_MULT * byIlvl * byPlus)
+}
+
+/**
+ * ค่าพลังสกิล % ที่ของอมตะติดมาด้วย มีเฉพาะเกรดอมตะเท่านั้น
+ * ขึ้นกับระดับไอเทมและตีบวกช้ากว่าค่าสถานะทั่วไป เพราะไปคูณดาเมจสกิลตรง ๆ
+ */
+export function skillPowerValue(gear) {
+  if (!gear || gear.grade !== 'pink') return 0
+  const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * SKILL_POWER_ILVL_STEP
+  const byPlus = 1 + (gear.plus ?? 0) * SKILL_POWER_PLUS_STEP
+  return Math.round(SKILL_POWER_BASE * byIlvl * byPlus)
+}
+
+/**
+ * สุ่มว่าของชิ้นนี้ติดค่ารองอะไรบ้าง ตามจำนวนที่เกรดกำหนด
+ *
+ * อมตะการันตีค่ารองพลังสกิลเสมอหนึ่งช่อง ที่เหลือสุ่มจากค่าสถานะทั่วไป
+ * ไม่สุ่มซ้ำค่าเดียวกับค่าหลักของช่องสวมใส่ชิ้นนั้น กันของชิ้นเดียวได้เปรียบค่าเดิมสองต่อ
+ */
+export function rollSubstats(grade, slotId) {
+  const count = SUBSTAT_COUNT[grade] ?? 0
+  if (count === 0) return []
+
+  const slot = SLOTS[slotId]
+  const pool = Object.keys(SUBSTAT_BASE).filter((k) => k !== slot?.stat)
+  const picks = grade === 'pink' ? ['skillPower'] : []
+
+  while (picks.length < count && pool.length) {
+    const idx = Math.floor(Math.random() * pool.length)
+    picks.push(pool.splice(idx, 1)[0])
+  }
+
+  return picks
+}
+
 /** รวมค่าที่อุปกรณ์ทุกชิ้นของตัวละครหนึ่งตัวให้ */
 export function gearBonus(list = []) {
-  const total = { hp: 0, atk: 0, def: 0, spd: 0, crit: 0 }
+  const total = { hp: 0, atk: 0, def: 0, spd: 0, crit: 0, skillPower: 0 }
   list.forEach((g) => {
     const slot = SLOTS[g.slot]
     if (slot) total[slot.stat] += gearStat(g)
+    ;(g.substats ?? []).forEach((key) => {
+      if (key === 'skillPower') total.skillPower += skillPowerValue(g)
+      else if (key in total) total[key] += substatValue(key, g)
+    })
   })
   return total
 }
@@ -100,7 +180,13 @@ export function rollGear(source, ilvl) {
   const grade = GRADE_IDS.find((g) => GRADES[g].order === chosen.order)
   const slot = SLOT_IDS[Math.floor(Math.random() * SLOT_IDS.length)]
 
-  return { slot, grade, ilvl: Math.max(1, Math.min(5, ilvl)), plus: 0 }
+  return {
+    slot,
+    grade,
+    ilvl: Math.max(1, Math.min(5, ilvl)),
+    plus: 0,
+    substats: rollSubstats(grade, slot),
+  }
 }
 
 /** โอกาสดรอปต่อการผ่านด่านหนึ่งครั้ง */
@@ -150,4 +236,25 @@ export const GEAR_BOXES = [
 export function gearName(gear) {
   if (!gear) return ''
   return `${SLOTS[gear.slot].name}${GRADES[gear.grade].name}`
+}
+
+/** ชื่อย่อไว้แสดงผลค่ารองแต่ละชนิด */
+export const SUBSTAT_LABEL = {
+  hp: 'พลังชีวิต',
+  atk: 'พลังโจมตี',
+  def: 'พลังป้องกัน',
+  spd: 'ความเร็ว',
+  crit: 'คริติคอล',
+  skillPower: 'พลังสกิล',
+}
+
+/** รายการค่ารองของชิ้นหนึ่ง พร้อมค่าจริงที่คำนวณแล้ว ไว้ให้ UI วนแสดงได้ตรง ๆ */
+export function gearSubstatLines(gear) {
+  if (!gear?.substats?.length) return []
+  return gear.substats.map((key) => ({
+    key,
+    label: SUBSTAT_LABEL[key] ?? key,
+    value: key === 'skillPower' ? skillPowerValue(gear) : substatValue(key, gear),
+    isPercent: key === 'skillPower',
+  }))
 }
