@@ -1,11 +1,13 @@
 /**
- * ตัวช่วยเทียบ "วันเดียวกันไหม" ตามเวลาไทย
+ * ตัวช่วยเทียบ "วันเดียวกันไหม" ของเกม
  *
- * ใช้ชดเชย 7 ชั่วโมงแทนการอ่านโซนเวลาของเครื่อง เพราะฝั่ง Security Rules
- * ก็คำนวณด้วยวิธีเดียวกันเป๊ะ ถ้าสองฝั่งนับวันไม่ตรงกัน ผู้เล่นจะเจออาการ
- * กดได้ในหน้าจอแต่โดนกฎปฏิเสธ ซึ่งหาสาเหตุยากมาก
+ * โควตารายวันทุกชุดรีเซ็ตตอน 21:00 เวลาไทย (สามทุ่ม) ไม่ใช่เที่ยงคืน
+ * ใช้การชดเชยเวลาแทนการอ่านโซนเวลาของเครื่อง เพื่อให้ทุกเครื่องคำนวณ "วันของเกม" ตรงกันเป๊ะ
+ * ไม่ว่าจะตั้งเขตเวลาเครื่องไว้ยังไง (ปรับเปลี่ยนแค่ RESET_HOUR ถ้าอยากขยับเวลารีเซ็ตอีก)
  */
-const OFFSET_MS = 7 * 60 * 60 * 1000
+const RESET_HOUR = 21
+const THAI_OFFSET_MS = 7 * 60 * 60 * 1000
+const OFFSET_MS = THAI_OFFSET_MS - RESET_HOUR * 60 * 60 * 1000
 
 function thaiDayKey(date) {
   return new Date(date.getTime() + OFFSET_MS).toISOString().slice(0, 10)
@@ -32,7 +34,7 @@ export function runsLeft(player, perDay, atField = 'gemRunAt', countField = 'gem
   return Math.max(0, perDay - (player[countField] ?? 0))
 }
 
-/** เที่ยงคืนไทยรอบถัดไป ไว้บอกผู้เล่นว่าอีกนานแค่ไหนจะรีเซ็ต */
+/** เวลารีเซ็ต (21:00 ไทย) รอบถัดไป ไว้บอกผู้เล่นว่าอีกนานแค่ไหนจะรีเซ็ต */
 export function hoursUntilReset() {
   const now = new Date()
   const thai = new Date(now.getTime() + OFFSET_MS)

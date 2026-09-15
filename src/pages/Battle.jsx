@@ -254,6 +254,14 @@ export default function Battle() {
 function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgain, onBack, backLabel, timedOut, bossLeft }) {
   const won = outcome === 'won'
 
+  // ด่านที่มีโควตารายวัน (เหมือง/ดันเจี้ยน/ด่านหาของ/รอยอดีต) กดเล่นอีกครั้งต่อไม่ได้แล้ว
+  // ถ้ารอบนี้ไม่ได้รางวัลเพราะครบโควตา หรือรอบนี้คือรอบสุดท้ายที่เหลือพอดี
+  // กันไม่ให้ผู้เล่นสู้ต่อไปเรื่อย ๆ แบบไม่ได้อะไรเลย
+  const noRunsLeft =
+    Boolean(reward?.quotaSpent) ||
+    reward?.runsLeft === 0 ||
+    (reward?.hunt && reward.hunt.left <= 0)
+
   return (
     <div className="veil" role="dialog" aria-modal="true">
       <section className="panel result popup" data-outcome={outcome}>
@@ -345,8 +353,8 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
             : `ไป${nextStage.name}`}
         </button>
       )}
-      <button className="rune-link block" onClick={onAgain}>
-        เล่นอีกครั้ง
+      <button className="rune-link block" onClick={onAgain} disabled={noRunsLeft}>
+        {noRunsLeft ? 'ครบโควตาวันนี้แล้ว' : 'เล่นอีกครั้ง'}
       </button>
       <button className="plain-link" onClick={onBack}>
         {backLabel ?? 'กลับไปแผนที่'}
