@@ -3,7 +3,6 @@ import { CHARACTERS, ELEMENTS, ROLES, STARTER_IDS } from '../data/characters'
 import { chooseStarter } from '../lib/player'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/auth'
-import { BASE_CRIT_RATE } from '../lib/stats'
 
 export default function ChooseStarter() {
   const { user, refresh } = usePlayer()
@@ -69,7 +68,7 @@ export default function ChooseStarter() {
               ['พลังโจมตี', hero.stats.atk],
               ['พลังป้องกัน', hero.stats.def],
               ['ความเร็ว', hero.stats.spd],
-              ['โอกาสคริติคอล', BASE_CRIT_RATE + '%'],
+              ['โอกาสคริติคอล', hero.stats.critRate + '%'],
               ['ความแรงคริ', '+' + hero.stats.crit + '%'],
             ].map(([label, value]) => (
               <div className="ledger-row" key={label}>

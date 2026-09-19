@@ -93,7 +93,7 @@ export function narrowGearStat(gear, isMain = true) {
   const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * NARROW_STAT_ILVL_STEP
   const byPlus = 1 + (gear.plus ?? 0) * NARROW_STAT_PLUS_STEP
   const mult = isMain ? 1 : SUBSTAT_MULT
-  return Math.round(perGrade * byIlvl * byPlus * mult)
+  return Math.round(perGrade * byIlvl * byPlus * mult * gearVariance(gear))
 }
 
 /** เฉพาะอมตะเท่านั้นที่มีสิทธิ์ติดค่ารองพิเศษนี้ เพิ่มดาเมจสกิลและท่าไม้ตายโดยตรง */
@@ -108,6 +108,24 @@ export const SOURCE_RANGE = {
   worldboss: ['purple', 'red'],
   guild: ['green', 'orange'],
   pvp: ['blue', 'pink'],
+}
+
+/**
+ * ของแต่ละชิ้นมีค่าความเบี่ยงเบนสุ่ม ±5% ติดตัวมาตั้งแต่ดรอป (ทุกเกรดเท่ากัน)
+ * เพื่อให้ของสีเดียวกัน/ระดับเดียวกันไม่แรงเท่ากันเป๊ะทุกชิ้น
+ *
+ * เก็บค่าไว้ที่ gear.variance ตอนสุ่มของ (ดู rollGear) แทนที่จะสุ่มใหม่ทุกครั้งที่คำนวณ
+ * เพื่อให้ค่าของชิ้นนั้นคงที่ตลอด ไม่เปลี่ยนไปมาทุกครั้งที่หน้าจอ re-render
+ * ของเก่าที่ไม่มีฟิลด์นี้ (สุ่มมาก่อนเพิ่มระบบนี้) ถือว่าไม่มีส่วนเบี่ยงเบน (1.0)
+ */
+export const VARIANCE_RANGE = 0.05
+
+export function rollVariance() {
+  return 1 + (Math.random() * 2 - 1) * VARIANCE_RANGE
+}
+
+function gearVariance(gear) {
+  return gear?.variance ?? 1
 }
 
 /** ระดับไอเทมเพิ่มค่าพลัง 60% ต่อระดับ บทที่ 5 จึงแรงกว่าบทที่ 1 ราว 3.4 เท่า */
@@ -126,7 +144,7 @@ export function gearStat(gear) {
 
   const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * ILVL_STEP
   const byPlus = 1 + (gear.plus ?? 0) * PLUS_STEP
-  return Math.round(slot.base * grade.mult * byIlvl * byPlus)
+  return Math.round(slot.base * grade.mult * byIlvl * byPlus * gearVariance(gear))
 }
 
 /** ค่าของค่ารองหนึ่งชนิดบนของชิ้นหนึ่ง (hp/atk/def/ความแรงคริ/ความเร็ว/อัตราคริ) */
@@ -139,7 +157,7 @@ export function substatValue(statKey, gear) {
 
   const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * ILVL_STEP
   const byPlus = 1 + (gear.plus ?? 0) * PLUS_STEP
-  return Math.round(base * grade.mult * SUBSTAT_MULT * byIlvl * byPlus)
+  return Math.round(base * grade.mult * SUBSTAT_MULT * byIlvl * byPlus * gearVariance(gear))
 }
 
 /**
@@ -150,7 +168,7 @@ export function skillPowerValue(gear) {
   if (!gear || gear.grade !== 'pink') return 0
   const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * SKILL_POWER_ILVL_STEP
   const byPlus = 1 + (gear.plus ?? 0) * SKILL_POWER_PLUS_STEP
-  return Math.round(SKILL_POWER_BASE * byIlvl * byPlus)
+  return Math.round(SKILL_POWER_BASE * byIlvl * byPlus * gearVariance(gear))
 }
 
 /**
@@ -226,6 +244,7 @@ export function rollGear(source, ilvl) {
     ilvl: Math.max(1, Math.min(5, ilvl)),
     plus: 0,
     substats: rollSubstats(grade, slot),
+    variance: rollVariance(),
   }
 }
 

@@ -20,9 +20,6 @@ export const STAR_SKILL_GROWTH = 0.1
  */
 export const SPD_CAP = 149
 
-/** อัตราคริพื้นฐานที่ทุกตัวละครมีเท่ากัน สร้างความต่างด้วยอุปกรณ์แทนการไล่ปรับทีละตัว */
-export const BASE_CRIT_RATE = 5
-
 /** เพดานอัตราคริรวม (ตัวละคร + อุปกรณ์) แตะร้อยละหกสิบคือสุดทางแล้ว */
 export const CRIT_RATE_CAP = 60
 
@@ -52,7 +49,7 @@ export function effectiveStats(base, level = 1, star = 1) {
     def: Math.round(base.def * scale),
     spd: base.spd,
     crit: base.crit,
-    critRate: base.critRate ?? BASE_CRIT_RATE,
+    critRate: base.critRate,
   }
 }
 
