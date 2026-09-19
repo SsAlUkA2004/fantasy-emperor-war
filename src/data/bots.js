@@ -90,8 +90,12 @@ function fitBuild(ids, targetCp) {
 /**
  * สร้างคู่ซ้อมตามจำนวนที่ขอ
  *
- * ใช้ดัชนีจากแต้มของผู้เล่นเป็นตัวเลือกชุด ไม่ได้สุ่มล้วน
+ * ใช้ดัชนีจากแต้มของผู้เล่นเป็นตัวเลือกชุดฐาน ไม่ได้สุ่มล้วน
  * ผู้เล่นจึงเจอชุดที่เหมาะกับระดับตัวเอง ไม่ใช่เจอทีม SSR ตั้งแต่แต้มศูนย์
+ *
+ * แต่ต้องมีสุ่มปนอยู่ด้วย เพราะ findOpponents ตกมาเรียกฟังก์ชันนี้ตรง ๆ ทุกครั้งที่มีคนจริง
+ * ไม่พอสามคน (ซึ่งเป็นเกือบตลอดเวลาตอนผู้เล่นยังน้อย) — ถ้าไม่สุ่มอะไรเลย กดหาคู่ใหม่กี่ครั้ง
+ * ก็จะได้บอทชุดเดิมทุกตัวเป๊ะ ๆ เพราะแต้มกับค่าพลังทีมไม่เปลี่ยนระหว่างกด
  */
 export function makeBots(player, count = 3, myTeamCp = 0) {
   const points = player?.pvpPoints ?? 0
@@ -105,14 +109,27 @@ export function makeBots(player, count = 3, myTeamCp = 0) {
   // การจัดชุดตัวละครมีผลมากกว่าค่าพลัง บอทที่ค่าพลังเท่ากันจึงมักชนะ
   const SCALES = [0.78, 0.92, 1.05]
 
+  const usedSlots = new Set()
   const bots = []
   for (let i = 0; i < count; i++) {
-    const slot = Math.min(BOT_TEAMS.length - 1, tier * 2 + i)
+    // สุ่มขยับชุดตัวละครในช่วง ±1 รอบตำแหน่งฐาน ไม่ใช่สุ่มเต็มช่วง
+    // เพื่อให้ยังอยู่ใกล้ระดับที่เหมาะกับผู้เล่น แต่ไม่ใช่ชุดเดิมทุกครั้งที่กดหาใหม่
+    const base = tier * 2 + i
+    let slot = base
+    for (let guard = 0; guard < 6; guard++) {
+      const offset = Math.floor(Math.random() * 3) - 1
+      slot = Math.max(0, Math.min(BOT_TEAMS.length - 1, base + offset))
+      if (!usedSlots.has(slot)) break
+    }
+    usedSlots.add(slot)
+
     const ids = BOT_TEAMS[slot].filter((id) => CHARACTERS[id]).slice(0, TEAM_SIZE)
-    const build = fitBuild(ids, target * SCALES[i % SCALES.length])
+    // สุ่มค่าพลังเป้าหมายเพิ่มอีก ±6% กันบอทระดับ/ดาวเดิมเป๊ะเวลาสุ่มชุดตัวละครได้ตำแหน่งเดิมพอดี
+    const jitter = 0.94 + Math.random() * 0.12
+    const build = fitBuild(ids, target * SCALES[i % SCALES.length] * jitter)
 
     bots.push({
-      uid: `bot:${slot}:${i}`,
+      uid: `bot:${slot}:${i}:${Math.floor(Math.random() * 1e6)}`,
       isBot: true,
       username: BOT_NAMES[slot % BOT_NAMES.length],
       playerLevel: build.level,
