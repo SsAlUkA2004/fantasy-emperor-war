@@ -6,12 +6,12 @@
 // คัดลอกค่ามาแทนที่ค่าว่างด้านล่างนี้ ดูขั้นตอนเต็มได้ใน README.md
 
 export const firebaseConfig = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
-  storageBucket: '',
-  messagingSenderId: '',
-  appId: '',
+  apiKey: 'AIzaSyDeqNBN82-gl3s0YxsjIBFul9cdyX-ZQM4',
+  authDomain: 'fantasy-emperor-war.firebaseapp.com',
+  projectId: 'fantasy-emperor-war',
+  storageBucket: 'fantasy-emperor-war.firebasestorage.app',
+  messagingSenderId: '1075381070019',
+  appId: '1:1075381070019:web:0cc7bca02e4b9802231a76',
 }
 
 /** ยังไม่ได้ตั้งค่าโปรเจกต์จริง ก็ให้ทั้งแอปรู้ตัวและแสดงสถานะที่ถูกต้อง แทนที่จะพังตอนเริ่มแอป */
