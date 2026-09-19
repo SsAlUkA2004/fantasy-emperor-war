@@ -62,7 +62,8 @@ export const MATERIAL_STAGES = [
     exp: 9000,
     requires: '7-3',
     drops: { ore: 110, crystal: 30, scroll: 20 },
-    enemies: [e('automaton', 7), e('stormcaller', 7), e('seraph', 7)],
+    // เดิมเลเวล 7 ทั้งสามตัว ตอนแก้บั๊กไฟไหม้เพิกเฉยพลังป้องกัน (ดู battle.js) ทีมอ้างอิงสู้ไม่ทันเพดานรอบ
+    enemies: [e('automaton', 1), e('stormcaller', 1), e('seraph', 1)],
   },
 ]
 

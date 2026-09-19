@@ -352,7 +352,12 @@ function endOfTurn(state, actor) {
     // ทำให้ไฟแรงตามคนจุด ไม่ใช่แรงตามขนาดของเป้าหมาย
     const byPercent = actor.maxHp * BURN_PERCENT
     const byPower = (actor.effects.burnAtk ?? 0) * BURN_ATK_MULT
-    const burn = Math.max(1, Math.round(byPower > 0 ? Math.min(byPercent, byPower) : byPercent))
+    const raw = byPower > 0 ? Math.min(byPercent, byPower) : byPercent
+    // ต้องลดทอนด้วยพลังป้องกันเหมือนดาเมจปกติ ไม่งั้นไฟจะแรงกว่าดาเมจตรงหลายเท่าตัว
+    // กับเป้าหมายป้องกันสูง (บอสปลายเกม) เพราะดาเมจตรงโดนสูตรลดทอนนี้กัดกินไปแล้ว แต่ไฟไม่โดน
+    // ผลคือทีมที่มีตัวติดไฟชนะง่ายกว่าทีมค่าพลังสูงกว่าที่ไม่มีตัวติดไฟมาก จนค่าพลังใช้ทำนายผลไม่ได้เลย
+    const mitigated = raw * (100 / (100 + statAfterBuffs(actor, 'def')))
+    const burn = Math.max(1, Math.round(mitigated))
     applyDamage(state, actor, burn)
     actor.effects.burn -= 1
     if (actor.effects.burn === 0) actor.effects.burnAtk = 0
