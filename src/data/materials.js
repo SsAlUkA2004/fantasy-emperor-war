@@ -1,4 +1,4 @@
-import { ENEMIES, baseIdOf, difficultyOf, getStage as getBaseStage, stageAt } from './stages'
+import { ENEMIES, STAGES, baseIdOf, difficultyOf, getStage as getBaseStage, stageAt } from './stages'
 import { FLOORS, floorStage } from './dungeon'
 import { roundFor, slotStage } from './chardungeon'
 import { raidBossStage } from './raiddungeon'
@@ -141,6 +141,13 @@ export function findStage(id) {
   if (typeof id === 'string' && id.startsWith('r-')) {
     const [, tierId, idx] = id.split('-')
     return raidBossStage(tierId, Number(idx))
+  }
+  // ด่านเนื้อเรื่องโหมดปกติ (ไม่มีคำต่อท้าย) ต้องผ่าน stageAt เหมือนโหมดยาก/ปีศาจด้วย ไม่ใช่ตัดตรงไปเอา
+  // ด่านดิบจาก STAGES เฉย ๆ ไม่งั้นได้ค่าพลังที่ยังไม่ผ่าน STAGE_SCALE ซึ่งเป็นคนละค่ากับที่ StageMap
+  // คำนวณโชว์ตอนดูด่าน/ก่อนเข้าสู้ (ดู stageAt ใน stages.js) ทำให้บทที่ 6-8 ในโหมดปกติแรงเกินจริง
+  // จนสู้ไม่จบในเพดานรอบไม่ว่าทีมจะแรงแค่ไหน — บั๊กนี้ไม่กระทบบทที่ 1, 2, 4 เพราะตัวคูณของบทนั้นเป็น 1 พอดี
+  if (typeof id === 'string' && STAGES.some((s) => s.id === id)) {
+    return stageAt(id, 'normal')
   }
   return getBaseStage(id) ?? MATERIAL_STAGES.find((s) => s.id === id) ?? null
 }
