@@ -56,6 +56,7 @@ export default function Gacha() {
       const r = await pull({ ...player, uid: user.uid }, count, banner)
       setResults(r.summary)
       await refresh()
+      loadCollection(user.uid).then(setOwned)
     } catch (err) {
       setError(err.message === 'เพชรไม่พอ' ? err.message : explainError('สุ่มไม่สำเร็จ', err))
     }

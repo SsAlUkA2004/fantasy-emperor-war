@@ -81,6 +81,7 @@ export default function ElementalGacha() {
       const r = await pullElemental({ ...player, uid: user.uid }, count)
       setResults(r.summary)
       await refresh()
+      loadCollection(user.uid).then(setOwned)
     } catch (err) {
       setError(err.message === 'เพชรไม่พอ' ? err.message : explainError('สุ่มไม่สำเร็จ', err))
     }
@@ -88,7 +89,6 @@ export default function ElementalGacha() {
   }
 
   const elemShards = player.elemShardPool?.[element] ?? { R: 0, SR: 0, SSR: 0 }
-  const notOwned = ids.filter((id) => !hasChar(id))
 
   async function redeem(charId) {
     setBusy(true)
@@ -188,38 +188,38 @@ export default function ElementalGacha() {
       <section className="pity">
         <h2 className="section-title flush">แลกชิ้นส่วนธาตุ</h2>
         <p className="meta tiny">
-          ตัวซ้ำจากตู้ธาตุให้ชิ้นส่วนธาตุแทนเศษวิญญาณกลาง ใช้แลกได้เฉพาะตัวละครธาตุ{info.name}
-          เท่านั้น แลกได้ทันทีไม่ต้องรอรอบหมุนเวียนแบบหอแลกเปลี่ยนเดิม
+          ตัวซ้ำจากตู้ธาตุให้ชิ้นส่วนธาตุแทนเศษวิญญาณกลาง เอาไปแลกตัวละครธาตุ{info.name}ตัวไหนก็ได้
+          แลกตัวที่ยังไม่มีเพื่อรับตัวใหม่ หรือแลกตัวที่มีแล้วเพื่อรับชิ้นส่วนไปหลอมดาวต่อ (เหมือนหอแลกเปลี่ยนเดิม
+          แต่ใช้ชิ้นส่วนธาตุแทนเศษวิญญาณกลาง) แลกได้ทันทีไม่ต้องรอรอบหมุนเวียน
         </p>
         <p className="meta tiny">
           มีอยู่ · R {elemShards.R ?? 0} · SR {elemShards.SR ?? 0} · SSR {elemShards.SSR ?? 0}
         </p>
 
-        {notOwned.length === 0 ? (
-          <p className="meta">มีครบทุกตัวในธาตุนี้แล้ว</p>
-        ) : (
-          <div className="pool-grid">
-            {notOwned.map((id) => {
-              const c = CHARACTERS[id]
-              const cost = SHARDS_PER_DUPE[c.rarity] * 3
-              const canAfford = (elemShards[c.rarity] ?? 0) >= cost
-              return (
-                <button
-                  key={id}
-                  className="pool-chip"
-                  data-rarity={c.rarity}
-                  disabled={busy || !canAfford}
-                  onClick={() => redeem(id)}
-                >
-                  {ELEMENTS[c.element].mark} {c.name}
-                  <span className="pool-rarity">
-                    {c.rarity} · {cost}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        )}
+        <div className="pool-grid">
+          {ids.map((id) => {
+            const c = CHARACTERS[id]
+            const mine = hasChar(id)
+            const cost = SHARDS_PER_DUPE[c.rarity] * 3
+            const canAfford = (elemShards[c.rarity] ?? 0) >= cost
+            return (
+              <button
+                key={id}
+                className="pool-chip"
+                data-rarity={c.rarity}
+                data-owned={mine}
+                disabled={busy || !canAfford}
+                onClick={() => redeem(id)}
+              >
+                {ELEMENTS[c.element].mark} {c.name}
+                {mine && ' · มีแล้ว'}
+                <span className="pool-rarity">
+                  {c.rarity} · {cost}
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </section>
 
       {error && <div className="trace">{error}</div>}
