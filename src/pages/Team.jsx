@@ -202,7 +202,15 @@ export default function Team() {
           {[...Array(TEAM_SIZE)].map((_, i) => {
             const c = picks[i] ? CHARACTERS[picks[i]] : null
             return (
-              <div className="slot" key={i} data-filled={Boolean(c)}>
+              <button
+                key={i}
+                type="button"
+                className="slot"
+                data-filled={Boolean(c)}
+                disabled={!c}
+                title={c ? 'กดเพื่อถอดออกจากทีม' : undefined}
+                onClick={() => c && toggle(picks[i])}
+              >
                 {c ? (
                   <>
                     <span className="slot-mark">{ELEMENTS[c.element].mark}</span>
@@ -211,9 +219,20 @@ export default function Team() {
                 ) : (
                   <span className="meta tiny">ว่าง</span>
                 )}
-              </div>
+              </button>
             )
           })}
+        </div>
+
+        <div className="team-slots-foot">
+          <span className="meta tiny">กดตัวละครในช่องเพื่อถอดออกทีละตัว</span>
+          <button
+            className="plain-link inline"
+            disabled={!picks.length}
+            onClick={() => setPicks([])}
+          >
+            ถอดทั้งหมด
+          </button>
         </div>
 
         {error && <div className="trace">{error}</div>}

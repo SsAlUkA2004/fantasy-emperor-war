@@ -17,8 +17,19 @@ import { CHARACTERS, RARITIES } from './characters'
 export const MAX_TIER = 2
 export const MAX_AWAKEN = 3
 
-/** ชื่อของแต่ละขั้นปลุกร่าง ใช้แสดงแทนตัวเลขเปล่า ๆ */
-export const AWAKEN_NAMES = ['', 'ตื่นรู้', 'แปรสภาพ', 'อุบัติใหม่']
+/**
+ * ระดับ UR ปลุกร่างได้ห้าขั้น มากกว่า SSR ที่ได้สามขั้น
+ * เป็นอีกเหตุผลหนึ่ง (นอกจาก RARITY_POWER และสกิลตั้งต้นที่แรงกว่า) ที่ทำให้ UR แท้
+ * ปั้นสุดแล้วทิ้งห่าง SSR แท้ได้จริง ไม่ใช่แค่เพดานเลเวลสูงกว่าเฉย ๆ
+ */
+export const MAX_AWAKEN_UR = 5
+
+export function maxAwakenFor(charId) {
+  return CHARACTERS[charId]?.rarity === 'UR' ? MAX_AWAKEN_UR : MAX_AWAKEN
+}
+
+/** ชื่อของแต่ละขั้นปลุกร่าง ใช้แสดงแทนตัวเลขเปล่า ๆ สองขั้นท้ายมีแต่ตัว UR ที่ไปถึง */
+export const AWAKEN_NAMES = ['', 'ตื่นรู้', 'แปรสภาพ', 'อุบัติใหม่', 'ล่วงพ้นมนุษย์', 'จอมเทพอมตะ']
 
 export function awakenName(level = 0) {
   return AWAKEN_NAMES[level] ?? ''
@@ -68,6 +79,9 @@ export const AWAKEN_COST = {
   1: { ore: 500, crystal: 250, scroll: 80 },
   2: { ore: 900, crystal: 500, scroll: 160 },
   3: { ore: 1600, crystal: 900, scroll: 300 },
+  // สองขั้นนี้มีแต่ตัว UR ที่ไปถึง (ดู maxAwakenFor) ราคาจึงแพงต่อเนื่องตามอัตราเดิม
+  4: { ore: 2900, crystal: 1600, scroll: 540 },
+  5: { ore: 5200, crystal: 2900, scroll: 970 },
 }
 
 /**
@@ -125,7 +139,7 @@ export function tierBlockers(charId, entry, cap) {
 
 export function awakenBlockers(charId, entry) {
   const awaken = entry.awaken ?? 0
-  if (awaken >= MAX_AWAKEN) return ['ปลุกร่างครบทุกขั้นแล้ว']
+  if (awaken >= maxAwakenFor(charId)) return ['ปลุกร่างครบทุกขั้นแล้ว']
 
   const blockers = []
   const rarity = effectiveRarity(charId, entry.tier ?? 0)

@@ -87,8 +87,8 @@ export default function BattleStage({
   const yourTurn = actor?.side === 'ally' && !auto && !state.outcome
 
   return (
-    <>
-      <section className="field-side">
+    <div className="battle-arena">
+      <section className="field-side side-enemy">
         {foes.map((u) => (
           <Combatant
             key={u.key}
@@ -110,7 +110,7 @@ export default function BattleStage({
         <div ref={logEnd} />
       </div>
 
-      <section className="field-side">
+      <section className="field-side side-ally">
         {allies.map((u) => (
           <Combatant key={u.key} unit={u} active={actor?.key === u.key} ally />
         ))}
@@ -135,6 +135,6 @@ export default function BattleStage({
           </p>
         )}
       </div>
-    </>
+    </div>
   )
 }

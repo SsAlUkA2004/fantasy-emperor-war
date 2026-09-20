@@ -250,47 +250,49 @@ export default function Lobby() {
           )}
         </section>
 
-        <Link className="rune-link block" to="/stages">
-          ออกผจญภัย
-          <span className="btn-note">
-            เหมืองเหลือ {runsLeft(player, GEM_RUNS_PER_DAY)} ครั้ง
-          </span>
-        </Link>
+        <div className="lobby-actions">
+          <Link className="rune-link block" to="/stages">
+            ออกผจญภัย
+            <span className="btn-note">
+              เหมืองเหลือ {runsLeft(player, GEM_RUNS_PER_DAY)} ครั้ง
+            </span>
+          </Link>
 
-        <Link className="rune-link block" to="/dungeon">
-          ดันเจี้ยน
-          <span className="btn-note">
-            วันนี้เหลือ {runsLeft(player, DUNGEON_RUNS, 'dunRunAt', 'dunRunCount')} ครั้ง
-          </span>
-        </Link>
+          <Link className="rune-link block" to="/dungeon">
+            ดันเจี้ยน
+            <span className="btn-note">
+              วันนี้เหลือ {runsLeft(player, DUNGEON_RUNS, 'dunRunAt', 'dunRunCount')} ครั้ง
+            </span>
+          </Link>
 
-        <Link className="rune-link block" to="/hunt">
-          ดันเจี้ยนรอยอดีต · หาตัวละคร
-          <span className="btn-note">
-            รอบนี้เหลือ {totalRunsLeft(player, roundFor().slots)} ครั้ง
-          </span>
-        </Link>
+          <Link className="rune-link block" to="/hunt">
+            ดันเจี้ยนรอยอดีต · หาตัวละคร
+            <span className="btn-note">
+              รอบนี้เหลือ {totalRunsLeft(player, roundFor().slots)} ครั้ง
+            </span>
+          </Link>
 
-        <Link
-          className="rune-link block"
-          to="/boss"
-          data-locked={!chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter)}
-        >
-          บอสโลก
-          {!chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter) &&
-            ' · ต้องผ่านบทที่ 3'}
-        </Link>
+          <Link
+            className="rune-link block"
+            to="/boss"
+            data-locked={!chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter)}
+          >
+            บอสโลก
+            {!chapterCleared(player.stageProgress, UNLOCKS.worldboss.chapter) &&
+              ' · ต้องผ่านบทที่ 3'}
+          </Link>
 
-        <Link
-          className="rune-link block"
-          to="/arena"
-          data-locked={!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter)}
-        >
-          ประลอง
-          {!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter) && ' · ต้องผ่านบทที่ 1'}
-          {claimableRanks(player.highestRank ?? 0, player.claimedRanks ?? []).length > 0 &&
-            ' · มีรางวัลรอรับ'}
-        </Link>
+          <Link
+            className="rune-link block"
+            to="/arena"
+            data-locked={!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter)}
+          >
+            ประลอง
+            {!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter) && ' · ต้องผ่านบทที่ 1'}
+            {claimableRanks(player.highestRank ?? 0, player.claimedRanks ?? []).length > 0 &&
+              ' · มีรางวัลรอรับ'}
+          </Link>
+        </div>
 
         <p className="meta tiny center lobby-hint">
           โหมดอื่นทั้งหมดอยู่ในแถบด้านล่าง กดปุ่มเมนูขวาสุดเพื่อดูทุกหน้า

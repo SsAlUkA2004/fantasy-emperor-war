@@ -10,10 +10,10 @@ import { usePlayer } from '../context/PlayerContext'
 import { ascend, nextStarCost } from '../lib/gacha'
 import { upgradeSkill, ascendTier, awaken as doAwaken } from '../lib/crafting'
 import {
-  MAX_AWAKEN,
   awakenBlockers,
   awakenCost,
   effectiveRarity,
+  maxAwakenFor,
   maxTierFor,
   tierBlockers,
   tierCost,
@@ -323,9 +323,11 @@ export default function Hero() {
               cost={awakenCost(entry.awaken ?? 0)}
               player={player}
               label={
-                (entry.awaken ?? 0) >= MAX_AWAKEN ? null : `ปลุกร่างขั้นที่ ${(entry.awaken ?? 0) + 1}`
+                (entry.awaken ?? 0) >= maxAwakenFor(charId)
+                  ? null
+                  : `ปลุกร่างขั้นที่ ${(entry.awaken ?? 0) + 1}`
               }
-              note={`แต่ละขั้นเพิ่มค่าพลัง 12% และความแรงสกิล 5% (ขั้นที่ ${entry.awaken ?? 0}/${MAX_AWAKEN})`}
+              note={`แต่ละขั้นเพิ่มค่าพลัง 12% และความแรงสกิล 5% (ขั้นที่ ${entry.awaken ?? 0}/${maxAwakenFor(charId)})`}
               onRun={async () => {
                 const r = await doAwaken({ ...player, uid: user.uid }, { ...entry, id: charId })
                 setEntry({ ...entry, awaken: r.awaken })

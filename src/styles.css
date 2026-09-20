@@ -675,6 +675,10 @@ a {
   font-size: 1.35rem;
 }
 
+.battle-arena {
+  display: block;
+}
+
 .field-side {
   display: flex;
   flex-direction: column;
@@ -1251,7 +1255,7 @@ a {
 
 .pull-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
   gap: 0.6rem;
   margin-top: 1.5rem;
 }
@@ -1333,8 +1337,12 @@ a {
   justify-content: center;
   gap: 0.15rem;
   min-height: 4.4rem;
+  width: 100%;
   padding: 0.3rem 0.15rem;
   text-align: center;
+  font: inherit;
+  color: inherit;
+  cursor: default;
   border: 1px dashed rgba(200, 164, 77, 0.3);
   background: rgba(20, 16, 43, 0.5);
 }
@@ -1343,6 +1351,25 @@ a {
   border-style: solid;
   border-color: var(--gold);
   background: rgba(36, 27, 79, 0.8);
+  cursor: pointer;
+}
+
+.slot[data-filled='true']:hover {
+  border-color: var(--ember);
+}
+
+.team-slots-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.team-slots-foot .plain-link {
+  width: auto;
+  margin: 0;
 }
 
 .slot-mark {
@@ -3479,6 +3506,13 @@ a {
   .tagline {
     max-width: 26rem;
   }
+
+  /* ป๊อปอัพผลกาชา — จอแคบปล่อย auto-fill เรียงเป็นแถวยาวได้ตามพื้นที่
+     จอกว้างขึ้นบังคับสองคอลัมน์เสมอ (ห้าแถวสำหรับสิบครั้ง) แทนที่จะยืดเป็นแถวเดียวห้าคอลัมน์
+     เพราะการ์ดแคบเตี้ยแบนแบบนั้นดูไม่เข้ากับการเล่นบนจอคอมพิวเตอร์ */
+  .pull-popup .pull-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* จอระดับคอมพิวเตอร์ — กว้างขึ้นชัดเจนและเรียงรายการเป็นสองคอลัมน์
@@ -3510,6 +3544,50 @@ a {
   .quest-list .card {
     margin-bottom: 0;
   }
+
+  /* ปุ่มโหมดหลักในหน้าแรก (ผจญภัย/ดันเจี้ยน/รอยอดีต/บอสโลก/ประลอง) เดิมเรียงเป็นแท่งยาว
+     ทีละแถวเต็มความกว้างจอ พอจอกว้างขึ้นจะยาวลงไปเปล่า ๆ จึงจับมาเรียงสองคอลัมน์แทน */
+  .lobby-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+
+  .lobby-actions .rune-link.block,
+  .lobby-actions .rune-link.block + .rune-link.block {
+    margin-top: 0;
+  }
+
+  /* สนามรบ — ฝั่งเราซ้าย ศัตรูขวา เหมือนตั้งกระดานเล่นบนโต๊ะจริง แทนที่จะเรียงกองศัตรู
+     ทับอยู่บนกองเราแนวตั้งยาวเหมือนจอมือถือ บันทึกการต่อสู้กับปุ่มท่ายังกว้างเต็มด้านล่างเหมือนเดิม */
+  .battle-arena {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'allies enemies'
+      'log log'
+      'moves moves';
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .side-ally {
+    grid-area: allies;
+    margin-top: 0;
+  }
+
+  .side-enemy {
+    grid-area: enemies;
+    margin-top: 0;
+  }
+
+  .battle-arena .log {
+    grid-area: log;
+  }
+
+  .battle-arena .moves {
+    grid-area: moves;
+  }
 }
 
 /* จอคอมพิวเตอร์จอใหญ่มาก — กว้างขึ้นอีกนิด และขยับเป็นสามคอลัมน์ให้พอดีกับพื้นที่ */
@@ -3523,6 +3601,10 @@ a {
   .quest-list,
   .mail-list,
   .roster-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .lobby-actions {
     grid-template-columns: repeat(3, 1fr);
   }
 }

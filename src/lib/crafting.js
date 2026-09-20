@@ -8,7 +8,7 @@ import {
   canAfford,
   skillUpgradeCost,
 } from '../data/materials'
-import { awakenCost, tierCost } from '../data/ascension'
+import { awakenCost, maxAwakenFor, tierCost } from '../data/ascension'
 
 /**
  * ซื้อของจากร้าน
@@ -89,9 +89,10 @@ export async function ascendTier(player, entry) {
   return { tier: tier + 1 }
 }
 
-/** ปลุกร่างตัวที่ความหายากถึง SSR แล้ว ทำได้สามขั้น */
+/** ปลุกร่างตัวที่ความหายากถึง SSR แล้ว ทำได้สามขั้น (UR ทำได้ห้าขั้น ดู maxAwakenFor) */
 export async function awaken(player, entry) {
   const level = entry.awaken ?? 0
+  if (level >= maxAwakenFor(entry.id)) throw new Error('ปลุกร่างครบทุกขั้นแล้ว')
   const cost = awakenCost(level)
   if (!cost) throw new Error('ปลุกร่างครบทุกขั้นแล้ว')
 

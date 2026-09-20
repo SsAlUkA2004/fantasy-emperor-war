@@ -5,10 +5,14 @@ import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { UR_BANNER_IDS, UR_RATES, ALL_UR_BANNER_IDS } from '../data/urbanner'
 import { PULL_COST, TEN_PULL_COST } from '../lib/gacha'
-import { UR_HARD_PITY, isURRetired, pullUR } from '../lib/urgacha'
+import { UR_HARD_PITY, FIFTY_PULL_COST, isURRetired, pullUR } from '../lib/urgacha'
 import { loadCollection } from '../lib/player'
 
 const RARITY_ORDER = { UR: 0, SSR: 1, SR: 2 }
+
+function costFor(count) {
+  return count === 50 ? FIFTY_PULL_COST : count === 10 ? TEN_PULL_COST : PULL_COST
+}
 
 /**
  * การ์ดตู้ UR — ระดับความหายากสูงสุดของเกม
@@ -35,7 +39,7 @@ export default function URGacha() {
   const copyCount = player.urCopyCount ?? {}
 
   async function roll(count) {
-    const cost = count === 10 ? TEN_PULL_COST : PULL_COST
+    const cost = costFor(count)
     if (player.gems < cost) {
       setError('เพชรไม่พอ ไปเก็บจากด่านที่ยังไม่เคยผ่านก่อน')
       return
@@ -128,8 +132,13 @@ export default function URGacha() {
         <button className="rune-link" disabled={busy} onClick={() => roll(10)}>
           สุ่ม 10 ครั้ง · {TEN_PULL_COST}
         </button>
+        <button className="rune-link" disabled={busy} onClick={() => roll(50)}>
+          สุ่ม 50 ครั้ง · {FIFTY_PULL_COST}
+        </button>
       </div>
-      <p className="meta tiny center">สุ่มสิบครั้งถูกกว่าสุ่มทีละครั้งอยู่ 100 เพชร</p>
+      <p className="meta tiny center">
+        สุ่มสิบครั้งถูกกว่าสุ่มทีละครั้งอยู่ 100 เพชร · สุ่มห้าสิบครั้งถูกกว่าอยู่ 500 เพชร
+      </p>
 
       {busy && <p className="meta center">กำลังอัญเชิญ</p>}
 
@@ -154,7 +163,7 @@ function URPullResult({ results, count, gems, busy, onAgain, onClose }) {
     acc[r.rarity] = (acc[r.rarity] ?? 0) + 1
     return acc
   }, {})
-  const again = count === 10 ? TEN_PULL_COST : PULL_COST
+  const again = costFor(count)
 
   return (
     <div className="veil" role="dialog" aria-modal="true">

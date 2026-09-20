@@ -1856,61 +1856,62 @@ export const CHARACTERS = {
     rarity: 'UR', element: 'dark', role: 'striker', focus: 'all',
     stats: { hp: 1250, atk: 255, def: 95, spd: 112, crit: 24, critRate: 15 },
     skill: {
-      name: 'เขี้ยวอสูรราตรี', mp: 3, desc: 'โจมตีเดี่ยว 210% และมีโอกาสสามสิบเปอร์เซ็นต์ทำให้สตัน',
+      name: 'เขี้ยวอสูรราตรี', mp: 3, desc: 'โจมตีเดี่ยว 260% และมีโอกาสสี่สิบห้าเปอร์เซ็นต์ทำให้สตัน',
       effects: [
-        { kind: 'damage', mult: 2.1, target: 'one' },
-        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.3 },
+        { kind: 'damage', mult: 2.6, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.45 },
       ],
     },
     ultimate: {
-      name: 'ราตรีกลืนกินภพ', desc: 'โจมตีเดี่ยว 620% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายสตัน',
-      effects: [{ kind: 'damage', mult: 6.2, target: 'one', bonusOn: 'stun', bonusMult: 1.5 }],
+      name: 'ราตรีกลืนกินภพ', desc: 'โจมตีเดี่ยว 700% แรงขึ้นหกสิบเปอร์เซ็นต์ถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 7.0, target: 'one', bonusOn: 'stun', bonusMult: 1.6 }],
     },
-    blurb: 'สายโจมตีระดับ UR ดาเมจต่อตัวสูงที่สุดในเกม ใช้ได้ทุกสนามตั้งแต่ฟาร์มยันตีบอส',
+    blurb: 'สายโจมตีระดับ UR ดาเมจต่อตัวสูงที่สุดในเกม สกิลและไม้ตายแรงกว่าสาย SSR ที่แรงที่สุดจริง ใช้ได้ทุกสนามตั้งแต่ฟาร์มยันตีบอส',
   },
   elyria: {
     id: 'elyria', name: 'เอลิเรีย', epithet: 'เทวีแสงนิรันดร์',
     rarity: 'UR', element: 'light', role: 'mystic', focus: 'all',
     stats: { hp: 1750, atk: 185, def: 135, spd: 104, crit: 16, critRate: 10 },
     skill: {
-      name: 'แสงเยียวยานิรันดร์', mp: 3, desc: 'ฟื้นพลังทั้งทีม 26% ล้างสถานะติดลบ และให้เกราะเพื่อนที่เลือดน้อยที่สุด',
+      name: 'แสงเยียวยานิรันดร์', mp: 3, desc: 'ฟื้นพลังทั้งทีม 32% ล้างสถานะติดลบ และให้เกราะทั้งทีม 2 เทิร์น',
       effects: [
-        { kind: 'heal', percent: 0.26, target: 'allAllies' },
+        { kind: 'heal', percent: 0.32, target: 'allAllies' },
         { kind: 'cleanse', target: 'allAllies' },
-        { kind: 'status', status: 'shield', turns: 1, target: 'lowestAlly' },
+        { kind: 'status', status: 'shield', turns: 2, target: 'allAllies' },
       ],
     },
     ultimate: {
-      name: 'อรุณเทวประทาน', desc: 'โจมตีศัตรูทุกตัว 260% ฟื้นพลังทั้งทีม 35% และให้เกราะทั้งทีม',
+      name: 'อรุณเทวประทาน', desc: 'โจมตีศัตรูทุกตัว 380% สตันทุกตัว 1 เทิร์น ฟื้นพลังทั้งทีม 40% และให้เกราะทั้งทีม',
       effects: [
-        { kind: 'damage', mult: 2.6, target: 'allFoes' },
-        { kind: 'heal', percent: 0.35, target: 'allAllies' },
+        { kind: 'damage', mult: 3.8, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 1 },
+        { kind: 'heal', percent: 0.4, target: 'allAllies' },
         { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
       ],
     },
-    blurb: 'สายสนับสนุนระดับ UR ฟื้นและกันดาเมจแรงกว่าหมอ SSR ทุกตัว ใช้ได้ทุกสนาม',
+    blurb: 'สายสนับสนุนระดับ UR ฟื้น กันดาเมจ และตีแรงกว่าหมอ SSR ที่เก่งที่สุดในเกมทุกด้าน ใช้ได้ทุกสนาม',
   },
   abyssara: {
     id: 'abyssara', name: 'แอบิสซาร่า', epithet: 'ราชินีสมุทรลึก',
     rarity: 'UR', element: 'water', role: 'guardian', focus: 'all',
     stats: { hp: 1950, atk: 175, def: 155, spd: 88, crit: 12, critRate: 10 },
     skill: {
-      name: 'กำแพงสมุทรลึก', mp: 3, desc: 'ดึงเป้าโจมตี 3 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      name: 'กำแพงสมุทรลึก', mp: 3, desc: 'ดึงเป้าโจมตี 3 เทิร์น เพิ่มป้องกัน และได้เกราะ 2 เทิร์น',
       effects: [
         { kind: 'status', status: 'taunt', turns: 3, target: 'self' },
         { kind: 'status', status: 'defUp', turns: 3, target: 'self' },
-        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 2, target: 'self' },
       ],
     },
     ultimate: {
-      name: 'มหาสมุทรล้างโลก', desc: 'โจมตีศัตรูทุกตัว 300% มีโอกาสครึ่งหนึ่งทำให้สตัน และฟื้นพลังตัวเอง 30%',
+      name: 'มหาสมุทรล้างโลก', desc: 'โจมตีศัตรูทุกตัว 360% มีโอกาสหกสิบเปอร์เซ็นต์ทำให้สตัน และฟื้นพลังตัวเอง 35%',
       effects: [
-        { kind: 'damage', mult: 3, target: 'allFoes' },
-        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.5 },
-        { kind: 'heal', percent: 0.3, target: 'self' },
+        { kind: 'damage', mult: 3.6, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.6 },
+        { kind: 'heal', percent: 0.35, target: 'self' },
       ],
     },
-    blurb: 'สายป้องกันระดับ UR ตัวถังที่หนาที่สุดในเกม ยืนรับได้ทุกสนามโดยไม่ต้องเปลี่ยนทีม',
+    blurb: 'สายป้องกันระดับ UR ตัวถังที่หนาและตีแรงกว่าตัวถัง SSR ทุกตัวในเกม ยืนรับได้ทุกสนามโดยไม่ต้องเปลี่ยนทีม',
   },
 }
 

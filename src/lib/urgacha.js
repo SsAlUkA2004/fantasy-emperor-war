@@ -24,6 +24,9 @@ export const UR_HARD_PITY = 500
 export const UR_RETIRE_AT_DUPES = MAX_STAR - 1 // ซ้ำสี่ตัวพอดีหลอมได้ห้าดาว (เท่ากับ starCostFor รวม)
 export const UR_RETIRE_HARD_CAP = 6
 
+/** สุ่มทีเดียว 50 ครั้ง ราคาพิเศษ ถูกกว่าสุ่มทีละครั้งคูณห้าสิบอยู่ 500 เพชร (5,000 → 4,500) */
+export const FIFTY_PULL_COST = 4500
+
 /** ตัวละคร UR ตัวนี้ "เก็บครบ" แล้วหรือยัง นับจากจำนวนครั้งที่เคยสุ่มได้ตัวนี้ (รวมครั้งแรกที่ได้) */
 export function isURRetired(copyCount = 0) {
   const dupes = Math.max(0, copyCount - 1)
@@ -66,7 +69,7 @@ function urAddDupe(pool, rarity) {
 }
 
 export async function pullUR(player, count) {
-  const cost = count === 10 ? TEN_PULL_COST : PULL_COST * count
+  const cost = count === 50 ? FIFTY_PULL_COST : count === 10 ? TEN_PULL_COST : PULL_COST * count
   if (player.gems < cost) throw new Error('เพชรไม่พอ')
 
   const pool = urBannerPool()
