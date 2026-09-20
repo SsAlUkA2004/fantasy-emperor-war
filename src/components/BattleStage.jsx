@@ -49,15 +49,17 @@ function popupText(hit) {
 }
 
 const ELEMENT_PARTICLES = { fire: 8, water: 8, wind: 6, earth: 7, light: 9, dark: 8 }
-const BURST_DIST = { sm: 30, md: 46, lg: 70 }
+const BURST_DIST = { sm: 34, md: 58, lg: 88 }
 
 // อนุภาคเอฟเฟคธาตุจริง (ไม่ใช่แค่ข้อความ) พุ่งออกจากจุดกลางของ .combatant กระจายมุมรอบวงเท่า ๆ กัน
 // สีธาตุมาจากผู้ลงมือท่านั้นเสมอ ไม่ใช่ธาตุของเป้าหมาย เพราะเอฟเฟคคือของท่าที่ปล่อยออกมา
 // รูปร่าง/จังหวะแยกตามธาตุจริง ๆ ที่ styles.css (ไฟ/น้ำ/แสง/มืด เป็นวงกลมพุ่งออก, ลมเป็นริ้ว, ดินเป็นก้อนหมุนร่วง)
-// ท่าไม้ตาย (lg) ได้อนุภาคเพิ่มอีก 3 ให้ดูอัดแน่นกว่าท่าธรรมดาอย่างชัดเจน
+// จำนวนอนุภาคต้องลดลงตอนท่าเล็ก (sm) และเพิ่มตอนท่าไม้ตาย (lg) ไม่ใช่แค่ตั้งระยะห่างเปลี่ยน
+// เพราะระยะวงเล็กกว่า ถ้าจำนวนเท่าเดิมอนุภาคจะถูกอัดแน่นจนแสงเรืองทับกันเป็นก้อนเดียว (บั๊กที่เจอจริง)
 function ElementBurst({ element, size = 'md', ring }) {
   if (!element) return null
-  const count = (ELEMENT_PARTICLES[element] ?? 6) + (size === 'lg' ? 3 : 0)
+  const base = ELEMENT_PARTICLES[element] ?? 6
+  const count = Math.max(4, base + (size === 'lg' ? 3 : size === 'sm' ? -3 : 0))
   const dist = BURST_DIST[size] ?? 24
   return (
     <span className="vfx" data-vfx-el={element} data-vfx-size={size} aria-hidden="true">
@@ -83,8 +85,8 @@ function ElementBurst({ element, size = 'md', ring }) {
 // แสง = รัศมี+ประกายดาว (ยังใช้รัศมีเดิมเพราะตรงคอนเซปต์อยู่แล้ว), มืด = หลุมดำขยายตัว+จานพอกพูนหมุน
 function UltimateFx({ element }) {
   if (element === 'fire') {
-    // ระยะห่างต้องมากกว่าความกว้างเปลว (ดู .vfx-ult-flame) ไม่งั้นเปลวจะทับกันจนกลายเป็นก้อนแสงกลม ๆ
-    const flames = [-72, -36, 0, 36, 72]
+    // ระยะห่างต้องมากกว่าความกว้างเปลว+แสงเรือง (ดู .vfx-ult-flame) ไม่งั้นเปลวจะทับกันจนกลายเป็นก้อนแสงกลม ๆ
+    const flames = [-80, -40, 0, 40, 80]
     return flames.map((x, i) => (
       <span
         key={i}
@@ -111,7 +113,7 @@ function UltimateFx({ element }) {
   }
 
   if (element === 'water') {
-    const bubbles = [-66, -44, -22, 0, 22, 44, 66]
+    const bubbles = [-84, -56, -28, 0, 28, 56, 84]
     return (
       <>
         <span className="vfx-ult-wave" />
@@ -143,7 +145,7 @@ function UltimateFx({ element }) {
         <span className="vfx-ult-rays" />
         {Array.from({ length: 8 }).map((_, i) => {
           const angle = (Math.PI * 2 * i) / 8
-          const r = 30 + (i % 2) * 16
+          const r = 40 + (i % 2) * 20
           return (
             <span
               key={i}

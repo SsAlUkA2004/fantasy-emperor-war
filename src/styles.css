@@ -939,17 +939,12 @@ a {
 .vfx[data-vfx-el='water'] .vfx-p,
 .vfx[data-vfx-el='light'] .vfx-p,
 .vfx[data-vfx-el='dark'] .vfx-p {
-  width: 15px;
-  height: 15px;
-  margin: -7.5px 0 0 -7.5px;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
   border-radius: 50%;
   animation-name: vfx-burst-out;
   animation-duration: 520ms;
-}
-
-/* ท่าไม้ตาย (lg) ขยายทั้งพวงอนุภาคขึ้นอีกชั้น ให้ต่างจากท่าธรรมดาแบบเห็นชัด ไม่ใช่แค่ระยะไกลกว่า */
-.vfx[data-vfx-size='lg'] {
-  transform: scale(1.4);
 }
 
 @keyframes vfx-burst-out {
@@ -958,26 +953,28 @@ a {
   100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--dist, 24px) * -1)) scale(0.3); }
 }
 
+/* กลุ่มไฟ/น้ำ/แสง/มืด: แสงเรือง (box-shadow) ต้องแคบพอที่จะไม่ทับอนุภาคข้างเคียงจนรวมเป็นก้อนเดียว
+   (บั๊กที่เจอจริง: รัศมีเบลอเดิมกว้างกว่าระยะห่างระหว่างอนุภาครอบวง โดยเฉพาะตอนท่าสกิล/คริ) */
 .vfx[data-vfx-el='fire'] .vfx-p {
   background: radial-gradient(circle at 30% 30%, #fff3b0, var(--el-fire) 55%, transparent 78%);
-  box-shadow: 0 0 14px 3px var(--el-fire);
+  box-shadow: 0 0 6px 2px var(--el-fire);
 }
 
 .vfx[data-vfx-el='water'] .vfx-p {
   background: radial-gradient(circle at 35% 30%, #eaffff, var(--el-water) 60%, transparent 80%);
-  box-shadow: 0 0 12px 3px var(--el-water);
+  box-shadow: 0 0 6px 2px var(--el-water);
   animation-duration: 620ms;
 }
 
 .vfx[data-vfx-el='light'] .vfx-p {
   background: radial-gradient(circle at 40% 30%, #ffffff, var(--el-light) 55%, transparent 80%);
-  box-shadow: 0 0 16px 4px var(--el-light);
+  box-shadow: 0 0 7px 2px var(--el-light);
   animation-duration: 460ms;
 }
 
 .vfx[data-vfx-el='dark'] .vfx-p {
   background: radial-gradient(circle at 35% 35%, #e6d4fb, var(--el-dark) 55%, transparent 82%);
-  box-shadow: 0 0 14px 4px var(--el-dark);
+  box-shadow: 0 0 6px 2px var(--el-dark);
   filter: blur(0.5px);
   animation-duration: 680ms;
 }
@@ -989,7 +986,7 @@ a {
   margin: -2.5px 0 0 -17px;
   border-radius: 3px;
   background: linear-gradient(90deg, transparent, var(--el-wind), transparent);
-  box-shadow: 0 0 10px 1px var(--el-wind);
+  box-shadow: 0 0 6px 1px var(--el-wind);
   animation-name: vfx-wind-p;
   animation-duration: 420ms;
 }
@@ -1043,9 +1040,9 @@ a {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 10px;
-  height: 10px;
-  margin: -5px 0 0 -5px;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
   border-radius: 50%;
   border: 2px solid var(--el-water);
   opacity: 0;
@@ -1059,7 +1056,7 @@ a {
 
 @keyframes vfx-ring-out {
   0% { opacity: 0.9; transform: scale(0.4); }
-  100% { opacity: 0; transform: scale(4.2); }
+  100% { opacity: 0; transform: scale(5.5); }
 }
 
 /* ───────── แบนเนอร์ท่าไม้ตายกลางจอ ─────────
@@ -1134,7 +1131,7 @@ a {
   margin: -6px 0 0 -6px;
   background: radial-gradient(circle, #fff, var(--el-light) 60%, transparent 80%);
   clip-path: polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%);
-  box-shadow: 0 0 10px 2px var(--el-light);
+  box-shadow: 0 0 5px 1px var(--el-light);
   opacity: 0;
   animation: vfx-ult-spark 950ms ease-out forwards;
 }
@@ -1151,12 +1148,12 @@ a {
   position: absolute;
   bottom: 24%;
   left: calc(50% + var(--x, 0px));
-  width: 1.9rem;
+  width: 1.6rem;
   height: 4.4rem;
-  margin-left: -0.95rem;
+  margin-left: -0.8rem;
   border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
   background: linear-gradient(0deg, var(--el-fire) 0%, #ffb15e 55%, #fff3b0 100%);
-  box-shadow: 0 0 14px 3px var(--el-fire);
+  box-shadow: 0 0 7px 2px var(--el-fire);
   opacity: 0;
   transform-origin: 50% 100%;
   animation: vfx-ult-flame 1000ms ease-out forwards;
@@ -1240,7 +1237,7 @@ a {
   margin-left: -5.5px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff, var(--el-water) 65%, transparent 85%);
-  box-shadow: 0 0 8px 1px var(--el-water);
+  box-shadow: 0 0 4px 1px var(--el-water);
   opacity: 0;
   animation: vfx-ult-bubble 1000ms ease-out forwards;
 }
