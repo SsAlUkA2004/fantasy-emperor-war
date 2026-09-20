@@ -1059,337 +1059,85 @@ a {
   100% { opacity: 0; transform: scale(5.5); }
 }
 
-/* ───────── ฉากท่าไม้ตายกลางสนาม ─────────
-   เขียนใหม่ทั้งชุด ของเดิมเป็น gradient ซ้อนกันหลายชั้น พอเรนเดอร์จริงเงาฟุ้งกินพื้นที่มากกว่าตัวรูปทรง
-   ทุกธาตุเลยออกมาเป็น "ดวงแสงมัว ๆ" เหมือนกันหมด รอบนี้วาดเป็น SVG รูปทรงจริง ขอบคม สีทึบ
-   (ดู FireScene/WindScene/... ใน BattleStage.jsx) แล้วย่อทั้งกรอบ 320x200 ทีเดียวที่ .ult-art
-   ขนาดจึงคงที่ ไม่ผูกกับความกว้างของ .battle-arena เหมือนเวอร์ชันก่อนที่บวมจนเต็มจอบนเดสก์ท็อป
+/* ───────── ป้ายชื่อท่าไม้ตายกลางจอ ─────────
+   เหลือแค่ตัวหนังสือ ไม่มีภาพประกอบเฉพาะธาตุแล้ว สีของชื่อท่ามาจากธาตุของคนร่าย
 
-   จุดหมุนของทุกชิ้นใช้ transform-box: fill-box เพื่ออ้างอิงกรอบของรูปตัวเอง
-   ส่วนตำแหน่ง/มุมเริ่มต้นไปอยู่ที่ transform attribute ของ <g> ชั้นนอกแทน จะได้ไม่ทับกัน */
+   ชื่อคลาสใช้ prefix ultcall- ล้วน ห้ามตั้งเป็น .ult เปล่า ๆ เพราะชนกับ .move.ult
+   ที่หน้า Hero / ChooseStarter / DefensePeek ใช้อยู่ (เคยชนมาแล้ว กฎ position/​display ของตัวทับจอ
+   ไปโดนกล่องนั้นเข้า จนหัวข้อ "ท่าไม้ตาย" ในหน้ารายละเอียดตัวละครหายไปทั้งกล่อง) */
 
-.ult {
+.ultcall {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
+  padding: 0 1rem;
   pointer-events: none;
   z-index: 7;
 }
 
-.ult[data-el='fire'] { --ult-color: var(--el-fire); }
-.ult[data-el='water'] { --ult-color: var(--el-water); }
-.ult[data-el='wind'] { --ult-color: var(--el-wind); }
-.ult[data-el='earth'] { --ult-color: var(--el-earth); }
-.ult[data-el='light'] { --ult-color: var(--el-light); }
-.ult[data-el='dark'] { --ult-color: var(--el-dark); }
+.ultcall[data-el='fire'] { --ultcall-color: var(--el-fire); }
+.ultcall[data-el='water'] { --ultcall-color: var(--el-water); }
+.ultcall[data-el='wind'] { --ultcall-color: var(--el-wind); }
+.ultcall[data-el='earth'] { --ultcall-color: var(--el-earth); }
+.ultcall[data-el='light'] { --ultcall-color: var(--el-light); }
+.ultcall[data-el='dark'] { --ultcall-color: var(--el-dark); }
 
-.ult-art {
-  width: min(20rem, 86vw);
-  filter: drop-shadow(0 2px 7px rgba(0, 0, 0, 0.7));
-}
-
-.ult-art svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* ไฟ: เปลวไฟห้ายอดลุกขึ้นจากพื้น แต่ละยอดสั่นไหวคนละจังหวะ */
-.ult-flame {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  opacity: 0;
-  animation: ult-flame 980ms ease-out forwards;
-}
-
-.ult-flame-outer { fill: var(--el-fire); }
-.ult-flame-core { fill: #ffe3a0; }
-
-@keyframes ult-flame {
-  0% { opacity: 0; transform: translateY(16px) scale(0.45, 0.28); }
-  16% { opacity: 1; }
-  38% { transform: translateY(-2px) scale(1.06, 1.08); }
-  56% { transform: translateY(-7px) scale(0.92, 1.18); }
-  74% { transform: translateY(-13px) scale(1.03, 1.05); }
-  100% { opacity: 0; transform: translateY(-34px) scale(0.7, 0.84); }
-}
-
-.ult-ember {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #ffd27a;
-  opacity: 0;
-  animation: ult-ember 900ms ease-out forwards;
-}
-
-@keyframes ult-ember {
-  0% { opacity: 0; transform: translateY(30px) scale(0.3); }
-  28% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-48px) scale(0.5); }
-}
-
-/* วายุ: วงลมหมุนกางออกจากกลางสนาม พร้อมริ้วลมพาดขวางจอ */
-.ult-gust {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: none;
-  stroke: var(--el-wind);
-  stroke-linecap: round;
-  opacity: 0;
-  animation: ult-gust 980ms cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
-}
-
-@keyframes ult-gust {
-  0% { opacity: 0; transform: rotate(-45deg) scale(0.3); }
-  22% { opacity: 0.95; }
-  100% { opacity: 0; transform: rotate(155deg) scale(1.3); }
-}
-
-.ult-streak {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: none;
-  stroke: #eafff7;
-  stroke-linecap: round;
-  opacity: 0;
-  animation: ult-streak 780ms ease-out forwards;
-}
-
-@keyframes ult-streak {
-  0% { opacity: 0; transform: translateX(-96px) scaleX(0.5); }
-  30% { opacity: 0.9; }
-  100% { opacity: 0; transform: translateX(104px) scaleX(1.3); }
-}
-
-/* น้ำ: คลื่นซัดขึ้นสองชั้น ชั้นหน้าสีอ่อนกว่าเพื่อให้เห็นยอดคลื่น พร้อมฟองลอยตาม */
-.ult-wave {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  opacity: 0;
-  animation: ult-wave 1020ms cubic-bezier(0.22, 0.75, 0.3, 1) forwards;
-}
-
-.ult-wave-back { fill: var(--el-water); }
-.ult-wave-front { fill: #cdeeff; animation-delay: 90ms; }
-
-@keyframes ult-wave {
-  0% { opacity: 0; transform: translateY(92px) scaleX(0.85); }
-  26% { opacity: 0.95; }
-  70% { opacity: 0.92; transform: translateY(-4px) scaleX(1.02); }
-  100% { opacity: 0; transform: translateY(-14px) scaleX(1.06); }
-}
-
-.ult-bubble {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #eafaff;
-  stroke: var(--el-water);
-  stroke-width: 2;
-  opacity: 0;
-  animation: ult-bubble 900ms ease-out forwards;
-}
-
-@keyframes ult-bubble {
-  0% { opacity: 0; transform: translateY(52px) scale(0.3); }
-  32% { opacity: 1; transform: translateY(4px) scale(1); }
-  100% { opacity: 0; transform: translateY(-42px) scale(0.8); }
-}
-
-/* ดิน: ทิวเขาผุดขึ้นซ้อนกันสามยอด มีดวงตะวันอยู่ข้างหลัง */
-.ult-sun {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #ffe6ac;
-  opacity: 0;
-  animation: ult-sun 1020ms ease-out forwards;
-}
-
-@keyframes ult-sun {
-  0% { opacity: 0; transform: scale(0.25); }
-  32% { opacity: 0.8; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.22); }
-}
-
-.ult-peak {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  opacity: 0;
-  animation: ult-peak 1020ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
-}
-
-.ult-peak-far { fill: #6f5230; }
-.ult-peak-near { fill: var(--el-earth); }
-.ult-snow { fill: #fff3d9; }
-
-@keyframes ult-peak {
-  0% { opacity: 0; transform: translateY(96px); }
-  28% { opacity: 1; }
-  74% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
-
-.ult-rubble {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #d9b878;
-  opacity: 0;
-  animation: ult-rubble 900ms ease-out forwards;
-}
-
-@keyframes ult-rubble {
-  0% { opacity: 0; transform: translateY(24px) rotate(0deg) scale(0.5); }
-  30% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-34px) rotate(240deg) scale(0.9); }
-}
-
-/* แสง: ลำแสงทรงกระสวยแผ่ออกจากศูนย์กลาง + ประกายดาวกระพริบรอบ ๆ */
-.ult-beam {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: var(--el-light);
-  opacity: 0;
-  animation: ult-beam 960ms ease-out forwards;
-}
-
-@keyframes ult-beam {
-  0% { opacity: 0; transform: scale(0.12); }
-  26% { opacity: 1; }
-  100% { opacity: 0; transform: scale(1.3); }
-}
-
-.ult-halo {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #fffdf0;
-  opacity: 0;
-  animation: ult-halo 960ms ease-out forwards;
-}
-
-@keyframes ult-halo {
-  0% { opacity: 0; transform: scale(0.2); }
-  24% { opacity: 0.95; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.5); }
-}
-
-.ult-spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #fffbe6;
-  opacity: 0;
-  animation: ult-spark 760ms ease-out forwards;
-}
-
-@keyframes ult-spark {
-  0% { opacity: 0; transform: scale(0.15) rotate(0deg); }
-  40% { opacity: 1; transform: scale(1.1) rotate(35deg); }
-  100% { opacity: 0; transform: scale(0.4) rotate(80deg); }
-}
-
-/* มืด: หลุมดำแผ่กว้างขึ้นพร้อมขอบเรืองแสง มีจานฝุ่นหมุนรอบ และสายพลังถูกดูดเข้าหาใจกลาง */
-.ult-hole {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: #05030e;
-  opacity: 0;
-  animation: ult-hole 1020ms cubic-bezier(0.25, 0.75, 0.3, 1) forwards;
-}
-
-@keyframes ult-hole {
-  0% { opacity: 0; transform: scale(0.12); }
-  22% { opacity: 1; }
-  72% { opacity: 1; transform: scale(1.7); }
-  100% { opacity: 0; transform: scale(1.9); }
-}
-
-.ult-rim {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: none;
-  stroke: var(--el-dark);
-  stroke-width: 4;
-  opacity: 0;
-  animation: ult-hole 1020ms cubic-bezier(0.25, 0.75, 0.3, 1) forwards;
-}
-
-.ult-disc {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: none;
-  stroke: var(--el-dark);
-  stroke-width: 5;
-  opacity: 0;
-  animation: ult-disc 1020ms linear forwards;
-}
-
-@keyframes ult-disc {
-  0% { opacity: 0; transform: rotate(0deg) scale(0.45); }
-  26% { opacity: 0.85; }
-  100% { opacity: 0; transform: rotate(200deg) scale(1.3); }
-}
-
-.ult-pull {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: var(--el-dark);
-  opacity: 0;
-  animation: ult-pull 900ms ease-in forwards;
-}
-
-@keyframes ult-pull {
-  0% { opacity: 0; transform: translateX(30px) scaleX(1.1); }
-  30% { opacity: 0.9; }
-  100% { opacity: 0; transform: translateX(-34px) scaleX(0.25); }
-}
-
-/* ป้ายชื่อท่าใต้ภาพ */
-.ult-label {
+.ultcall-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.12rem;
-  padding: 0 1rem;
+  gap: 0.22rem;
+  padding: 0.85rem 1.8rem;
   text-align: center;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(11, 8, 24, 0.86) 16%,
+    rgba(11, 8, 24, 0.86) 84%,
+    transparent
+  );
+  border-top: 1px solid var(--ultcall-color, var(--gold));
+  border-bottom: 1px solid var(--ultcall-color, var(--gold));
   opacity: 0;
-  animation: ult-label 1050ms ease-out forwards;
+  animation: ultcall-in 1050ms ease-out forwards;
 }
 
-@keyframes ult-label {
-  0% { opacity: 0; transform: translateY(10px) scale(1.18); }
-  18% { opacity: 1; transform: translateY(0) scale(1); }
-  78% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-6px) scale(0.96); }
+@keyframes ultcall-in {
+  0% { opacity: 0; transform: scale(1.24) translateY(7px); }
+  16% { opacity: 1; transform: scale(1) translateY(0); }
+  76% { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.97) translateY(-7px); }
 }
 
-.ult-kicker {
+.ultcall-kicker {
   font-family: var(--body);
-  font-size: 0.68rem;
-  letter-spacing: 0.34em;
+  font-size: 0.66rem;
+  letter-spacing: 0.36em;
+  text-indent: 0.36em;
   color: var(--parchment-dim);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 
-.ult-move {
+.ultcall-name {
   font-family: var(--display);
   font-weight: 700;
-  font-size: clamp(1.3rem, 5.5vw, 2rem);
-  line-height: 1.2;
-  color: var(--ult-color, var(--gold-bright));
-  text-shadow: 0 0 10px var(--ult-color, var(--gold)), 0 2px 7px rgba(0, 0, 0, 0.95);
+  font-size: clamp(1.5rem, 6.5vw, 2.4rem);
+  line-height: 1.18;
+  color: var(--ultcall-color, var(--gold-bright));
+  text-shadow:
+    0 0 14px var(--ultcall-color, var(--gold)),
+    0 2px 8px rgba(0, 0, 0, 0.95);
 }
 
-.ult-owner {
+.ultcall-owner {
   font-family: var(--body);
   font-size: 0.78rem;
   color: var(--parchment);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 
 /* ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั่วสนาม สีตามธาตุของคนร่าย
-   เป็นแค่ขอบจอบาง ๆ เท่านั้น กลางจอต้องโล่งไว้ให้ฉากธาตุใน .ult ยืนเด่นคนเดียว
+   เป็นแค่ขอบจอบาง ๆ เท่านั้น กลางจอต้องโล่งไว้ให้ป้ายชื่อท่าใน .ultcall ยืนเด่นคนเดียว
    เวอร์ชันก่อนไล่สีจาก 35% ไปจนสุดที่ความทึบ 0.5 ซึ่งบนจอเดสก์ท็อปที่สนามสูงมาก
    แปลว่าครึ่งล่างทั้งแถบโดนย้อมสีธาตุเต็ม ๆ กลายเป็นแสงฟุ้งก้อนใหญ่บังของจริง */
 @keyframes fx-arena-flash {
@@ -1435,9 +1183,14 @@ a {
     animation: none !important;
   }
 
-  .vfx,
-  .ult {
+  .vfx {
     display: none !important;
+  }
+
+  /* ชื่อท่ายังต้องอ่านออก แค่ไม่ต้องขยับ */
+  .ultcall-card {
+    animation: none !important;
+    opacity: 1 !important;
   }
 }
 

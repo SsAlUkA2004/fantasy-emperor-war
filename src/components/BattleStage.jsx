@@ -78,245 +78,23 @@ function ElementBurst({ element, size = 'md', ring }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// ฉากท่าไม้ตาย
+// ป้ายชื่อท่าไม้ตายกลางจอ
 //
-// ของเดิมวาดด้วย gradient ซ้อน ๆ กัน ผลคือพอเรนเดอร์จริงทุกธาตุออกมาหน้าตาเหมือนกันหมด
-// คือ "ดวงแสงมัว ๆ" เพราะเงาฟุ้งกินพื้นที่มากกว่าตัวรูปทรงเอง รอบนี้เลยรื้อทิ้งแล้ววาดเป็น SVG
-// เป็นรูปทรงจริง ๆ ขอบคม มีสีทึบ ไม่พึ่งเงาฟุ้ง
+// เคยลองทำเป็นภาพประกอบเฉพาะธาตุ (เปลวไฟ/ทิวเขา/หลุมดำ ฯลฯ) แต่บนจอจริงมันรกจนอ่านชื่อท่าไม่ออก
+// รอบนี้เหลือแค่ชื่อท่าเป็นตัวหนังสือใหญ่กลางจอ ใช้สีตามธาตุของคนร่ายอย่างเดียว
 //
-// ทุกฉากวาดอยู่ในกรอบพิกัด 320x200 หน่วยเท่ากันหมด แล้วค่อยให้ CSS ย่อทั้งกรอบทีเดียว
-// ขนาดบนจอจึงไม่ผูกกับความกว้างของ .battle-arena อีกต่อไป (จอเดสก์ท็อปเคยทำให้มันบวมจนเต็มจอ)
-//
-// การขยับใช้ CSS ทั้งหมด โดยตั้ง transform-box: fill-box ให้จุดหมุนอ้างอิงกรอบของรูปเอง
-// ส่วนตำแหน่ง/มุมเริ่มต้นใช้ transform attribute ของ <g> ชั้นนอก เพื่อไม่ให้ชนกับ transform ของ CSS
+// ชื่อคลาสต้องขึ้นต้นด้วย ultcall- เสมอ ห้ามตั้งเป็น .ult เปล่า ๆ เพราะซ้ำกับ .move.ult
+// ที่หน้า Hero / ChooseStarter / DefensePeek ใช้อยู่ก่อนแล้ว เคยชนกันมาแล้วจนกล่อง "ท่าไม้ตาย"
+// ในหน้ารายละเอียดตัวละครหายไปทั้งกล่อง
 // ─────────────────────────────────────────────────────────────
 
-const FLAME_OUTER = 'M0 0 C-27 -25 -17 -60 0 -96 C17 -60 27 -25 0 0 Z'
-const FLAME_CORE = 'M0 -8 C-14 -24 -9 -47 0 -70 C9 -47 14 -24 0 -8 Z'
-
-function FireScene() {
-  const flames = [
-    { x: 58, s: 0.72, d: 150 },
-    { x: 108, s: 1.02, d: 60 },
-    { x: 160, s: 1.3, d: 0 },
-    { x: 212, s: 0.98, d: 80 },
-    { x: 262, s: 0.7, d: 140 },
-  ]
-  const embers = [
-    { x: 92, y: 118, r: 4, d: 200 },
-    { x: 140, y: 84, r: 5, d: 120 },
-    { x: 196, y: 102, r: 3.5, d: 240 },
-    { x: 240, y: 76, r: 4.5, d: 170 },
-  ]
+function UltimateCall({ element, name, move }) {
   return (
-    <g>
-      {flames.map((f, i) => (
-        <g key={i} transform={`translate(${f.x} 196) scale(${f.s})`}>
-          <g className="ult-flame" style={{ animationDelay: `${f.d}ms` }}>
-            <path className="ult-flame-outer" d={FLAME_OUTER} />
-            <path className="ult-flame-core" d={FLAME_CORE} />
-          </g>
-        </g>
-      ))}
-      {embers.map((e, i) => (
-        <circle
-          key={i}
-          className="ult-ember"
-          cx={e.x}
-          cy={e.y}
-          r={e.r}
-          style={{ animationDelay: `${e.d}ms` }}
-        />
-      ))}
-    </g>
-  )
-}
-
-function WindScene() {
-  // วงลม: ส่วนโค้ง 270 องศา กรอบของมันจึงอยู่กึ่งกลางวงพอดี หมุน/กางออกจากจุดเดียวกันได้สวย
-  const rings = [
-    { r: 28, w: 7, rot: 0, d: 0 },
-    { r: 50, w: 5.5, rot: 130, d: 80 },
-    { r: 72, w: 4, rot: 250, d: 160 },
-  ]
-  const streaks = [
-    { y: 62, w: 4.5, d: 90 },
-    { y: 100, w: 6, d: 0 },
-    { y: 140, w: 4, d: 120 },
-  ]
-  return (
-    <g>
-      {rings.map((a, i) => (
-        <g key={i} transform={`translate(160 100) rotate(${a.rot})`}>
-          <path
-            className="ult-gust"
-            style={{ animationDelay: `${a.d}ms` }}
-            strokeWidth={a.w}
-            d={`M${a.r} 0 A${a.r} ${a.r} 0 1 1 0 ${-a.r}`}
-          />
-        </g>
-      ))}
-      {streaks.map((s, i) => (
-        <path
-          key={i}
-          className="ult-streak"
-          style={{ animationDelay: `${s.d}ms` }}
-          strokeWidth={s.w}
-          d={`M14 ${s.y + 16} Q160 ${s.y - 18} 306 ${s.y + 8}`}
-        />
-      ))}
-    </g>
-  )
-}
-
-function WaterScene() {
-  const bubbles = [
-    { x: 96, y: 126, r: 7, d: 120 },
-    { x: 140, y: 100, r: 5, d: 180 },
-    { x: 188, y: 112, r: 8, d: 60 },
-    { x: 226, y: 86, r: 6, d: 150 },
-    { x: 258, y: 120, r: 4.5, d: 100 },
-  ]
-  return (
-    <g>
-      <path
-        className="ult-wave ult-wave-back"
-        d="M-12 210 L-12 150 C40 126 94 118 142 132 C184 144 216 134 238 108 C254 148 226 180 176 184 C116 190 52 182 -12 210 Z"
-      />
-      <path
-        className="ult-wave ult-wave-front"
-        d="M-12 210 L-12 174 C46 158 98 152 144 160 C180 166 204 160 218 140 C230 172 204 194 162 198 C110 203 44 200 -12 210 Z"
-      />
-      {bubbles.map((b, i) => (
-        <circle
-          key={i}
-          className="ult-bubble"
-          cx={b.x}
-          cy={b.y}
-          r={b.r}
-          style={{ animationDelay: `${b.d}ms` }}
-        />
-      ))}
-    </g>
-  )
-}
-
-function EarthScene() {
-  const rubble = [
-    { x: 72, y: 150, d: 140 },
-    { x: 244, y: 158, d: 180 },
-    { x: 110, y: 174, d: 100 },
-  ]
-  return (
-    <g>
-      <circle className="ult-sun" cx="160" cy="92" r="54" />
-      <g className="ult-peak" style={{ animationDelay: '80ms' }}>
-        <path className="ult-peak-far" d="M-14 202 L62 94 L138 202 Z" />
-        <path className="ult-peak-far" d="M188 202 L262 102 L336 202 Z" />
-      </g>
-      <g className="ult-peak">
-        <path className="ult-peak-near" d="M48 202 L160 44 L272 202 Z" />
-        <path className="ult-snow" d="M160 44 L198 98 L180 91 L167 102 L154 90 L140 98 L122 94 Z" />
-      </g>
-      {rubble.map((r, i) => (
-        <rect
-          key={i}
-          className="ult-rubble"
-          x={r.x}
-          y={r.y}
-          width="11"
-          height="11"
-          rx="2"
-          style={{ animationDelay: `${r.d}ms` }}
-        />
-      ))}
-    </g>
-  )
-}
-
-function LightScene() {
-  // ลำแสงเป็นทรงกระสวยสมมาตรรอบจุด (0,0) กรอบของมันจึงอยู่กึ่งกลางพอดี ขยายออกจากศูนย์กลางได้ตรง ๆ
-  const beams = [0, 30, 60, 90, 120, 150]
-  const sparks = [
-    { x: 76, y: 58, s: 1, d: 180 },
-    { x: 240, y: 66, s: 0.82, d: 240 },
-    { x: 104, y: 150, s: 0.7, d: 260 },
-    { x: 252, y: 144, s: 0.95, d: 130 },
-    { x: 160, y: 34, s: 0.66, d: 210 },
-  ]
-  return (
-    <g>
-      {beams.map((rot, i) => (
-        <g key={i} transform={`translate(160 100) rotate(${rot})`}>
-          <path
-            className="ult-beam"
-            style={{ animationDelay: `${i * 35}ms` }}
-            d={i % 2 ? 'M-98 0 L0 -7 L98 0 L0 7 Z' : 'M-140 0 L0 -10 L140 0 L0 10 Z'}
-          />
-        </g>
-      ))}
-      <circle className="ult-halo" cx="160" cy="100" r="32" />
-      {sparks.map((s, i) => (
-        <g key={i} transform={`translate(${s.x} ${s.y}) scale(${s.s})`}>
-          <path
-            className="ult-spark"
-            style={{ animationDelay: `${s.d}ms` }}
-            d="M0 -16 Q3 -3 16 0 Q3 3 0 16 Q-3 3 -16 0 Q-3 -3 0 -16 Z"
-          />
-        </g>
-      ))}
-    </g>
-  )
-}
-
-function DarkScene() {
-  const pulls = [0, 60, 120, 180, 240, 300]
-  return (
-    <g>
-      <g transform="translate(160 100)">
-        <ellipse className="ult-disc" rx="84" ry="25" />
-      </g>
-      {pulls.map((rot, i) => (
-        <g key={i} transform={`translate(160 100) rotate(${rot})`}>
-          <rect
-            className="ult-pull"
-            x="44"
-            y="-2"
-            width="70"
-            height="4"
-            rx="2"
-            style={{ animationDelay: `${i * 40}ms` }}
-          />
-        </g>
-      ))}
-      <circle className="ult-hole" cx="160" cy="100" r="34" />
-      <circle className="ult-rim" cx="160" cy="100" r="34" />
-    </g>
-  )
-}
-
-const ULT_SCENES = {
-  fire: FireScene,
-  wind: WindScene,
-  water: WaterScene,
-  earth: EarthScene,
-  light: LightScene,
-  dark: DarkScene,
-}
-
-function UltimateScene({ element, name, move }) {
-  const Scene = ULT_SCENES[element] ?? LightScene
-  return (
-    <div className="ult" data-el={element} aria-hidden="true">
-      <div className="ult-art">
-        <svg viewBox="0 0 320 200" role="presentation">
-          <Scene />
-        </svg>
-      </div>
-      <div className="ult-label">
-        <span className="ult-kicker">ท่าไม้ตาย</span>
-        {move && <span className="ult-move">{move}</span>}
-        {name && <span className="ult-owner">{name}</span>}
+    <div className="ultcall" data-el={element} aria-hidden="true">
+      <div className="ultcall-card">
+        <span className="ultcall-kicker">ท่าไม้ตาย</span>
+        {move && <span className="ultcall-name">{move}</span>}
+        {name && <span className="ultcall-owner">{name}</span>}
       </div>
     </div>
   )
@@ -441,7 +219,7 @@ export default function BattleStage({
   return (
     <div className="battle-arena" data-flash={ultimateElement}>
       {isUltimate && (
-        <UltimateScene element={fxElement} name={actorUnit?.name} move={actorUnit?.ultimate?.name} />
+        <UltimateCall element={fxElement} name={actorUnit?.name} move={actorUnit?.ultimate?.name} />
       )}
 
       <section className="field-side side-enemy">
