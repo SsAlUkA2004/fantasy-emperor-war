@@ -65,6 +65,16 @@ export const MATERIAL_STAGES = [
     // เดิมเลเวล 7 ทั้งสามตัว ตอนแก้บั๊กไฟไหม้เพิกเฉยพลังป้องกัน (ดู battle.js) ทีมอ้างอิงสู้ไม่ทันเพดานรอบ
     enemies: [e('automaton', 1), e('stormcaller', 1), e('seraph', 1)],
   },
+  {
+    id: 'm-5',
+    name: 'สายแร่ใต้พิภพ',
+    intro: 'ผลึกที่นี่ฝังลึกกว่าที่ไหน แต่สิ่งที่เฝ้ามันก็แข็งกว่าที่ไหนเหมือนกัน',
+    materialStage: true,
+    exp: 20000,
+    requires: '8-3',
+    drops: { ore: 220, crystal: 60, scroll: 35 },
+    enemies: [e('shardwraith', 1), e('gembat', 1), e('crystalgolem', 1)],
+  },
 ]
 
 /**

@@ -1,4 +1,5 @@
 import { BY_RARITY, CHARACTERS } from './characters'
+import { ALL_ELEMENTAL_IDS } from './elemental'
 
 // ─────────────────────────────────────────────────────────────
 // ดันเจี้ยนหาตัวละคร
@@ -9,9 +10,19 @@ import { BY_RARITY, CHARACTERS } from './characters'
 // การสุ่มว่าชั่วโมงไหนมีใครไม่ได้เก็บไว้ที่ไหนเลย
 // แต่คำนวณจากหมายเลขชั่วโมงด้วยสูตรเดิมทุกครั้ง ทุกคนจึงเห็นตารางตรงกันเสมอ
 // โดยไม่ต้องมีเซิร์ฟเวอร์คอยสุ่มและประกาศ และดูล่วงหน้าได้ไกลเท่าไหร่ก็ได้
+//
+// ตัวละครตู้ธาตุหมุนเวียนไม่อยู่ในดันเจี้ยนนี้ ตั้งใจให้ได้จากการสุ่มกาชาเท่านั้น
+// จึงกรองออกจากกองที่ใช้สุ่มบอสประจำชั่วโมง (ดู NON_ELEMENTAL_BY_RARITY ด้านล่าง)
 // ─────────────────────────────────────────────────────────────
 
 const HOUR_MS = 60 * 60 * 1000
+
+const elementalSet = new Set(ALL_ELEMENTAL_IDS)
+
+/** กองตัวละครแยกตามระดับหายาก ไม่รวมตัวละครตู้ธาตุหมุนเวียน */
+const NON_ELEMENTAL_BY_RARITY = Object.fromEntries(
+  Object.entries(BY_RARITY).map(([rarity, ids]) => [rarity, ids.filter((id) => !elementalSet.has(id))])
+)
 
 export const SLOTS_PER_ROUND = { R: 3, SR: 2, SSR: 1 }
 export const RUNS_PER_SLOT = 5
@@ -65,7 +76,7 @@ export function roundFor(hour = hourIndex()) {
   let seed = hour * 977
 
   Object.entries(SLOTS_PER_ROUND).forEach(([rarity, count]) => {
-    const pool = BY_RARITY[rarity]
+    const pool = NON_ELEMENTAL_BY_RARITY[rarity]
     const used = new Set()
     for (let i = 0; i < count; i++) {
       let id = pickFrom(pool, seed++)

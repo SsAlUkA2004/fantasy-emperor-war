@@ -1,6 +1,6 @@
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { ENEMIES } from '../data/stages'
-import { BOSSES } from '../data/worldboss'
+import { ALL_BOSS_SPECS } from '../data/worldboss'
 import { effectiveStats, entryStats, entrySkillScale, skillScale } from './stats'
 
 // ─────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export function createBattle(allyEntries, stage) {
       // ศัตรูมีสามแบบ มอนสเตอร์ปกติ บอสโลก และตัวละครผู้เล่นที่ถูกใช้เป็นบอส
       // แยกด้วยรหัสนำหน้า เพราะสามอย่างนี้อยู่คนละตารางกัน
       const m = e.id.startsWith('boss:')
-        ? BOSSES.find((b) => b.id === e.id.slice(5))
+        ? ALL_BOSS_SPECS.find((b) => b.id === e.id.slice(5))
         : e.id.startsWith('hero:')
           ? CHARACTERS[e.id.slice(5)]
           : ENEMIES[e.id]

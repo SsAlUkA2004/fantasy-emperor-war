@@ -1,6 +1,6 @@
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { ENEMIES } from '../data/stages'
-import { BOSSES } from '../data/worldboss'
+import { ALL_BOSS_SPECS } from '../data/worldboss'
 import { entryPower } from './power'
 import { hasAdvantage } from './stats'
 
@@ -18,7 +18,7 @@ import { hasAdvantage } from './stats'
 function resolveFoe(entry) {
   const id = entry.id
   if (typeof id === 'string' && id.startsWith('boss:')) {
-    return BOSSES.find((b) => b.id === id.slice(5)) ?? null
+    return ALL_BOSS_SPECS.find((b) => b.id === id.slice(5)) ?? null
   }
   if (typeof id === 'string' && id.startsWith('hero:')) {
     return CHARACTERS[id.slice(5)] ?? null

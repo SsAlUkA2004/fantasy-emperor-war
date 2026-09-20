@@ -16,9 +16,15 @@ export function discountedPullCost() {
   return Math.round(PULL_COST * DAILY_DISCOUNT)
 }
 
-/** วันนี้ยังไม่ได้ใช้ส่วนลดใช่ไหม */
-export function discountAvailable(player) {
-  return (player?.gachaDiscountDay ?? null) !== todayKey()
+/**
+ * วันนี้ยังไม่ได้ใช้ส่วนลดของตู้นี้ใช่ไหม
+ *
+ * เดิมเก็บวันที่ใช้ส่วนลดไว้ในฟิลด์เดียว (gachaDiscountDay) ใช้ร่วมกันทั้งตู้เริ่มต้น
+ * และตู้ทัพหน้าใหม่ ทำให้สุ่มตู้หนึ่งไปแล้ววันนั้นอีกตู้พลอยเสียสิทธิ์ส่วนลดไปด้วย
+ * เปลี่ยนมาเก็บเป็นออบเจ็กต์แยกต่อรหัสตู้แทน แต่ละตู้จึงมีสิทธิ์ส่วนลดของตัวเอง
+ */
+export function discountAvailable(player, bannerId = 'origin') {
+  return (player?.gachaDiscountDay?.[bannerId] ?? null) !== todayKey()
 }
 
 export const RATES = { R: 0.79, SR: 0.18, SSR: 0.03 }
@@ -119,18 +125,56 @@ function rollOne(pity, pool) {
  * เมื่อเปิดใช้ ให้เปลี่ยนฟังก์ชันนี้ไปเรียก httpsCallable แทน ส่วนอื่นไม่ต้องแก้
  */
 export async function pull(player, count, bannerId = 'origin') {
-  // ส่วนลดใช้ได้กับการสุ่มทีละครั้งเท่านั้น และวันละหนึ่งครั้ง
-  const useDiscount = count === 1 && discountAvailable(player)
+  // ส่วนลดใช้ได้กับการสุ่มทีละครั้งเท่านั้น และวันละหนึ่งครั้งต่อตู้ (ดู discountAvailable)
+  const useDiscount = count === 1 && discountAvailable(player, bannerId)
   const cost = count === 10 ? TEN_PULL_COST : useDiscount ? discountedPullCost() : PULL_COST * count
   if (player.gems < cost) throw new Error('เพชรไม่พอ')
 
-  const pity = {
-    sinceSR: player.pitySR ?? 0,
-    sinceSSR: player.pitySSR ?? 0,
-  }
-
   // แต่ละตู้มีกองตัวละครของตัวเอง ตัวนับการันตีใช้ร่วมกันทั้งสองตู้
   const charPool = bannerPool(bannerId)
+  const extraPatch = {
+    gems: player.gems - cost,
+    ...(useDiscount
+      ? { gachaDiscountDay: { ...(player.gachaDiscountDay ?? {}), [bannerId]: todayKey() } }
+      : {}),
+  }
+
+  const { summary, pity } = await rollAndSave(
+    player,
+    count,
+    charPool,
+    { sr: 'pitySR', ssr: 'pitySSR' },
+    extraPatch
+  )
+
+  return { summary, spent: cost, pity, bannerId, discounted: useDiscount }
+}
+
+/** พฤติกรรมเดิม: ตัวซ้ำให้ชิ้นส่วนตามเรตของระดับหายากนั้น สะสมลงกองเดียวกันแบนราบ */
+function defaultAddDupe(pool, rarity) {
+  const gain = SHARDS_PER_DUPE[rarity]
+  pool[rarity] = (pool[rarity] ?? 0) + gain
+  return gain
+}
+
+/**
+ * แกนกลางของการสุ่มและบันทึกผล ใช้ร่วมกันได้กับกองตัวละครชุดไหนก็ได้
+ *
+ * แยกออกมาจาก pull() เพื่อให้ตู้อื่นที่ไม่ได้อยู่ใน BANNERS ปกติ (เช่นตู้ธาตุหมุนเวียน
+ * ใน lib/elementalgacha.js) ใช้ตรรกะการสุ่ม/หักเพชร/บันทึกชิ้นส่วนชุดเดียวกันได้
+ * โดยแยกตัวนับการันตีเป็นคนละคู่ ผ่านพารามิเตอร์ pityFields ไม่ให้ไปปนกับตู้เดิม
+ */
+export async function rollAndSave(player, count, charPool, pityFields, extraPatch = {}, opts = {}) {
+  // ใช้ปรับได้ว่าชิ้นส่วนตัวซ้ำไปสะสมไว้ที่ฟิลด์ไหนและรูปร่างเริ่มต้นเป็นอย่างไร
+  // ตู้ธาตุหมุนเวียนใช้ 'elemShardPool' (ซ้อนอีกชั้นด้วยธาตุ) แทน 'shardPool' แบบตู้เดิม
+  // เพื่อไม่ให้ชิ้นส่วนตัวละครตู้ธาตุไปปนกับเศษวิญญาณกลางของตู้อื่น
+  const { poolField = 'shardPool', emptyPool = EMPTY_POOL, addDupe = defaultAddDupe } = opts
+
+  const pity = {
+    sinceSR: player[pityFields.sr] ?? 0,
+    sinceSSR: player[pityFields.ssr] ?? 0,
+  }
+
   const results = []
   for (let i = 0; i < count; i++) results.push(rollOne(pity, charPool))
 
@@ -152,7 +196,7 @@ export async function pull(player, count, bannerId = 'origin') {
   )
 
   const summary = []
-  const pool = { ...EMPTY_POOL, ...(player.shardPool ?? {}) }
+  const pool = { ...emptyPool, ...(player[poolField] ?? {}) }
 
   // รวมผลของตัวละครแต่ละตัวให้จบก่อน แล้วค่อยเขียนลงฐานข้อมูลตัวละหนึ่งครั้ง
   //
@@ -180,11 +224,10 @@ export async function pull(player, count, bannerId = 'origin') {
     }
 
     // ตัวซ้ำให้ทั้งชิ้นส่วนของตัวเอง (ไว้หลอมดาว)
-    // และเศษวิญญาณกลาง (ไว้แลกตัวที่ยังไม่มีในหอแลกเปลี่ยน)
-    const gain = SHARDS_PER_DUPE[rarity]
+    // และเศษวิญญาณกลาง (ไว้แลกตัวที่ยังไม่มีในหอแลกเปลี่ยน) — addDupe กำหนดว่าไปลงที่ไหน
+    const gain = addDupe(pool, rarity, id)
     c.shards += gain
     c.gained += gain
-    pool[rarity] = (pool[rarity] ?? 0) + gain
     summary.push({ id, rarity, isNew: false, shards: gain })
   })
 
@@ -211,19 +254,18 @@ export async function pull(player, count, bannerId = 'origin') {
   })
 
   const userPatch = {
-    gems: player.gems - cost,
-    pitySR: pity.sinceSR,
-    pitySSR: pity.sinceSSR,
-    shardPool: pool,
+    ...extraPatch,
+    [pityFields.sr]: pity.sinceSR,
+    [pityFields.ssr]: pity.sinceSSR,
+    [poolField]: pool,
   }
-  if (useDiscount) userPatch.gachaDiscountDay = todayKey()
 
   batch.update(doc(db, 'users', uid), userPatch)
 
   await batch.commit()
 
   invalidateRoster()
-  return { summary, spent: cost, pity, bannerId, discounted: useDiscount }
+  return { summary, pity }
 }
 
 /** ชิ้นส่วนที่ต้องใช้เพื่อขึ้นดาวถัดไป คืน null ถ้าเต็มแล้ว */

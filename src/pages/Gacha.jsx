@@ -14,6 +14,7 @@ import {
   pull,
 } from '../lib/gacha'
 import { loadCollection } from '../lib/player'
+import ElementalGacha from '../components/ElementalGacha'
 
 export default function Gacha() {
   const { user, player, refresh } = usePlayer()
@@ -34,7 +35,7 @@ export default function Gacha() {
   const inBanner = BANNERS.find((b) => b.id === banner)?.ids ?? []
   const hasChar = (id) => owned?.some((o) => o.id === id) ?? false
 
-  const discount = discountAvailable(player)
+  const discount = discountAvailable(player, banner)
   const singleCost = discount ? discountedPullCost() : PULL_COST
 
   const sinceSR = player.pitySR ?? 0
@@ -178,6 +179,9 @@ export default function Gacha() {
           onClose={() => setResults(null)}
         />
       )}
+
+      {/* ตู้ธาตุหมุนเวียน — การ์ดใหม่แยกจากตู้ด้านบนทั้งหมด ไม่แก้อะไรในส่วนบนเลย */}
+      <ElementalGacha />
     </main>
   )
 }

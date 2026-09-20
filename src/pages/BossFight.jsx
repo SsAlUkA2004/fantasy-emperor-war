@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { createBattle, currentUnit, needsTarget, takeTurn } from '../lib/battle'
 import { loadCollection } from '../lib/player'
-import { bossForWeek, weekIndex } from '../data/worldboss'
+import { bossForWeek, bossForWeek2, weekIndex } from '../data/worldboss'
 import { raidBossForWeek, raidWeek } from '../data/guildraid'
 import { submitDamage } from '../lib/worldboss'
 import { submitRaidDamage } from '../lib/guildraid'
@@ -27,9 +27,12 @@ export default function BossFight() {
 
   // หน้านี้ใช้ได้ทั้งบอสโลกและบอสของกิลด์ ต่างกันที่ปลายทางของดาเมจเท่านั้น
   const mode = location.state?.mode === 'raid' ? 'raid' : 'world'
+  // บอสโลกมีสองตัวพร้อมกัน (slot 'current' | 'current2') คนละก้อนเลือดคนละโควตา
+  const slot = location.state?.slot === 'current2' ? 'current2' : 'current'
   const guildId = location.state?.guildId ?? null
   const week = location.state?.week ?? (mode === 'raid' ? raidWeek() : weekIndex())
-  const spec = mode === 'raid' ? raidBossForWeek(week) : bossForWeek(week)
+  const spec =
+    mode === 'raid' ? raidBossForWeek(week) : slot === 'current2' ? bossForWeek2(week) : bossForWeek(week)
   const backTo = mode === 'raid' ? '/guild/raid' : '/boss'
 
   const [state, setState] = useState(null)
@@ -85,7 +88,7 @@ export default function BossFight() {
       const r =
         mode === 'raid'
           ? await submitRaidDamage({ ...player, uid: user.uid }, guildId, week, dealt)
-          : await submitDamage({ ...player, uid: user.uid }, week, dealt)
+          : await submitDamage({ ...player, uid: user.uid }, week, dealt, slot)
       setDone({ dealt, ...r })
       // ต้องรีเฟรชไม่งั้นตัวนับโควตาในหน้าก่อนหน้าจะยังเป็นค่าเก่า
       // แล้วผู้เล่นจะกดเข้าโจมตีได้ไม่จำกัด

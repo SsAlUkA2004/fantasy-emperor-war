@@ -2,7 +2,15 @@ import { invalidateRoster } from './rostercache'
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase'
 import { CHARACTERS, RARITIES, BY_RARITY } from '../data/characters'
+import { ALL_ELEMENTAL_IDS } from '../data/elemental'
 import { EMPTY_POOL, EXCHANGE_COST, SHARDS_PER_DUPE } from '../data/exchange'
+
+const elementalIdSet = new Set(ALL_ELEMENTAL_IDS)
+
+/** กองตัวละครแยกตามระดับหายาก ไม่รวมตัวละครตู้ธาตุหมุนเวียน (แลกที่นี่ไม่ได้ตั้งใจ) */
+const EXCHANGEABLE_BY_RARITY = Object.fromEntries(
+  Object.entries(BY_RARITY).map(([r, ids]) => [r, ids.filter((id) => !elementalIdSet.has(id))])
+)
 
 /**
  * รอบหอแลกเปลี่ยน รีทุก 4 ชั่วโมง
@@ -55,7 +63,7 @@ function pickRandom(ids, count, rng) {
 export function currentShop(now = new Date()) {
   const rng = seededRandom(`exchange-shop-${shopEpoch(now)}`)
   return RARITIES.reduce((acc, r) => {
-    const pool = BY_RARITY[r] ?? []
+    const pool = EXCHANGEABLE_BY_RARITY[r] ?? []
     const want = SHOP_SLOTS[r] ?? pool.length
     acc[r] = want >= pool.length ? [...pool] : pickRandom(pool, want, rng)
     return acc
@@ -79,6 +87,9 @@ export function minutesUntilShopReset(now = new Date()) {
 export async function exchangeFor(player, charId, owned) {
   const c = CHARACTERS[charId]
   if (!c) throw new Error('ไม่พบตัวละครนี้')
+  if (elementalIdSet.has(charId)) {
+    throw new Error('ตัวละครตู้ธาตุแลกที่นี่ไม่ได้ ต้องใช้ชิ้นส่วนธาตุที่หอแลกธาตุแทน')
+  }
 
   const rarity = c.rarity
   const shop = currentShop()
@@ -135,6 +146,9 @@ export async function exchangeFor(player, charId, owned) {
 export async function convertShards(player, entry, amount) {
   const c = CHARACTERS[entry.id]
   if (!c) throw new Error('ไม่พบตัวละครนี้')
+  if (elementalIdSet.has(entry.id)) {
+    throw new Error('ชิ้นส่วนตัวละครตู้ธาตุแปลงเป็นเศษวิญญาณกลางไม่ได้ ใช้หลอมดาวหรือแลกธาตุได้เท่านั้น')
+  }
 
   const take = Math.max(1, Math.min(entry.shards ?? 0, Math.floor(amount)))
   if (take < 1) throw new Error('ตัวนี้ไม่มีชิ้นส่วนเหลือ')

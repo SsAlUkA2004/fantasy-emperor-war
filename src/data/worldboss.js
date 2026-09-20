@@ -106,6 +106,91 @@ export function bossForWeek(week = weekIndex()) {
 }
 
 /**
+ * บอสโลกตัวที่สอง — สู้แยกก้อนเลือดกับตัวแรกและมีโควตาการโจมตีรายวันของตัวเอง
+ * (ดู HITS_PER_DAY_2 กับฟิลด์ boss2RunAt/boss2RunCount ใน lib/worldboss.js)
+ * ผู้เล่นจึงตีได้ทั้งสองตัวในวันเดียวกัน ไม่แย่งโควตากับตัวแรก
+ */
+export const HITS_PER_DAY_2 = 3
+
+export const BOSSES_2 = [
+  {
+    id: 'aetherfang',
+    name: 'เขี้ยวชั้นบรรยากาศ',
+    element: 'wind',
+    mark: '🌪',
+    intro: 'มันโฉบผ่านก่อนที่ใครจะทันมองเห็นตัว',
+    poolHp: 65000000,
+    stats: { hp: 92000000, atk: 560, def: 300, spd: 135, crit: 22 },
+    skill: {
+      name: 'พายุเขี้ยวคม',
+      mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.75, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.3 },
+      ],
+    },
+  },
+  {
+    id: 'luminarch',
+    name: 'จอมทัพแสงสูงสุด',
+    element: 'light',
+    mark: '✨',
+    intro: 'แสงจ้าจนต้องหรี่ตา ก่อนจะเห็นว่ามันใหญ่แค่ไหน',
+    poolHp: 75000000,
+    stats: { hp: 97000000, atk: 500, def: 360, spd: 100, crit: 14 },
+    skill: {
+      name: 'พิพากษาจากบัลลังก์แสง',
+      mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.65, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.3 },
+      ],
+    },
+  },
+  {
+    id: 'frostwyrm',
+    name: 'มังกรน้ำแข็งนิรันดร์',
+    element: 'water',
+    mark: '❄️',
+    intro: 'ลมหายใจของมันแช่แข็งทุกอย่างที่สัมผัส',
+    poolHp: 72000000,
+    stats: { hp: 93000000, atk: 470, def: 400, spd: 90, crit: 12 },
+    skill: {
+      name: 'ลมหายใจเยือกแข็ง',
+      mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.6, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.4 },
+      ],
+    },
+  },
+  {
+    id: 'duskbehemoth',
+    name: 'มหากายแห่งสนธยา',
+    element: 'dark',
+    mark: '🌑',
+    intro: 'เงาของมันทอดยาวก่อนที่ตัวมันจะมาถึงเสมอ',
+    poolHp: 90000000,
+    stats: { hp: 108000000, atk: 530, def: 420, spd: 110, crit: 18 },
+    skill: {
+      name: 'เงาสนธยากลืนกิน',
+      mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.9, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'allFoes' },
+      ],
+    },
+  },
+]
+
+export function bossForWeek2(week = weekIndex()) {
+  return BOSSES_2[week % BOSSES_2.length]
+}
+
+/** รวมบอสทั้งสองสายไว้ที่เดียว ให้ battle.js หาสเปกได้โดยไม่ต้องรู้ว่าใครมาจากสายไหน */
+export const ALL_BOSS_SPECS = [...BOSSES, ...BOSSES_2]
+
+/**
  * รางวัลแบ่งตามดาเมจสะสมทั้งสัปดาห์ ไม่ใช่ตามอันดับ
  *
  * ที่ไม่ใช้อันดับเพราะกฎตรวจอันดับไม่ได้ ต้องนับเทียบกับผู้เล่นทุกคน
