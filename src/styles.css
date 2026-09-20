@@ -1340,6 +1340,19 @@ a {
   color: var(--rune);
 }
 
+.pull-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.pull-pager .plain-link {
+  width: auto;
+  margin: 0;
+}
+
 /* จัดทีม */
 
 .team-slots {
@@ -3684,9 +3697,9 @@ a {
     height: 36rem;
   }
 
-  .pull-popup .pull-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
+  /* คงห้าคอลัมน์ไว้เท่าขั้นก่อนหน้า ไม่ขยับเป็นหกคอลัมน์อีกต่อไป เพราะตอนนี้แบ่งหน้าละ
+     สิบตัว (ห้าคอลัมน์คูณสองแถว) พอดีแล้วใน components/PullResult.jsx หกคอลัมน์จะทำให้
+     สิบตัวต่อหน้าเหลือแถวสุดท้ายไม่เต็มแถว ดูไม่เป็นระเบียบเท่าห้าคอลัมน์ */
 }
 
 /* มือถือแนวนอน (จอเตี้ย) — ย่อองค์ประกอบแนวตั้งที่กินพื้นที่มากลง กันปุ่มกดโดนแถบเมนูล่างบัง */

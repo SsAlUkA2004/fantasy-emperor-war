@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
-import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
+import { CHARACTERS, ELEMENTS } from '../data/characters'
 import {
   activeElement,
   elementalHourIndex,
@@ -19,8 +18,7 @@ import {
   pullElemental,
 } from '../lib/elementalgacha'
 import { loadCollection } from '../lib/player'
-
-const RARITY_ORDER = { SSR: 0, SR: 1, R: 2 }
+import PullResult from './PullResult'
 
 /**
  * การ์ดตู้ธาตุหมุนเวียน — เปิดทีละธาตุ วนตามลำดับเพลิง วารี พายุ ปฐพี แสง มืด ทุกชั่วโมง
@@ -241,68 +239,16 @@ export default function ElementalGacha() {
       {busy && <p className="meta center">กำลังอัญเชิญ</p>}
 
       {results && (
-        <ElementalPullResult
+        <PullResult
           results={results}
           count={lastCount}
+          again={lastCount === 10 ? TEN_PULL_COST : PULL_COST}
           gems={player.gems}
           busy={busy}
           onAgain={() => roll(lastCount)}
           onClose={() => setResults(null)}
         />
       )}
-    </div>
-  )
-}
-
-function ElementalPullResult({ results, count, gems, busy, onAgain, onClose }) {
-  const sorted = [...results].sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])
-  const best = sorted[0]?.rarity ?? 'R'
-  const tally = results.reduce((acc, r) => {
-    acc[r.rarity] = (acc[r.rarity] ?? 0) + 1
-    return acc
-  }, {})
-  const again = count === 10 ? TEN_PULL_COST : PULL_COST
-
-  return (
-    <div className="veil" role="dialog" aria-modal="true">
-      <section className="panel popup pull-popup" data-best={best}>
-        <div className="panel-head">
-          {best === 'SSR' ? 'ได้ตัวระดับตำนาน' : best === 'SR' ? 'ได้ตัวหายาก' : 'ผลการอัญเชิญ'}
-        </div>
-
-        <p className="meta tally">
-          {['SSR', 'SR', 'R'].filter((r) => tally[r]).map((r) => `${r} ${tally[r]} ตัว`).join(' · ')}
-        </p>
-
-        <div className="pull-grid">
-          {sorted.map((r, i) => {
-            const c = CHARACTERS[r.id]
-            return (
-              <Link
-                className="pull-card reveal"
-                to={`/hero/${r.id}`}
-                data-rarity={r.rarity}
-                style={{ animationDelay: `${i * 90}ms` }}
-                key={i}
-              >
-                <span className="pull-mark">{ELEMENTS[c.element].mark}</span>
-                <span className="pull-name">{c.name}</span>
-                <span className="pull-role">{ROLES[c.role]}</span>
-                <span className="pull-tag">{r.isNew ? 'ตัวใหม่' : `ซ้ำ +${r.shards} ชิ้นส่วน`}</span>
-              </Link>
-            )
-          })}
-        </div>
-
-        <p className="meta tiny">แตะการ์ดเพื่อดูรายละเอียดตัวละคร</p>
-
-        <button className="rune-link block primary" onClick={onAgain} disabled={busy || gems < again}>
-          {gems < again ? 'เพชรไม่พอสุ่มอีก' : `สุ่มอีก ${count} ครั้ง · ${again}`}
-        </button>
-        <button className="plain-link" onClick={onClose}>
-          ปิด
-        </button>
-      </section>
     </div>
   )
 }

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
-import { CHARACTERS, ELEMENTS } from '../data/characters'
+import { CHARACTERS, ELEMENTS, RARITIES } from '../data/characters'
+import { effectiveRarity } from '../data/ascension'
 import {
   GRADES,
   GRADE_IDS,
@@ -41,6 +42,8 @@ export default function Gear() {
   const [sort, setSort] = useState('value')
   const [bulk, setBulk] = useState(1)
   const [hideWorn, setHideWorn] = useState(false)
+  const [pickElement, setPickElement] = useState('all')
+  const [pickRarity, setPickRarity] = useState('all')
 
   const who = params.get('char') ?? null
 
@@ -60,6 +63,19 @@ export default function Gear() {
   ).length
   const target = roster?.find((c) => c.id === who) ?? null
   const wearing = gear?.filter((g) => g.equippedBy === who) ?? []
+
+  // ตัวละครเยอะขึ้นเรื่อย ๆ (ธาตุหมุนเวียน + UR) รายการเลือก "สวมให้ใคร" จึงยาวมาก
+  // กรองด้วยธาตุ/ระดับ (ระดับปัจจุบันหลังยกระดับ เพราะหน้านี้สนใจว่าตัวนี้แรงแค่ไหนตอนนี้
+  // ไม่ใช่สุ่มมาจากระดับไหนแบบหน้าจัดทีม) แล้วเรียงค่าพลังมากไปน้อยให้หาตัวแรงง่ายขึ้น
+  const pickable = (roster ?? [])
+    .filter((c) => {
+      const ch = CHARACTERS[c.id]
+      if (!ch) return false
+      if (pickElement !== 'all' && ch.element !== pickElement) return false
+      if (pickRarity !== 'all' && effectiveRarity(c.id, c.tier) !== pickRarity) return false
+      return true
+    })
+    .sort((a, b) => entryPower(b) - entryPower(a))
 
   // ของที่ตัวละครที่เลือกใส่อยู่ ขึ้นก่อนเสมอไม่ว่าจะเรียงแบบไหน
   // เพราะพอของเยอะ สิ่งที่อยากรู้ที่สุดคือชิ้นไหนใส่อยู่
@@ -122,8 +138,35 @@ export default function Gear() {
         {error && <div className="trace">{error}</div>}
 
         <h2 className="section-title">สวมให้ใคร</h2>
+        <div className="filter-row">
+          <select
+            className="filter-select"
+            value={pickElement}
+            onChange={(e) => setPickElement(e.target.value)}
+          >
+            <option value="all">ทุกธาตุ</option>
+            {Object.entries(ELEMENTS).map(([id, el]) => (
+              <option key={id} value={id}>
+                {el.mark} {el.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="filter-select"
+            value={pickRarity}
+            onChange={(e) => setPickRarity(e.target.value)}
+          >
+            <option value="all">ทุกระดับ</option>
+            {[...RARITIES, 'UR'].map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="meta tiny">แสดง {pickable.length} จาก {roster?.length ?? 0} ตัว</p>
         <div className="wear-picker">
-          {roster?.map((c) => {
+          {pickable.map((c) => {
             const ch = CHARACTERS[c.id]
             if (!ch) return null
             return (
