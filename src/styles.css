@@ -1657,7 +1657,10 @@ a {
 
 /* ───────── ป๊อปอัพผลกาชา ───────── */
 
-.pull-popup {
+/* ต้องเจาะจงสามคลาสเท่า .panel.popup (ไม่ใช่แค่ .pull-popup คลาสเดียว) เพราะ .panel.popup
+   เองก็กำหนด max-width ไว้ (24rem) ด้วยความจำเพาะสองคลาส ถ้าฝั่งนี้จำเพาะแค่คลาสเดียว
+   จะแพ้เสมอไม่ว่าจะประกาศทีหลังแค่ไหน ค่า max-width ตรงนี้เลยไม่เคยมีผลจริงมาก่อน */
+.panel.popup.pull-popup {
   max-width: 30rem;
 }
 
@@ -2439,7 +2442,8 @@ a {
 
 /* ดูทีมคู่แข่ง */
 
-.peek-popup {
+/* จำเพาะสามคลาสเท่า .panel.popup ด้วยเหตุผลเดียวกับ .panel.popup.pull-popup ด้านบน */
+.panel.popup.peek-popup {
   max-width: 26rem;
   text-align: left;
 }
@@ -3536,9 +3540,14 @@ a {
      เนื้อหายาวแค่ไหนก็ดันความสูงขึ้นไปเรื่อย ๆ จนถึงเพดาน 85dvh แล้วค่อยเลื่อน
      ผลคือกลายเป็นกล่องแคบสูงเหมือนเปิดมือถือกลางจอคอม ไม่ใช่กรอบกว้างแบบจอคอมจริง ๆ
      กำหนด height ไปพร้อม width เป็นสัดส่วนแนวนอนประมาณ 16:9 แทน เนื้อหาที่ยาวเกินก็ยัง
-     เลื่อนดูได้เหมือนเดิม (overflow-y:auto ของ .panel.popup เดิม) แค่กรอบนอกไม่ยืดตามอีกต่อไป */
-  .pull-popup,
-  .peek-popup,
+     เลื่อนดูได้เหมือนเดิม (overflow-y:auto ของ .panel.popup เดิม) แค่กรอบนอกไม่ยืดตามอีกต่อไป
+
+     ต้องเขียน .panel.popup.pull-popup / .panel.popup.peek-popup เต็ม ๆ (ไม่ใช่แค่
+     .pull-popup / .peek-popup) เพราะ .panel.popup เองก็ล็อก max-width ไว้ที่ 24rem ด้วย
+     ความจำเพาะสองคลาส ถ้าฝั่งนี้จำเพาะแค่คลาสเดียวจะแพ้ทุกครั้งไม่ว่าจะประกาศทีหลังแค่ไหน
+     (.panel.popup.brief จำเพาะสามคลาสอยู่แล้วจึงไม่เจอปัญหานี้) */
+  .panel.popup.pull-popup,
+  .panel.popup.peek-popup,
   .panel.popup.brief {
     width: 42rem;
     max-width: 42rem;
@@ -3639,9 +3648,10 @@ a {
   }
 
   /* สามป๊อปอัพเดิม (ผลกาชา / ดูตัวละคร / ก่อนเข้าด่าน) ขยายอีกขั้นตามจอ ยังคุมสัดส่วน
-     แนวนอนประมาณ 16:9 ไว้เหมือนขั้น 48rem ไม่ปล่อยให้สูงขึ้นตามเนื้อหาอีก */
-  .pull-popup,
-  .peek-popup,
+     แนวนอนประมาณ 16:9 ไว้เหมือนขั้น 48rem ไม่ปล่อยให้สูงขึ้นตามเนื้อหาอีก
+     (จำเพาะสามคลาสเท่า .panel.popup ด้วยเหตุผลเดียวกับที่คอมเมนต์ไว้ในขั้น 48rem) */
+  .panel.popup.pull-popup,
+  .panel.popup.peek-popup,
   .panel.popup.brief {
     width: 54rem;
     max-width: 54rem;
@@ -3666,8 +3676,8 @@ a {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .pull-popup,
-  .peek-popup,
+  .panel.popup.pull-popup,
+  .panel.popup.peek-popup,
   .panel.popup.brief {
     width: 64rem;
     max-width: 64rem;
