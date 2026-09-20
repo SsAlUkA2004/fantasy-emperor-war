@@ -2152,6 +2152,26 @@ a {
   background: rgba(36, 27, 79, 0.9);
 }
 
+/* ───────── ตัวกรองธาตุ/ระดับในหน้าจัดทีม ───────── */
+
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 0.9rem;
+}
+
+.filter-select {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--parchment);
+  background: rgba(20, 16, 43, 0.7);
+  border: 1px solid rgba(200, 164, 77, 0.22);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 .mode-count {
   font-family: var(--body);
   font-size: 0.7rem;

@@ -4,7 +4,7 @@ import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
-import { CHARACTERS, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
+import { CHARACTERS, ELEMENTS, RARITIES, ROLES, TEAM_SIZE } from '../data/characters'
 import { effectiveRarity, awakenName } from '../data/ascension'
 import { loadCollection } from '../lib/player'
 import { entryLevelCap } from '../lib/stats'
@@ -34,6 +34,8 @@ export default function Team() {
   const [picks, setPicks] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [filterElement, setFilterElement] = useState('all')
+  const [filterRarity, setFilterRarity] = useState('all')
 
   useEffect(() => {
     loadCollection(user.uid).then(setOwned)
@@ -191,10 +193,44 @@ export default function Team() {
 
         <h2 className="section-title">ตัวละครที่มี {owned ? `(${owned.length})` : ''}</h2>
 
+        <div className="filter-row">
+          <select
+            className="filter-select"
+            value={filterElement}
+            onChange={(e) => setFilterElement(e.target.value)}
+          >
+            <option value="all">ทุกธาตุ</option>
+            {Object.entries(ELEMENTS).map(([id, el]) => (
+              <option key={id} value={id}>
+                {el.mark} {el.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="filter-select"
+            value={filterRarity}
+            onChange={(e) => setFilterRarity(e.target.value)}
+          >
+            <option value="all">ทุกระดับ</option>
+            {RARITIES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {owned === null && <p className="meta">กำลังเปิดกระเป๋า</p>}
 
         {owned
-          ?.slice()
+          ?.filter((entry) => {
+            const c = CHARACTERS[entry.id]
+            if (!c) return false
+            if (filterElement !== 'all' && c.element !== filterElement) return false
+            // อ้างอิงระดับเก่า (c.rarity) ไม่ใช่ระดับที่ยกระดับแล้ว เพื่อกรองตามที่สุ่มได้จริง
+            if (filterRarity !== 'all' && c.rarity !== filterRarity) return false
+            return true
+          })
           .sort((a, b) => entryPower(b) - entryPower(a))
           .map((entry) => {
             const c = CHARACTERS[entry.id]
