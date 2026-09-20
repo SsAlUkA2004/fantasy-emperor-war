@@ -1,0 +1,185 @@
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { usePlayer } from '../context/PlayerContext'
+import { createBattle, currentUnit, needsTarget, takeTurn } from '../lib/battle'
+import { loadCollection } from '../lib/player'
+import { bossForWeek, bossForWeek2, weekIndex } from '../data/worldboss'
+import { raidBossForWeek, raidWeek } from '../data/guildraid'
+import { submitDamage } from '../lib/worldboss'
+import { submitRaidDamage } from '../lib/guildraid'
+import { ROUND_LIMIT } from '../lib/pvp'
+import BattleStage from '../components/BattleStage'
+
+const STEP_DELAY = 650
+const fmt = (n) => Math.round(n).toLocaleString('th-TH')
+
+/**
+ * สนามโจมตีบอสโลก
+ *
+ * บอสในสนามมีเลือดสูงมากจนตีไม่มีวันตายในครั้งเดียว
+ * คะแนนของผู้เล่นคือดาเมจรวมที่ทำได้ภายในเพดานรอบ ไม่ใช่การล้มบอส
+ * ดาเมจก้อนนั้นค่อยถูกส่งไปหักจากเลือดก้อนกลางที่ทุกคนใช้ร่วมกัน
+ */
+export default function BossFight() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, player, refresh } = usePlayer()
+
+  // หน้านี้ใช้ได้ทั้งบอสโลกและบอสของกิลด์ ต่างกันที่ปลายทางของดาเมจเท่านั้น
+  const mode = location.state?.mode === 'raid' ? 'raid' : 'world'
+  // บอสโลกมีสองตัวพร้อมกัน (slot 'current' | 'current2') คนละก้อนเลือดคนละโควตา
+  const slot = location.state?.slot === 'current2' ? 'current2' : 'current'
+  const guildId = location.state?.guildId ?? null
+  const week = location.state?.week ?? (mode === 'raid' ? raidWeek() : weekIndex())
+  const spec =
+    mode === 'raid' ? raidBossForWeek(week) : slot === 'current2' ? bossForWeek2(week) : bossForWeek(week)
+  const backTo = mode === 'raid' ? '/guild/raid' : '/boss'
+
+  const [state, setState] = useState(null)
+  const [auto, setAuto] = useState(true)
+  const [target, setTarget] = useState(null)
+  const [done, setDone] = useState(null)
+  const [error, setError] = useState(null)
+  const sent = useRef(false)
+
+  useEffect(() => {
+    loadCollection(user.uid).then((owned) => {
+      const ids = player.team ?? []
+      const mine = ids.map((id) => owned.find((o) => o.id === id)).filter(Boolean)
+      if (!mine.length) {
+        setError('ต้องจัดทีมผจญภัยก่อนจึงจะโจมตีบอสได้')
+        return
+      }
+      setState(
+        createBattle(mine, {
+          id: 'worldboss',
+          intro: spec.intro,
+          enemies: [{ id: `boss:${spec.id}`, level: 1 }],
+        })
+      )
+    })
+  }, [week])
+
+  useEffect(() => {
+    if (!state || state.outcome || done) return
+    if (state.round > ROUND_LIMIT) {
+      finish(state)
+      return
+    }
+    const actor = currentUnit(state)
+    if (!actor) return
+    if (actor.side === 'ally' && !auto) return
+    const t = setTimeout(() => setState((s) => takeTurn(s, null)), STEP_DELAY)
+    return () => clearTimeout(t)
+  }, [state, auto, done])
+
+  useEffect(() => {
+    if (state?.outcome && !done) finish(state)
+  }, [state?.outcome])
+
+  async function finish(s) {
+    if (sent.current) return
+    sent.current = true
+
+    const boss = s.units.find((u) => u.side === 'enemy')
+    const dealt = Math.max(0, boss.maxHp - boss.hp)
+
+    try {
+      const r =
+        mode === 'raid'
+          ? await submitRaidDamage({ ...player, uid: user.uid }, guildId, week, dealt)
+          : await submitDamage({ ...player, uid: user.uid }, week, dealt, slot)
+      setDone({ dealt, ...r })
+      // ต้องรีเฟรชไม่งั้นตัวนับโควตาในหน้าก่อนหน้าจะยังเป็นค่าเก่า
+      // แล้วผู้เล่นจะกดเข้าโจมตีได้ไม่จำกัด
+      await refresh()
+    } catch (err) {
+      setDone({ dealt, failed: true, message: err.message })
+    }
+  }
+
+  const actor = state ? currentUnit(state) : null
+  const bossUnit = state?.units.find((u) => u.side === 'enemy')
+  const dealtSoFar = bossUnit ? Math.max(0, bossUnit.maxHp - bossUnit.hp) : 0
+
+  function act(type) {
+    const move = { type }
+    if (needsTarget(actor, type)) {
+      move.target = state.units.find((u) => u.side === 'enemy' && u.alive)?.key
+    }
+    setState((s) => takeTurn(s, move))
+  }
+
+  if (error) {
+    return (
+      <main className="screen">
+        <div className="stage">
+          <div className="trace">{error}</div>
+          <button className="rune-link block" onClick={() => navigate('/team')}>
+            ไปจัดทีม
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main className="screen top battle">
+      <div className="sheet">
+        <header className="battle-head">
+          <button className="plain-link inline" onClick={() => navigate(backTo)}>
+            ← ออก
+          </button>
+          <div className="battle-title">
+            <h1>{spec.name}</h1>
+            <p className="meta">รอบที่ {state?.round ?? 1} จาก {ROUND_LIMIT}</p>
+          </div>
+          <button className="plain-link inline" onClick={() => setAuto((a) => !a)}>
+            ออโต้ {auto ? 'เปิด' : 'ปิด'}
+          </button>
+        </header>
+
+        <div className="cp-banner">
+          <span className="meta">ดาเมจที่ทำได้แล้วในตานี้</span>
+          <strong>{fmt(dealtSoFar)}</strong>
+        </div>
+        <p className="meta center round-note">
+          เลือดที่เห็นในสนามเป็นของบอสในตานี้เท่านั้น ไม่ใช่เลือดก้อนกลางที่ทุกคนช่วยกันตี
+          คะแนนของคุณคือดาเมจรวมที่ทำได้ก่อนหมดรอบ
+        </p>
+
+        <BattleStage
+          state={state}
+          actor={actor}
+          auto={auto}
+          target={target}
+          setTarget={setTarget}
+          onAct={act}
+        />
+      </div>
+
+      {done && (
+        <div className="veil" role="dialog" aria-modal="true">
+          <section className="panel popup" data-outcome="won">
+            <div className="panel-head">จบการโจมตี</div>
+            <p className="stars">{fmt(done.dealt)}</p>
+            <p className="meta">ดาเมจที่ทำได้ครั้งนี้</p>
+
+            {done.failed ? (
+              <div className="trace">{done.message || 'ส่งดาเมจไม่สำเร็จ'}</div>
+            ) : (
+              <>
+                <p>ดาเมจสะสมของคุณ {fmt(done.total)}</p>
+                <p className="meta">เลือดบอสที่เหลือ {fmt(Math.max(0, done.remaining))}</p>
+              </>
+            )}
+
+            <button className="rune-link block primary" onClick={() => navigate(backTo)}>
+              กลับหน้าบอส
+            </button>
+          </section>
+        </div>
+      )}
+    </main>
+  )
+}

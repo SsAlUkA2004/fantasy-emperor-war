@@ -1,0 +1,412 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { usePlayer } from '../context/PlayerContext'
+import { loadCollection } from '../lib/player'
+import { teamPower, formatPower } from '../lib/power'
+import { explainError } from '../lib/errors'
+import {
+  CREATE_COST,
+  GUILD_ROLES,
+  JOIN_POLICIES,
+  MAX_MEMBERS,
+  guildLevel,
+  pointsForNextLevel,
+} from '../data/guild'
+import {
+  browseGuilds,
+  guildPower,
+  reportPower,
+  createGuild,
+  findGuildByTag,
+  joinGuild,
+  kickMember,
+  leaveGuild,
+  loadGuild,
+  loadMembers,
+  setNotice,
+  setRole,
+  approveRequest,
+  cancelRequest,
+  loadRequests,
+  rejectRequest,
+  requestJoin,
+  setJoinPolicy,
+} from '../lib/guild'
+
+const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
+
+export default function Guild() {
+  const { user, player, refresh } = usePlayer()
+  const [guild, setGuild] = useState(undefined)
+  const [members, setMembers] = useState(null)
+  const [list, setList] = useState(null)
+  const [busy, setBusy] = useState(null)
+  const [error, setError] = useState(null)
+
+  const [name, setName] = useState('')
+  const [tag, setTag] = useState('')
+  const [term, setTerm] = useState('')
+  const [found, setFound] = useState(undefined)
+  const [draftNotice, setDraftNotice] = useState(null)
+  const [requests, setRequests] = useState(null)
+  const [sent, setSent] = useState(null)
+
+  async function reload() {
+    if (player.guildId) {
+      // จดค่าพลังของตัวเองก่อนอ่านรายชื่อ ผลรวมของกิลด์จึงรวมค่าล่าสุดของเราด้วย
+      try {
+        const roster = await loadCollection(user.uid)
+        await reportPower(player.guildId, user.uid, teamPower(roster))
+      } catch {
+        // จดไม่ได้ก็ไม่เป็นไร แค่ตัวเลขของเราจะเป็นค่าเดิม
+      }
+      const g = await loadGuild(player.guildId)
+      setGuild(g)
+      setMembers(g ? await loadMembers(player.guildId) : [])
+      setRequests(g ? await loadRequests(player.guildId).catch(() => []) : [])
+      setList(null)
+    } else {
+      setGuild(null)
+      setMembers(null)
+      setList(await browseGuilds(20))
+    }
+  }
+
+  useEffect(() => {
+    reload().catch(() =>
+      setError(explainError('อ่านข้อมูลกิลด์ไม่สำเร็จ', e))
+    )
+  }, [player.guildId])
+
+  async function run(label, fn) {
+    setBusy(label)
+    setError(null)
+    try {
+      await fn()
+      await refresh()
+      await reload()
+    } catch (err) {
+      setError(err.message || 'ทำไม่สำเร็จ')
+    }
+    setBusy(null)
+  }
+
+  const me = members?.find((m) => m.uid === user.uid)
+  const canManage = me && GUILD_ROLES[me.role]?.rank >= 1
+  const isOwner = me?.role === 'owner'
+
+  // ───── ยังไม่มีกิลด์ ─────
+  if (guild === null) {
+    return (
+      <main className="screen top">
+        <div className="sheet">
+        <div className="top-nav">
+          <Link className="plain-link inline" to="/">
+            ← หน้าหลัก
+          </Link>
+        </div>
+
+          <h1>กิลด์</h1>
+          <p className="meta">เข้าร่วมกิลด์ที่มีอยู่ หรือสร้างกิลด์ของตัวเอง</p>
+
+          {error && <div className="trace">{error}</div>}
+          {sent && (
+            <p className="levelup">
+              ยื่นคำขอเข้า {sent.name} แล้ว รอหัวหน้ากดรับ แล้วกลับมากดเข้าร่วมอีกครั้ง
+            </p>
+          )}
+
+          <h2 className="section-title">ค้นหาด้วยตัวย่อ</h2>
+          <div className="search-row">
+            <input
+              value={term}
+              placeholder="เช่น DRAGN"
+              onChange={(e) => setTerm(e.target.value.toUpperCase())}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') setFound(await findGuildByTag(term))
+              }}
+            />
+            <button
+              className="rune-link"
+              disabled={!term.trim()}
+              onClick={async () => setFound(await findGuildByTag(term))}
+            >
+              ค้นหา
+            </button>
+          </div>
+          {found === null && <p className="meta">ไม่พบกิลด์ตัวย่อนี้</p>}
+          {found && (
+            <GuildRow
+              g={found}
+              busy={busy}
+              onJoin={run}
+              player={{ ...player, uid: user.uid }}
+              onSent={setSent}
+            />
+          )}
+
+          <h2 className="section-title">กิลด์ที่เปิดรับ</h2>
+          {list === null && <p className="meta">กำลังอ่านรายชื่อ</p>}
+          {list?.length === 0 && <p className="meta">ยังไม่มีกิลด์ในเกม เป็นคนแรกเลยไหม</p>}
+          {list?.map((g) => (
+            <GuildRow
+              key={g.id}
+              g={g}
+              busy={busy}
+              onJoin={run}
+              player={{ ...player, uid: user.uid }}
+              onSent={setSent}
+            />
+          ))}
+
+          <h2 className="section-title">สร้างกิลด์ใหม่</h2>
+          <p className="meta">ใช้เพชร {fmt(CREATE_COST)} เม็ด · ตัวย่อห้ามซ้ำกับกิลด์อื่น</p>
+          <div className="field">
+            <label htmlFor="gname">ชื่อกิลด์</label>
+            <input id="gname" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="gtag">ตัวย่อ 2 ถึง 5 ตัว</label>
+            <input
+              id="gtag"
+              value={tag}
+              onChange={(e) => setTag(e.target.value.toUpperCase())}
+              placeholder="DRAGN"
+            />
+          </div>
+          <button
+            className="rune-link block primary"
+            disabled={busy === 'create' || (player.gems ?? 0) < CREATE_COST}
+            onClick={() =>
+              run('create', () => createGuild({ ...player, uid: user.uid }, name, tag))
+            }
+          >
+            {(player.gems ?? 0) < CREATE_COST ? 'เพชรไม่พอ' : 'สร้างกิลด์'}
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  if (guild === undefined) {
+    return (
+      <main className="screen">
+        <div className="stage">
+          <p className="meta center">กำลังอ่านข้อมูลกิลด์</p>
+        </div>
+      </main>
+    )
+  }
+
+  // ───── อยู่ในกิลด์แล้ว ─────
+  const level = guildLevel(guild.points)
+
+  return (
+    <main className="screen top">
+      <div className="sheet">
+        <header className="boss-head">
+          <span className="boss-mark">🏰</span>
+          <div>
+            <h1>{guild.name}</h1>
+            <p className="meta">
+              [{guild.tag}] · เลเวล {level} · สมาชิก {guild.memberCount ?? 0}/{MAX_MEMBERS}
+            </p>
+          </div>
+        </header>
+
+        {error && <div className="trace">{error}</div>}
+
+        <div className="cp-banner">
+          <span className="meta">พลังกิลด์</span>
+          <strong>⚔ {formatPower(guildPower(members ?? []))}</strong>
+        </div>
+        <p className="meta tiny">
+          รวมจากค่าพลังตัวละครทั้งหมดของสมาชิกแต่ละคน อัปเดตเมื่อเจ้าตัวเปิดหน้ากิลด์
+        </p>
+
+        <div className="cp-banner">
+          <span className="meta">คะแนนกิลด์</span>
+          <strong>
+            {fmt(guild.points)}
+            <span className="meta tiny"> / {fmt(pointsForNextLevel(level))}</span>
+          </strong>
+        </div>
+
+        <h2 className="section-title">ประกาศ</h2>
+        {draftNotice === null || draftNotice === undefined ? (
+          <>
+            <p className="meta">{guild.notice || 'ยังไม่มีประกาศ'}</p>
+            {canManage && (
+              <button className="plain-link" onClick={() => setDraftNotice(guild.notice ?? '')}>
+                แก้ประกาศ
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="field">
+              <input
+                value={draftNotice}
+                maxLength={200}
+                onChange={(e) => setDraftNotice(e.target.value)}
+              />
+            </div>
+            <button
+              className="rune-link block"
+              disabled={busy === 'notice'}
+              onClick={() =>
+                run('notice', async () => {
+                  await setNotice(guild.id, draftNotice)
+                  setDraftNotice(null)
+                })
+              }
+            >
+              บันทึกประกาศ
+            </button>
+          </>
+        )}
+
+        {canManage && (
+          <>
+            <h2 className="section-title">การเข้ากิลด์</h2>
+            <div className="mode-tabs">
+              {Object.values(JOIN_POLICIES).map((pol) => (
+                <button
+                  key={pol.id}
+                  className="mode-tab"
+                  data-active={(guild.joinPolicy ?? 'open') === pol.id}
+                  disabled={busy === 'policy'}
+                  onClick={() => run('policy', () => setJoinPolicy(guild.id, pol.id))}
+                >
+                  {pol.name}
+                </button>
+              ))}
+            </div>
+            <p className="meta tiny">
+              {JOIN_POLICIES[guild.joinPolicy ?? 'open'].desc}
+            </p>
+
+            {requests?.length > 0 && (
+              <>
+                <h2 className="section-title">คำขอเข้ากิลด์ {requests.length} คน</h2>
+                {requests.map((r) => (
+                  <div className="card guild-member" key={r.uid}>
+                    <div className="card-body">
+                      <h3>{r.username}</h3>
+                      <p className="meta">⚔ {fmt(r.power)}</p>
+                    </div>
+                    <div className="card-actions">
+                      <button
+                        className="plain-link inline"
+                        disabled={busy === r.uid}
+                        onClick={() => run(r.uid, () => approveRequest(guild.id, r.uid))}
+                      >
+                        รับ
+                      </button>
+                      <button
+                        className="plain-link inline"
+                        disabled={busy === r.uid}
+                        onClick={() => run(r.uid, () => rejectRequest(guild.id, r.uid))}
+                      >
+                        ปฏิเสธ
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <p className="meta tiny">
+                  กดรับแล้วผู้สมัครต้องกลับมากดเข้าร่วมเองอีกครั้ง
+                  เพราะระบบไม่อนุญาตให้แก้ข้อมูลของผู้เล่นคนอื่น
+                </p>
+              </>
+            )}
+          </>
+        )}
+
+        <h2 className="section-title">สมาชิก</h2>
+        {members?.map((m) => (
+          <div className="card guild-member" key={m.uid}>
+            <div className="card-body">
+              <h3>
+                {m.username}
+                <span className="rarity">{GUILD_ROLES[m.role]?.name ?? 'สมาชิก'}</span>
+              </h3>
+              <p className="meta">
+                ⚔ {formatPower(m.power ?? 0)} · คะแนนสะสม {fmt(m.contribution)}
+              </p>
+            </div>
+            {isOwner && m.uid !== user.uid && (
+              <div className="card-actions">
+                <button
+                  className="plain-link inline"
+                  disabled={busy === m.uid}
+                  onClick={() =>
+                    run(m.uid, () =>
+                      setRole(guild.id, m.uid, m.role === 'officer' ? 'member' : 'officer')
+                    )
+                  }
+                >
+                  {m.role === 'officer' ? 'ปลด' : 'ตั้งรอง'}
+                </button>
+                <button
+                  className="plain-link inline"
+                  disabled={busy === m.uid}
+                  onClick={() => run(m.uid, () => kickMember(guild.id, m.uid))}
+                >
+                  เชิญออก
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+
+        <Link className="rune-link block primary" to="/guild/raid">
+          กิลด์เรดและร้านค้ากิลด์
+        </Link>
+        <Link className="rune-link block" to="/guild/war">
+          ศึกชิงธง
+        </Link>
+
+        <button
+          className="plain-link"
+          disabled={busy === 'leave'}
+          onClick={() => run('leave', () => leaveGuild({ ...player, uid: user.uid }))}
+        >
+          ออกจากกิลด์
+        </button>
+      </div>
+    </main>
+  )
+}
+
+function GuildRow({ g, busy, onJoin, player, onSent }) {
+  const full = (g.memberCount ?? 0) >= MAX_MEMBERS
+  return (
+    <div className="card shop-row">
+      <span className="card-mark">🏰</span>
+      <div className="card-body">
+        <h3>
+          {g.name}
+          <span className="rarity">[{g.tag}]</span>
+        </h3>
+        <p className="meta">
+          เลเวล {guildLevel(g.points)} · สมาชิก {g.memberCount ?? 0}/{MAX_MEMBERS} · หัวหน้า{' '}
+          {g.ownerName ?? '—'} · {JOIN_POLICIES[g.joinPolicy ?? 'open'].name}
+        </p>
+        {g.notice && <p className="meta tiny">{g.notice}</p>}
+      </div>
+      <button
+        className="rune-link"
+        disabled={full || busy === g.id}
+        onClick={() =>
+          onJoin(g.id, () =>
+            (g.joinPolicy ?? 'open') === 'approval'
+              ? requestJoin(player, g.id).then(() => onSent(g))
+              : joinGuild(player, g.id)
+          )
+        }
+      >
+        {full ? 'เต็ม' : (g.joinPolicy ?? 'open') === 'approval' ? 'ยื่นคำขอ' : 'เข้าร่วม'}
+      </button>
+    </div>
+  )
+}

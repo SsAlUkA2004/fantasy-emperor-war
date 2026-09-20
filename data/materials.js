@@ -1,0 +1,155 @@
+import { ENEMIES, STAGES, baseIdOf, difficultyOf, getStage as getBaseStage, stageAt } from './stages'
+import { FLOORS, floorStage } from './dungeon'
+import { roundFor, slotStage } from './chardungeon'
+import { raidBossStage } from './raiddungeon'
+
+const e = (id, level) => ({ id, level })
+
+export const MATERIALS = {
+  ore: { id: 'ore', name: 'แร่เหล็กเวท', mark: '⛏', desc: 'วัสดุพื้นฐาน ใช้ในการอัปเกรดแทบทุกอย่าง' },
+  crystal: { id: 'crystal', name: 'ผลึกธาตุ', mark: '💠', desc: 'ผลึกที่ยังมีพลังธาตุค้างอยู่ หายากกว่าแร่มาก' },
+  scroll: { id: 'scroll', name: 'คัมภีร์สกิล', mark: '📜', desc: 'บันทึกวิชาโบราณ ใช้ยกระดับสกิลของตัวละคร' },
+}
+
+export const MATERIAL_IDS = Object.keys(MATERIALS)
+
+export const EMPTY_BAG = { ore: 0, crystal: 0, scroll: 0 }
+
+/**
+ * ด่านหาของ ใช้โควตารวมกันวันละ 5 ครั้ง
+ *
+ * ของที่ดรอปเป็นจำนวนตายตัว ไม่สุ่ม เพราะ Security Rules ต้องตรวจได้ว่า
+ * ของที่เพิ่มขึ้นตรงกับด่านที่ผู้เล่นผ่านมาแล้วจริงหรือเปล่า
+ * ถ้าดรอปสุ่ม กฎจะตรวจไม่ได้เลยว่าเลขที่ส่งมาสมเหตุสมผลไหม
+ */
+export const MATERIAL_RUNS_PER_DAY = 5
+
+export const MATERIAL_STAGES = [
+  {
+    id: 'm-1',
+    name: 'เหมืองแร่ชายแดน',
+    intro: 'แร่เวทฝังอยู่ตามผนัง แต่พวกมันไม่ยอมให้ขุดง่าย ๆ',
+    materialStage: true,
+    exp: 400,
+    requires: '1-6',
+    drops: { ore: 8, crystal: 0, scroll: 1 },
+    enemies: [e('golem', 2), e('skeleton', 5)],
+  },
+  {
+    id: 'm-2',
+    name: 'ซากวิหารใต้ทราย',
+    intro: 'ผลึกธาตุกองอยู่กลางห้อง เหมือนมีคนวางกับดักไว้',
+    materialStage: true,
+    exp: 1400,
+    requires: '3-2',
+    drops: { ore: 20, crystal: 4, scroll: 3 },
+    enemies: [e('mummy', 1), e('efreet', 1), e('scorpion', 2)],
+  },
+  {
+    id: 'm-3',
+    name: 'คลังอาวุธเงามืด',
+    intro: 'ของดีทั้งหมดอยู่ที่นี่ และมีคนเฝ้าอยู่ทั้งหมดเหมือนกัน',
+    materialStage: true,
+    exp: 4000,
+    requires: '5-4',
+    drops: { ore: 45, crystal: 12, scroll: 8 },
+    enemies: [e('darkknight', 16), e('sentinel', 16), e('wraith', 17)],
+  },
+  {
+    id: 'm-4',
+    name: 'โรงหลอมลอยฟ้า',
+    intro: 'เตาหลอมยังร้อนอยู่ ทั้งที่ไม่มีคนมาหลายร้อยปีแล้ว',
+    materialStage: true,
+    exp: 9000,
+    requires: '7-3',
+    drops: { ore: 110, crystal: 30, scroll: 20 },
+    // เดิมเลเวล 7 ทั้งสามตัว ตอนแก้บั๊กไฟไหม้เพิกเฉยพลังป้องกัน (ดู battle.js) ทีมอ้างอิงสู้ไม่ทันเพดานรอบ
+    enemies: [e('automaton', 1), e('stormcaller', 1), e('seraph', 1)],
+  },
+  {
+    id: 'm-5',
+    name: 'สายแร่ใต้พิภพ',
+    intro: 'ผลึกที่นี่ฝังลึกกว่าที่ไหน แต่สิ่งที่เฝ้ามันก็แข็งกว่าที่ไหนเหมือนกัน',
+    materialStage: true,
+    exp: 20000,
+    requires: '8-3',
+    drops: { ore: 220, crystal: 60, scroll: 35 },
+    enemies: [e('shardwraith', 1), e('gembat', 1), e('crystalgolem', 1)],
+  },
+]
+
+/**
+ * สินค้าในร้าน ราคาตายตัวทั้งหมด
+ * กฎอ่านราคาจากรายการเดียวกันนี้ ผู้เล่นจึงตั้งราคาเองไม่ได้
+ */
+export const BULK_OPTIONS = [1, 10, 99]
+
+export const SHOP = [
+  { id: 'ore50', material: 'ore', amount: 50, price: 200 },
+  { id: 'scroll10', material: 'scroll', amount: 10, price: 400 },
+  { id: 'crystal10', material: 'crystal', amount: 10, price: 600 },
+]
+
+export const MAX_SKILL_LEVEL = 10
+
+/** สกิลแรงขึ้น 6% ต่อระดับ เต็มที่ 10 ระดับ = แรงขึ้น 54% */
+export const SKILL_STEP = 0.06
+
+export function skillLevelScale(skillLevel = 1) {
+  return 1 + (skillLevel - 1) * SKILL_STEP
+}
+
+/** ค่าใช้จ่ายในการดันสกิลจากระดับนี้ไประดับถัดไป คืน null ถ้าเต็มแล้ว */
+export function skillUpgradeCost(skillLevel) {
+  if (skillLevel >= MAX_SKILL_LEVEL) return null
+  return {
+    scroll: skillLevel + 1,
+    ore: Math.round(10 * Math.pow(skillLevel, 1.5)),
+    crystal: skillLevel >= 5 ? (skillLevel - 4) * 3 : 0,
+  }
+}
+
+export function canAfford(bag, cost) {
+  return MATERIAL_IDS.every((id) => (bag?.[id] ?? 0) >= (cost?.[id] ?? 0))
+}
+
+/**
+ * ค้นหาด่านทุกประเภทจากที่เดียว
+ *
+ * materials.js นำเข้าจาก stages.js ทางเดียว ไม่นำเข้ากลับ
+ * ถ้าให้ stages.js รู้จักด่านหาของด้วยจะเกิดการนำเข้าวนกัน
+ * ทุกหน้าจึงเรียกฟังก์ชันนี้แทน getStage เดิม
+ */
+export function findStage(id) {
+  // ด่านเนื้อเรื่องที่มีระดับความยากต่อท้าย ประกอบขึ้นจากด่านพื้นฐาน
+  if (typeof id === 'string' && id.includes('@')) {
+    return stageAt(baseIdOf(id), difficultyOf(id).id)
+  }
+  // ด่านรอยอดีตใช้รหัส c-<ชั่วโมง>-<ช่อง> เพราะเนื้อหาเปลี่ยนทุกชั่วโมง
+  // จึงประกอบขึ้นจากรหัสแทนการเก็บรายการไว้
+  if (typeof id === 'string' && id.startsWith('c-')) {
+    const [, h, slot] = id.split('-')
+    const round = roundFor(Number(h))
+    const entry = round.slots[Number(slot)]
+    return entry ? slotStage(entry, Number(h)) : null
+  }
+  if (typeof id === 'string' && id.startsWith('d-')) {
+    const floor = Number(id.slice(2))
+    return floor >= 1 && floor <= FLOORS ? floorStage(floor) : null
+  }
+  // ดันเจี้ยนเหรดใช้รหัส r-<ระดับความยาก>-<ลำดับ> ประกอบขึ้นจากรหัสเหมือนกัน ไม่เก็บเป็นรายการสำเร็จรูป
+  if (typeof id === 'string' && id.startsWith('r-')) {
+    const [, tierId, idx] = id.split('-')
+    return raidBossStage(tierId, Number(idx))
+  }
+  // ด่านเนื้อเรื่องโหมดปกติ (ไม่มีคำต่อท้าย) ต้องผ่าน stageAt เหมือนโหมดยาก/ปีศาจด้วย ไม่ใช่ตัดตรงไปเอา
+  // ด่านดิบจาก STAGES เฉย ๆ ไม่งั้นได้ค่าพลังที่ยังไม่ผ่าน STAGE_SCALE ซึ่งเป็นคนละค่ากับที่ StageMap
+  // คำนวณโชว์ตอนดูด่าน/ก่อนเข้าสู้ (ดู stageAt ใน stages.js) ทำให้บทที่ 6-8 ในโหมดปกติแรงเกินจริง
+  // จนสู้ไม่จบในเพดานรอบไม่ว่าทีมจะแรงแค่ไหน — บั๊กนี้ไม่กระทบบทที่ 1, 2, 4 เพราะตัวคูณของบทนั้นเป็น 1 พอดี
+  if (typeof id === 'string' && STAGES.some((s) => s.id === id)) {
+    return stageAt(id, 'normal')
+  }
+  return getBaseStage(id) ?? MATERIAL_STAGES.find((s) => s.id === id) ?? null
+}
+
+export { ENEMIES }
