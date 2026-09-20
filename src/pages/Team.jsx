@@ -261,6 +261,7 @@ export default function Team() {
 
         {owned === null && <p className="meta">กำลังเปิดกระเป๋า</p>}
 
+        <div className="roster-grid">
         {owned
           ?.filter((entry) => {
             const c = CHARACTERS[entry.id]
@@ -319,6 +320,7 @@ export default function Team() {
               </div>
             )
           })}
+        </div>
 
         <div className="gate">
           <button

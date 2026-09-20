@@ -44,6 +44,28 @@ export function teamPower(entries = []) {
   return entries.reduce((sum, e) => sum + entryPower(e), 0)
 }
 
+/**
+ * ย่อกระเป๋าตัวละครทั้งหมดให้เหลือแค่ฟิลด์ที่มีผลต่อค่าพลัง เก็บไว้บนเอกสารผู้เล่นเอง (roster)
+ *
+ * ผู้เล่นคนอื่นอ่านกระเป๋าตัวละครส่วนตัวของเราไม่ได้และไม่ควรเปิดให้อ่าน แต่บอร์ดจัดอันดับ
+ * ตัวละคร (Board.jsx) ต้องเห็นค่าพลังของทุกตัวที่เรามี ไม่ใช่แค่ห้าตัวในทีมตั้งรับ
+ * จึงจดสรุปนี้ไว้บนเอกสารผู้เล่นเหมือนกับ rosterPower (ผลรวม) ที่มีอยู่แล้ว
+ */
+export function buildRoster(list = []) {
+  return list.reduce((acc, e) => {
+    acc[e.id] = {
+      id: e.id,
+      level: e.level ?? 1,
+      star: e.star ?? 1,
+      tier: e.tier ?? 0,
+      awaken: e.awaken ?? 0,
+      skillLevel: e.skillLevel ?? 1,
+      gear: e.gear ?? [],
+    }
+    return acc
+  }, {})
+}
+
 export function stagePower(stage) {
   if (!stage?.enemies) return 0
   return stage.enemies.reduce((sum, x) => {

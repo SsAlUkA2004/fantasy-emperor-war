@@ -28,8 +28,8 @@ export const ALL_UR_BANNER_IDS = [
   ...UR_BANNER_IDS.UR,
 ]
 
-/** ไม่มีการันตีเลยทั้งตู้ รวมถึงระดับ UR — สุ่มอิสระทุกครั้งตามอัตรานี้ตรง ๆ */
-export const UR_RATES = { SR: 0.8, SSR: 0.1995, UR: 0.0005 }
+/** อัตราสุ่มต่อครั้ง ก่อนการันตี — ดูตัวนับการันตี 500 ครั้งและกลไก "เก็บครบไม่ออกซ้ำ" ใน lib/urgacha.js */
+export const UR_RATES = { SR: 0.8, SSR: 0.199, UR: 0.001 }
 
 /** กองตัวละครของตู้นี้ แบ่งตามระดับความหายาก รูปแบบเดียวกับ bannerPool ในตู้ปกติ */
 export function urBannerPool() {

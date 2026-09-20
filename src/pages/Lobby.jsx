@@ -5,7 +5,7 @@ import { loadCollection } from '../lib/player'
 import { getCharacter, ELEMENTS, ROLES, TEAM_SIZE } from '../data/characters'
 import { expToNext, playerExpToNext, PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { entryStats, entryLevelCap } from '../lib/stats'
-import { entryPower, teamPower, formatPower } from '../lib/power'
+import { buildRoster, entryPower, teamPower, formatPower } from '../lib/power'
 import { effectiveRarity, awakenName } from '../data/ascension'
 import { titlesFor, TITLES, claimableRanks } from '../data/ranks'
 import { PERMANENT_QUESTS } from '../data/quests'
@@ -39,11 +39,16 @@ export default function Lobby() {
   useEffect(() => {
     loadCollection(user.uid).then(async (list) => {
       setOwned(list)
-      // จดค่าพลังรวมไว้ในเอกสารของตัวเอง เพื่อนจึงดูได้
+      // จดค่าพลังรวมและสรุปตัวละครทุกตัวไว้ในเอกสารของตัวเอง เพื่อนและบอร์ดจัดอันดับจึงดูได้
       // ต้องจดไว้เพราะกระเป๋าตัวละครของเราคนอื่นอ่านไม่ได้ และไม่ควรเปิดให้อ่าน
+      // roster เก็บทุกตัวที่มี (ไม่ใช่แค่ห้าตัวในทีมตั้งรับ) ให้บอร์ดอันดับตัวละครเห็นครบ
       const total = teamPower(list)
-      if (total !== (player.rosterPower ?? 0)) {
-        updateDoc(doc(db, 'users', user.uid), { rosterPower: total }).catch(() => {})
+      const roster = buildRoster(list)
+      const patch = {}
+      if (total !== (player.rosterPower ?? 0)) patch.rosterPower = total
+      if (JSON.stringify(roster) !== JSON.stringify(player.roster ?? {})) patch.roster = roster
+      if (Object.keys(patch).length) {
+        updateDoc(doc(db, 'users', user.uid), patch).catch(() => {})
       }
     })
   }, [user.uid])
