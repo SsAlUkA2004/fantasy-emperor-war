@@ -19,7 +19,9 @@ import StatPeek from './StatPeek'
 // ที่กำลังเล่นอยู่กลางคันจนดูกระตุก
 // ─────────────────────────────────────────────────────────────
 
-const FX_MS = { attack: 420, skill: 560, ultimate: 680, stunned: 380 }
+// ท่าไม้ตายตั้งไว้สั้นกว่า STEP_DELAY ที่ต่ำสุดในสามหน้าที่ใช้ร่วมกัน (BossFight.jsx = 650ms)
+// ไม่ใช่ 750ms ของ Battle.jsx เฉย ๆ ไม่งั้นแบนเนอร์กลางจอจะโดนตัดตอนตอนเล่นในบอสโลก/ประลอง
+const FX_MS = { attack: 420, skill: 560, ultimate: 620, stunned: 380 }
 
 const STATUS_LABEL = {
   burn: 'ติดไฟ',
@@ -43,18 +45,19 @@ function popupText(hit) {
   return `-${hit.amount.toLocaleString('th-TH')}`
 }
 
-const ELEMENT_PARTICLES = { fire: 6, water: 6, wind: 5, earth: 6, light: 7, dark: 6 }
-const BURST_DIST = { sm: 16, md: 24, lg: 34 }
+const ELEMENT_PARTICLES = { fire: 8, water: 8, wind: 6, earth: 7, light: 9, dark: 8 }
+const BURST_DIST = { sm: 30, md: 46, lg: 70 }
 
 // อนุภาคเอฟเฟคธาตุจริง (ไม่ใช่แค่ข้อความ) พุ่งออกจากจุดกลางของ .combatant กระจายมุมรอบวงเท่า ๆ กัน
 // สีธาตุมาจากผู้ลงมือท่านั้นเสมอ ไม่ใช่ธาตุของเป้าหมาย เพราะเอฟเฟคคือของท่าที่ปล่อยออกมา
 // รูปร่าง/จังหวะแยกตามธาตุจริง ๆ ที่ styles.css (ไฟ/น้ำ/แสง/มืด เป็นวงกลมพุ่งออก, ลมเป็นริ้ว, ดินเป็นก้อนหมุนร่วง)
+// ท่าไม้ตาย (lg) ได้อนุภาคเพิ่มอีก 3 ให้ดูอัดแน่นกว่าท่าธรรมดาอย่างชัดเจน
 function ElementBurst({ element, size = 'md', ring }) {
   if (!element) return null
-  const count = ELEMENT_PARTICLES[element] ?? 6
+  const count = (ELEMENT_PARTICLES[element] ?? 6) + (size === 'lg' ? 3 : 0)
   const dist = BURST_DIST[size] ?? 24
   return (
-    <span className="vfx" data-vfx-el={element} aria-hidden="true">
+    <span className="vfx" data-vfx-el={element} data-vfx-size={size} aria-hidden="true">
       {Array.from({ length: count }).map((_, i) => (
         <span
           key={i}
@@ -69,6 +72,119 @@ function ElementBurst({ element, size = 'md', ring }) {
       {ring && <span className="vfx-ring" />}
       {element === 'earth' && size !== 'sm' && <span className="vfx-dust" />}
     </span>
+  )
+}
+
+// ภาพเฉพาะของแต่ละธาตุตอนปล่อยท่าไม้ตาย แทนที่จะใช้รัศมี+แฟลชแบบเดียวกันหมดแล้วเปลี่ยนแค่สี
+// ไฟ = เปลวไฟลุกวูบ, วายุ = ลมหมุนวน+ริ้วเฉือน, น้ำ = คลื่นซัด+ฟองฟู่, ดิน = ทิวเขาอลังการ,
+// แสง = รัศมี+ประกายดาว (ยังใช้รัศมีเดิมเพราะตรงคอนเซปต์อยู่แล้ว), มืด = หลุมดำขยายตัว+จานพอกพูนหมุน
+function UltimateFx({ element }) {
+  if (element === 'fire') {
+    const flames = [-42, -20, 0, 20, 42]
+    return flames.map((x, i) => (
+      <span
+        key={i}
+        className="vfx-ult-flame"
+        style={{ '--x': `${x}px`, '--wob': `${i % 2 ? 7 : -7}deg`, animationDelay: `${i * 35}ms` }}
+      />
+    ))
+  }
+
+  if (element === 'wind') {
+    return (
+      <>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <span
+            key={i}
+            className="vfx-ult-gust"
+            style={{ '--a': `${i * 60}deg`, animationDelay: `${i * 25}ms` }}
+          />
+        ))}
+        <span className="vfx-ult-slash" style={{ '--rot': '-8deg', top: '44%' }} />
+        <span className="vfx-ult-slash" style={{ '--rot': '6deg', top: '58%', animationDelay: '70ms' }} />
+      </>
+    )
+  }
+
+  if (element === 'water') {
+    const bubbles = [-66, -44, -22, 0, 22, 44, 66]
+    return (
+      <>
+        <span className="vfx-ult-wave" />
+        {bubbles.map((x, i) => (
+          <span
+            key={i}
+            className="vfx-ult-bubble"
+            style={{ '--x': `${x}px`, animationDelay: `${i * 45}ms` }}
+          />
+        ))}
+      </>
+    )
+  }
+
+  if (element === 'earth') {
+    return (
+      <>
+        <span className="vfx-ult-glow" />
+        <span className="vfx-ult-peak" style={{ '--x': '-2.4rem', '--s': 0.82 }} />
+        <span className="vfx-ult-peak" style={{ '--x': '2.6rem', '--s': 0.9, animationDelay: '40ms' }} />
+        <span className="vfx-ult-peak" style={{ '--x': '0.1rem', '--s': 1.18, animationDelay: '80ms' }} />
+      </>
+    )
+  }
+
+  if (element === 'light') {
+    return (
+      <>
+        <span className="vfx-ult-rays" />
+        {Array.from({ length: 8 }).map((_, i) => {
+          const angle = (Math.PI * 2 * i) / 8
+          const r = 30 + (i % 2) * 16
+          return (
+            <span
+              key={i}
+              className="vfx-ult-spark"
+              style={{
+                left: `calc(50% + ${Math.round(Math.cos(angle) * r)}px)`,
+                top: `calc(50% + ${Math.round(Math.sin(angle) * r)}px)`,
+                animationDelay: `${i * 40}ms`,
+              }}
+            />
+          )
+        })}
+      </>
+    )
+  }
+
+  if (element === 'dark') {
+    return (
+      <>
+        <span className="vfx-ult-accretion" />
+        <span className="vfx-ult-hole" />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <span className="vfx-ult-rays" />
+      <span className="vfx-ult-core" />
+    </>
+  )
+}
+
+// แบนเนอร์ท่าไม้ตายกลางจอ แยกจาก ElementBurst ที่ติดกับตัวละครแต่ละตัว
+// อันนี้คลุมทั้งสนามรบ ให้ความรู้สึก "จังหวะใหญ่" สมกับเป็นท่าไม้ตาย ไม่ใช่แค่เอฟเฟคเล็ก ๆ ที่ตัวละคร
+function UltimateBanner({ element, name, move }) {
+  return (
+    <div className="vfx-ult" data-vfx-el={element} aria-hidden="true">
+      <UltimateFx element={element} />
+      <div className="vfx-ult-text">
+        <span className="vfx-ult-tag">ท่าไม้ตาย</span>
+        {move && <span className="vfx-ult-move">{move}</span>}
+        {name && <span className="vfx-ult-name">{name}</span>}
+      </div>
+    </div>
   )
 }
 
@@ -182,13 +298,19 @@ export default function BattleStage({
   const allies = state.units.filter((u) => u.side === 'ally')
   const yourTurn = actor?.side === 'ally' && !auto && !state.outcome
   const hitsFor = (key) => fx?.hits.filter((h) => h.targetKey === key)
+  const actorUnit = fx ? state.units.find((u) => u.key === fx.actorKey) : undefined
   // ธาตุของผู้ลงมือท่านี้ ใช้ทั้งกับอนุภาคเอฟเฟคตอนร่าย/ตอนโดน และแสงทั้งสนามตอนท่าไม้ตาย
-  const fxElement = fx ? state.units.find((u) => u.key === fx.actorKey)?.element : undefined
-  // ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั้งสนาม สีตามธาตุของคนร่าย
-  const ultimateElement = fx?.type === 'ultimate' ? fxElement : undefined
+  const fxElement = actorUnit?.element
+  // ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั้งสนาม + โชว์แบนเนอร์กลางจอ สีตามธาตุของคนร่าย
+  const isUltimate = fx?.type === 'ultimate'
+  const ultimateElement = isUltimate ? fxElement : undefined
 
   return (
     <div className="battle-arena" data-flash={ultimateElement}>
+      {isUltimate && (
+        <UltimateBanner element={fxElement} name={actorUnit?.name} move={actorUnit?.ultimate?.name} />
+      )}
+
       <section className="field-side side-enemy">
         <h3 className="side-label enemy">ฝั่งศัตรู</h3>
         {foes.map((u) => (
