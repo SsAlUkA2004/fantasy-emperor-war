@@ -19,6 +19,9 @@ import { teamPower, entryPower, formatPower } from '../lib/power'
 import BattleStage from '../components/BattleStage'
 
 const STEP_DELAY = 700
+// ท่าไม้ตายมีทั้งฉากกลางจอ+อนิเมชันเฉพาะธาตุที่ยาวกว่าท่าอื่น (ดู FX_MS.ultimate ใน BattleStage.jsx)
+// ต้องหน่วงเทิร์นถัดไปนานขึ้นเฉพาะตอนนั้น ไม่งั้นฉากจะโดนตัดกลางคันก่อนเล่นจบ
+const ULTIMATE_STEP_DELAY = 1300
 
 export default function PvpMatch() {
   const navigate = useNavigate()
@@ -67,7 +70,8 @@ export default function PvpMatch() {
     if (!actor) return
     if (actor.side === 'ally' && !auto) return
 
-    const t = setTimeout(() => setState((s) => takeTurn(s, null)), STEP_DELAY)
+    const delay = state.lastAction?.type === 'ultimate' ? ULTIMATE_STEP_DELAY : STEP_DELAY
+    const t = setTimeout(() => setState((s) => takeTurn(s, null)), delay)
     return () => clearTimeout(t)
   }, [state, auto])
 

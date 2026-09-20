@@ -15,13 +15,16 @@ import StatPeek from './StatPeek'
 //
 // อนิเมชันท่าโจมตีอ่านจาก state.lastAction (โครงสร้างที่ lib/battle.js เติมให้ทุกเทิร์น)
 // ไม่ได้แกะข้อความ log เอาเอง จึงรู้แน่ชัดว่าใครลงมือ ท่าไหน โดนใครบ้าง คริไหม
-// ตั้งเวลาเองให้สั้นกว่า STEP_DELAY ของ Battle.jsx (750ms) เสมอ ไม่งั้นเทิร์นถัดไปจะมาตัดอนิเมชัน
-// ที่กำลังเล่นอยู่กลางคันจนดูกระตุก
+// ท่าธรรมดา/สกิล/สตัน ต้องสั้นกว่า STEP_DELAY ที่ต่ำสุด (BossFight.jsx = 650ms) เสมอ ไม่งั้นเทิร์นถัดไป
+// จะมาตัดอนิเมชันที่กำลังเล่นอยู่กลางคันจนดูกระตุก ส่วนท่าไม้ตายยาวกว่านั้นได้ เพราะทั้งสามหน้า
+// (Battle.jsx/PvpMatch.jsx/BossFight.jsx) หน่วงเทิร์นถัดไปนานขึ้นเป็นพิเศษเฉพาะตอน lastAction.type
+// เป็น 'ultimate' อยู่แล้ว (ดู ULTIMATE_STEP_DELAY ในแต่ละไฟล์)
 // ─────────────────────────────────────────────────────────────
 
-// ท่าไม้ตายตั้งไว้สั้นกว่า STEP_DELAY ที่ต่ำสุดในสามหน้าที่ใช้ร่วมกัน (BossFight.jsx = 650ms)
-// ไม่ใช่ 750ms ของ Battle.jsx เฉย ๆ ไม่งั้นแบนเนอร์กลางจอจะโดนตัดตอนตอนเล่นในบอสโลก/ประลอง
-const FX_MS = { attack: 420, skill: 560, ultimate: 620, stunned: 380 }
+// ท่าไม้ตายให้เวลานานกว่าท่าอื่นชัดเจน เพราะมีทั้งฉากกลางจอ+รูปทรงเฉพาะธาตุที่ต้องดูออก
+// ต่างจากท่าธรรมดาที่จบไวได้ ฝั่ง Battle.jsx/PvpMatch.jsx/BossFight.jsx ต้องหน่วงเทิร์นถัดไปนานขึ้นเป็นพิเศษ
+// เฉพาะตอนท่าไม้ตายเท่านั้น (เช็คจาก lastAction.type ก่อนตั้งเวลาเดินเทิร์นออโต้) ไม่งั้นแบนเนอร์นี้โดนตัดกลางคัน
+const FX_MS = { attack: 420, skill: 560, ultimate: 1150, stunned: 380 }
 
 const STATUS_LABEL = {
   burn: 'ติดไฟ',
@@ -80,12 +83,13 @@ function ElementBurst({ element, size = 'md', ring }) {
 // แสง = รัศมี+ประกายดาว (ยังใช้รัศมีเดิมเพราะตรงคอนเซปต์อยู่แล้ว), มืด = หลุมดำขยายตัว+จานพอกพูนหมุน
 function UltimateFx({ element }) {
   if (element === 'fire') {
-    const flames = [-42, -20, 0, 20, 42]
+    // ระยะห่างต้องมากกว่าความกว้างเปลว (ดู .vfx-ult-flame) ไม่งั้นเปลวจะทับกันจนกลายเป็นก้อนแสงกลม ๆ
+    const flames = [-72, -36, 0, 36, 72]
     return flames.map((x, i) => (
       <span
         key={i}
         className="vfx-ult-flame"
-        style={{ '--x': `${x}px`, '--wob': `${i % 2 ? 7 : -7}deg`, animationDelay: `${i * 35}ms` }}
+        style={{ '--x': `${x}px`, '--wob': `${i % 2 ? 8 : -8}deg`, animationDelay: `${i * 60}ms` }}
       />
     ))
   }
@@ -97,11 +101,11 @@ function UltimateFx({ element }) {
           <span
             key={i}
             className="vfx-ult-gust"
-            style={{ '--a': `${i * 60}deg`, animationDelay: `${i * 25}ms` }}
+            style={{ '--a': `${i * 60}deg`, animationDelay: `${i * 45}ms` }}
           />
         ))}
         <span className="vfx-ult-slash" style={{ '--rot': '-8deg', top: '44%' }} />
-        <span className="vfx-ult-slash" style={{ '--rot': '6deg', top: '58%', animationDelay: '70ms' }} />
+        <span className="vfx-ult-slash" style={{ '--rot': '6deg', top: '58%', animationDelay: '130ms' }} />
       </>
     )
   }
@@ -115,7 +119,7 @@ function UltimateFx({ element }) {
           <span
             key={i}
             className="vfx-ult-bubble"
-            style={{ '--x': `${x}px`, animationDelay: `${i * 45}ms` }}
+            style={{ '--x': `${x}px`, animationDelay: `${i * 80}ms` }}
           />
         ))}
       </>
@@ -127,8 +131,8 @@ function UltimateFx({ element }) {
       <>
         <span className="vfx-ult-glow" />
         <span className="vfx-ult-peak" style={{ '--x': '-2.4rem', '--s': 0.82 }} />
-        <span className="vfx-ult-peak" style={{ '--x': '2.6rem', '--s': 0.9, animationDelay: '40ms' }} />
-        <span className="vfx-ult-peak" style={{ '--x': '0.1rem', '--s': 1.18, animationDelay: '80ms' }} />
+        <span className="vfx-ult-peak" style={{ '--x': '2.6rem', '--s': 0.9, animationDelay: '70ms' }} />
+        <span className="vfx-ult-peak" style={{ '--x': '0.1rem', '--s': 1.18, animationDelay: '140ms' }} />
       </>
     )
   }
@@ -147,7 +151,7 @@ function UltimateFx({ element }) {
               style={{
                 left: `calc(50% + ${Math.round(Math.cos(angle) * r)}px)`,
                 top: `calc(50% + ${Math.round(Math.sin(angle) * r)}px)`,
-                animationDelay: `${i * 40}ms`,
+                animationDelay: `${i * 70}ms`,
               }}
             />
           )

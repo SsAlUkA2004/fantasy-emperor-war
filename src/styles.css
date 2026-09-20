@@ -1097,7 +1097,7 @@ a {
   );
   filter: blur(0.5px);
   opacity: 0;
-  animation: vfx-ult-rays 600ms ease-out forwards;
+  animation: vfx-ult-rays 1050ms ease-out forwards;
 }
 
 @keyframes vfx-ult-rays {
@@ -1115,7 +1115,7 @@ a {
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0%, var(--fx-color, var(--myth)) 45%, transparent 75%);
   opacity: 0;
-  animation: vfx-ult-core 600ms ease-out forwards;
+  animation: vfx-ult-core 1050ms ease-out forwards;
 }
 
 @keyframes vfx-ult-core {
@@ -1134,7 +1134,7 @@ a {
   clip-path: polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%);
   box-shadow: 0 0 10px 2px var(--el-light);
   opacity: 0;
-  animation: vfx-ult-spark 560ms ease-out forwards;
+  animation: vfx-ult-spark 950ms ease-out forwards;
 }
 
 @keyframes vfx-ult-spark {
@@ -1143,27 +1143,28 @@ a {
   100% { opacity: 0; transform: scale(0.6) rotate(90deg); }
 }
 
-/* ไฟ: เปลวไฟหลายกลุ่มลุกวูบขึ้นจากจุดเดียวกัน โบกไหวคนละจังหวะให้ดูมีชีวิต ไม่ใช่แค่วงกลมพุ่ง */
+/* ไฟ: เปลวไฟหลายกลุ่มลุกวูบขึ้นจากจุดเดียวกัน โบกไหวคนละจังหวะให้ดูมีชีวิต ไม่ใช่แค่วงกลมพุ่ง
+   ตัวเปลวแคบกว่ารัศมีเรืองแสงพอสมควร กันไม่ให้ห้าเปลวเบลอทับกันจนเห็นเป็นก้อนแสงกลมก้อนเดียว */
 .vfx-ult-flame {
   position: absolute;
-  bottom: 26%;
+  bottom: 24%;
   left: calc(50% + var(--x, 0px));
-  width: 2.8rem;
-  height: 4rem;
-  margin-left: -1.4rem;
+  width: 1.9rem;
+  height: 4.4rem;
+  margin-left: -0.95rem;
   border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
   background: linear-gradient(0deg, var(--el-fire) 0%, #ffb15e 55%, #fff3b0 100%);
-  box-shadow: 0 0 26px 6px var(--el-fire);
+  box-shadow: 0 0 14px 3px var(--el-fire);
   opacity: 0;
   transform-origin: 50% 100%;
-  animation: vfx-ult-flame 600ms ease-out forwards;
+  animation: vfx-ult-flame 1000ms ease-out forwards;
 }
 
 @keyframes vfx-ult-flame {
-  0% { opacity: 0; transform: translateY(14px) scale(0.5, 0.4) rotate(0deg); }
-  22% { opacity: 1; }
-  55% { transform: translateY(-8px) scale(1.08, 1.05) rotate(var(--wob, 0deg)); }
-  100% { opacity: 0; transform: translateY(-40px) scale(0.65, 1.3) rotate(0deg); }
+  0% { opacity: 0; transform: translateY(16px) scale(0.5, 0.4) rotate(0deg); }
+  18% { opacity: 1; }
+  55% { transform: translateY(-10px) scale(1.1, 1.08) rotate(var(--wob, 0deg)); }
+  100% { opacity: 0; transform: translateY(-58px) scale(0.6, 1.4) rotate(0deg); }
 }
 
 /* วายุ: ริ้วลมหมุนวนออกจากศูนย์กลางเหมือนพายุ บวกริ้วเฉือนพาดจอสองแนวให้รู้สึกถึงแรงลม */
@@ -1179,13 +1180,13 @@ a {
   box-shadow: 0 0 10px 1px var(--el-wind);
   opacity: 0;
   transform-origin: 0% 50%;
-  animation: vfx-ult-gust 600ms ease-out forwards;
+  animation: vfx-ult-gust 1000ms ease-out forwards;
 }
 
 @keyframes vfx-ult-gust {
   0% { opacity: 0; transform: rotate(var(--a, 0deg)) translateX(0) scaleX(0.3); }
-  25% { opacity: 0.9; }
-  100% { opacity: 0; transform: rotate(calc(var(--a, 0deg) + 50deg)) translateX(3.8rem) scaleX(1.7); }
+  20% { opacity: 0.9; }
+  100% { opacity: 0; transform: rotate(calc(var(--a, 0deg) + 80deg)) translateX(4.6rem) scaleX(1.7); }
 }
 
 .vfx-ult-slash {
@@ -1197,7 +1198,7 @@ a {
   margin-top: -2px;
   background: linear-gradient(90deg, transparent, var(--el-wind), #fff, var(--el-wind), transparent);
   opacity: 0;
-  animation: vfx-ult-slash 480ms ease-out forwards;
+  animation: vfx-ult-slash 850ms ease-out forwards;
 }
 
 @keyframes vfx-ult-slash {
@@ -1216,7 +1217,7 @@ a {
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   background: linear-gradient(180deg, transparent, var(--el-water) 55%, #eaffff 100%);
   opacity: 0;
-  animation: vfx-ult-wave 620ms ease-out forwards;
+  animation: vfx-ult-wave 1050ms ease-out forwards;
 }
 
 @keyframes vfx-ult-wave {
@@ -1236,13 +1237,13 @@ a {
   background: radial-gradient(circle at 35% 30%, #fff, var(--el-water) 65%, transparent 85%);
   box-shadow: 0 0 8px 1px var(--el-water);
   opacity: 0;
-  animation: vfx-ult-bubble 640ms ease-out forwards;
+  animation: vfx-ult-bubble 1000ms ease-out forwards;
 }
 
 @keyframes vfx-ult-bubble {
   0% { opacity: 0; transform: translateY(0) scale(0.5); }
-  25% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-75px) scale(0.9); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-110px) scale(0.9); }
 }
 
 /* ดิน: ทิวเขาซ้อนกันโผล่พ้นขอบล่าง มีแสงส่องอยู่ด้านหลังให้ดูอลังการ */
@@ -1256,7 +1257,7 @@ a {
   border-radius: 50%;
   background: radial-gradient(circle, #fff6d8, var(--el-earth) 55%, transparent 78%);
   opacity: 0;
-  animation: vfx-ult-glow 620ms ease-out forwards;
+  animation: vfx-ult-glow 1050ms ease-out forwards;
 }
 
 @keyframes vfx-ult-glow {
@@ -1275,7 +1276,7 @@ a {
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   background: linear-gradient(180deg, #d8b877, var(--el-earth) 55%, #5c3f22 100%);
   opacity: 0;
-  animation: vfx-ult-peak 620ms ease-out forwards;
+  animation: vfx-ult-peak 1050ms ease-out forwards;
 }
 
 @keyframes vfx-ult-peak {
@@ -1296,7 +1297,7 @@ a {
   background: conic-gradient(from 0deg, transparent, var(--el-dark), transparent 40%, var(--el-dark) 60%, transparent);
   filter: blur(1px);
   opacity: 0;
-  animation: vfx-ult-accretion 620ms ease-in forwards;
+  animation: vfx-ult-accretion 1050ms ease-in forwards;
 }
 
 @keyframes vfx-ult-accretion {
@@ -1316,7 +1317,7 @@ a {
   background: radial-gradient(circle, #000 55%, var(--el-dark) 80%, transparent 100%);
   box-shadow: 0 0 40px 14px var(--el-dark);
   opacity: 0;
-  animation: vfx-ult-hole 620ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: vfx-ult-hole 1050ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes vfx-ult-hole {
@@ -1336,7 +1337,7 @@ a {
   text-align: center;
   opacity: 0;
   transform: scale(1.35);
-  animation: vfx-ult-text 600ms ease-out forwards;
+  animation: vfx-ult-text 1050ms ease-out forwards;
 }
 
 @keyframes vfx-ult-text {
@@ -1373,10 +1374,12 @@ a {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
-/* ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั่วสนาม สีตามธาตุของคนร่าย */
+/* ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั่วสนาม สีตามธาตุของคนร่าย
+   จงใจทำเป็นขอบจอ (vignette) ไม่ใช่วงกลมเข้มกลางจอเหมือนเดิม เพราะกลางจอเป็นที่ของรูปทรงเฉพาะธาตุ
+   ใน .vfx-ult (เปลวไฟ/ทิวเขา/หลุมดำ ฯลฯ) แล้ว ถ้ายังใช้วงกลมทึบกลางจอจะไปทับจนเห็นเป็น "แค่วงกลม" เหมือนเดิม */
 @keyframes fx-arena-flash {
   0% { opacity: 0; }
-  30% { opacity: 0.75; }
+  30% { opacity: 0.5; }
   100% { opacity: 0; }
 }
 
@@ -1396,7 +1399,7 @@ a {
   inset: 0;
   pointer-events: none;
   z-index: 5;
-  background: radial-gradient(circle at 50% 35%, var(--flash-color, var(--myth)) 0%, transparent 78%);
+  background: radial-gradient(circle at 50% 35%, transparent 35%, var(--flash-color, var(--myth)) 100%);
   animation: fx-arena-flash 600ms ease-out;
 }
 
