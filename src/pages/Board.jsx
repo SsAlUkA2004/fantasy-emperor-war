@@ -217,7 +217,7 @@ export default function Board() {
         ) : (
         <div className="board">
           {sorted.map((r, i) => (
-            <div className="board-item" data-expanded={expanded === r.uid} key={r.uid}>
+            <div className="board-item" key={r.uid}>
               <button
                 className="board-row board-row-btn"
                 data-me={r.uid === user.uid}
