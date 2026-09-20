@@ -89,6 +89,7 @@ export default function BattleStage({
   return (
     <div className="battle-arena">
       <section className="field-side side-enemy">
+        <h3 className="side-label enemy">ฝั่งศัตรู</h3>
         {foes.map((u) => (
           <Combatant
             key={u.key}
@@ -111,6 +112,7 @@ export default function BattleStage({
       </div>
 
       <section className="field-side side-ally">
+        <h3 className="side-label ally">ฝั่งเรา</h3>
         {allies.map((u) => (
           <Combatant key={u.key} unit={u} active={actor?.key === u.key} ally />
         ))}
