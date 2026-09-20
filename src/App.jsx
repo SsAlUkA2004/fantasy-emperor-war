@@ -22,6 +22,7 @@ import Mailbox from './pages/Mailbox'
 import Quests from './pages/Quests'
 import Gear from './pages/Gear'
 import Dungeon from './pages/Dungeon'
+import RaidDungeon from './pages/RaidDungeon'
 import Guild from './pages/Guild'
 import GuildRaid from './pages/GuildRaid'
 import GuildWar from './pages/GuildWar'
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/quests" element={<Gate><Quests /></Gate>} />
           <Route path="/gear" element={<Gate><Gear /></Gate>} />
           <Route path="/dungeon" element={<Gate><Dungeon /></Gate>} />
+          <Route path="/vault" element={<Gate><RaidDungeon /></Gate>} />
           <Route path="/hunt" element={<Gate><CharDungeon /></Gate>} />
           <Route path="/collection" element={<Gate><Collection /></Gate>} />
           <Route path="/board" element={<Gate><Board /></Gate>} />
