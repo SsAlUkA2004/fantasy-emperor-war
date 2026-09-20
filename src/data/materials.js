@@ -1,6 +1,7 @@
 import { ENEMIES, baseIdOf, difficultyOf, getStage as getBaseStage, stageAt } from './stages'
 import { FLOORS, floorStage } from './dungeon'
 import { roundFor, slotStage } from './chardungeon'
+import { raidBossStage } from './raiddungeon'
 
 const e = (id, level) => ({ id, level })
 
@@ -135,6 +136,11 @@ export function findStage(id) {
   if (typeof id === 'string' && id.startsWith('d-')) {
     const floor = Number(id.slice(2))
     return floor >= 1 && floor <= FLOORS ? floorStage(floor) : null
+  }
+  // ดันเจี้ยนเหรดใช้รหัส r-<ระดับความยาก>-<ลำดับ> ประกอบขึ้นจากรหัสเหมือนกัน ไม่เก็บเป็นรายการสำเร็จรูป
+  if (typeof id === 'string' && id.startsWith('r-')) {
+    const [, tierId, idx] = id.split('-')
+    return raidBossStage(tierId, Number(idx))
   }
   return getBaseStage(id) ?? MATERIAL_STAGES.find((s) => s.id === id) ?? null
 }

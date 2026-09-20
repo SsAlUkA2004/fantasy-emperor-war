@@ -18,6 +18,8 @@ import { runsLeft } from '../lib/dayclock'
 import { RUNS_PER_SLOT, SLOTS_PER_ROUND } from '../data/chardungeon'
 import { totalRunsLeft } from '../lib/chardungeon'
 import { roundFor } from '../data/chardungeon'
+import { RAID_TIERS, meetsRequirement } from '../data/raiddungeon'
+import { totalRunsLeftForTier } from '../lib/raiddungeon'
 import StatPeek from '../components/StatPeek'
 import { signOut } from '../lib/auth'
 
@@ -62,6 +64,9 @@ export default function Lobby() {
   const earnedLevelTitle = [...PERMANENT_QUESTS]
     .reverse()
     .find((q) => (player.levelTitles ?? []).includes(q.level))
+
+  // ล็อกลิงก์ด่วนนี้ไว้จนกว่าจะปลดล็อกระดับง่ายสุด (ระดับอื่นเข้มกว่านี้ ดูรายละเอียดในหน้าดันเจี้ยนเหรด)
+  const raidUnlocked = owned ? meetsRequirement(owned, RAID_TIERS[0].need) : false
 
   return (
     <main className="screen top">
@@ -291,6 +296,20 @@ export default function Lobby() {
             {!chapterCleared(player.stageProgress, UNLOCKS.arena.chapter) && ' · ต้องผ่านบทที่ 1'}
             {claimableRanks(player.highestRank ?? 0, player.claimedRanks ?? []).length > 0 &&
               ' · มีรางวัลรอรับ'}
+          </Link>
+
+          <Link className="rune-link block" to="/vault" data-locked={owned ? !raidUnlocked : false}>
+            ดันเจี้ยนเหรด
+            {owned && !raidUnlocked && (
+              <span className="btn-note">
+                ต้องมี SSR เลเวล {RAID_TIERS[0].need.level} อย่างน้อย {RAID_TIERS[0].need.count} ตัว
+              </span>
+            )}
+            {owned && raidUnlocked && (
+              <span className="btn-note">
+                รวมเหลือ {RAID_TIERS.reduce((sum, t) => sum + totalRunsLeftForTier(player, t), 0)} ครั้ง
+              </span>
+            )}
           </Link>
         </div>
 

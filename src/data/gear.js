@@ -108,6 +108,10 @@ export const SOURCE_RANGE = {
   worldboss: ['purple', 'red'],
   guild: ['green', 'orange'],
   pvp: ['blue', 'pink'],
+  // ดันเจี้ยนเหรด สามระดับความยาก ช่วงสีตายตัวต่อระดับตามที่ออกแบบไว้ (ดู data/raiddungeon.js)
+  raidEasy: ['white', 'blue'],
+  raidMedium: ['blue', 'orange'],
+  raidHard: ['orange', 'pink'],
 }
 
 /**

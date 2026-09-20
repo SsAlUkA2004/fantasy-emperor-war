@@ -297,6 +297,104 @@ export const ENEMIES = {
       ],
     },
   },
+
+  // ───────── ดันเจี้ยนเหรด — ผู้เฝ้าคลังอุปกรณ์ปลายเกม (ดู data/raiddungeon.js) ─────────
+  // ตัวเลขจูนด้วยการจำลองสู้จริง (ทีม ENDGAME ไม่ใส่อุปกรณ์ ที่เลเวล/ดาวต่ำสุดที่เกณฑ์ของแต่ละ
+  // ระดับความยากอนุญาต) ไม่ได้อิงค่าพลังดิบของบอสบทที่ 6-8 ในตารางนี้ (เช่นไททันแก่นคริสตัล)
+  // เพราะตัวเลขพวกนั้นถูกออกแบบให้ต้องผ่าน STAGE_SCALE/BAND_SCALE หารทอนก่อนใช้งานเสมอ
+  // เอามาใช้ตรง ๆ ในดันเจี้ยนที่ไม่มีตัวหารพวกนั้นจะแรงเกินจริงหลายเท่า (ดูรอยคอมมิตที่แก้เรื่องนี้)
+  vaultguard1: {
+    id: 'vaultguard1', name: 'ยามเฝ้าคลังชายแดน', element: 'earth', mark: '🛡️', boss: true,
+    stats: { hp: 40000, atk: 950, def: 420, spd: 108, crit: 16 },
+    skill: {
+      name: 'โล่กระแทกพิภพ', mp: 3,
+      effects: [{ kind: 'damage', mult: 1.8, target: 'allFoes' }],
+    },
+  },
+  vaultguard2: {
+    id: 'vaultguard2', name: 'โจรเกราะเพลิง', element: 'fire', mark: '🔥', boss: true,
+    stats: { hp: 37000, atk: 1020, def: 380, spd: 125, crit: 20 },
+    skill: {
+      name: 'เปลวริบทรัพย์', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.6, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'allFoes' },
+      ],
+    },
+  },
+  vaultguard3: {
+    id: 'vaultguard3', name: 'นักฆ่าเงาสนธยา', element: 'dark', mark: '🗡️', boss: true,
+    stats: { hp: 35000, atk: 1090, def: 355, spd: 140, crit: 24 },
+    skill: {
+      name: 'เงาลอบกรีด', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.9, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.3 },
+      ],
+    },
+  },
+  vaultknight1: {
+    id: 'vaultknight1', name: 'แม่ทัพเกราะเงิน', element: 'water', mark: '⚔️', boss: true,
+    stats: { hp: 62000, atk: 1350, def: 470, spd: 112, crit: 18 },
+    skill: {
+      name: 'คลื่นบัญชาศึก', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.7, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.3 },
+      ],
+    },
+  },
+  vaultknight2: {
+    id: 'vaultknight2', name: 'ยักษ์เฝ้าสมบัติ', element: 'earth', mark: '🗻', boss: true,
+    stats: { hp: 68000, atk: 1260, def: 520, spd: 90, crit: 14 },
+    skill: {
+      name: 'กำปั้นทลายคลัง', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.2, target: 'one' }],
+    },
+  },
+  vaultknight3: {
+    id: 'vaultknight3', name: 'จอมเวทผนึกคลัง', element: 'light', mark: '✨', boss: true,
+    stats: { hp: 58000, atk: 1440, def: 420, spd: 128, crit: 22 },
+    skill: {
+      name: 'ผนึกแสงตัดสิน', mp: 3,
+      // ฟื้นพลังตัวเองแค่ 5% ไม่ใช่มากกว่านั้น ด้วยเหตุผลเดียวกับเซราฟบทที่ 7 (ดูหมายเหตุที่นั่น)
+      // ฟื้นเร็วกว่านี้จะแซงหน้าที่ทีมตีเข้า การต่อสู้จึงไม่มีวันจบภายในเพดานรอบ
+      effects: [
+        { kind: 'damage', mult: 1.9, target: 'allFoes' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
+      ],
+    },
+  },
+  vaultlord1: {
+    id: 'vaultlord1', name: 'ราชันเกราะทองคำ', element: 'light', mark: '👑', boss: true,
+    stats: { hp: 85000, atk: 1700, def: 510, spd: 118, crit: 20 },
+    skill: {
+      name: 'พระราชโองการทองคำ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.1, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.35 },
+      ],
+    },
+  },
+  vaultlord2: {
+    id: 'vaultlord2', name: 'เทพอสูรเฝ้าขุมทรัพย์', element: 'earth', mark: '🔱', boss: true,
+    stats: { hp: 92000, atk: 1590, def: 560, spd: 96, crit: 16 },
+    skill: {
+      name: 'ตรีศูลทลายแผ่นดิน', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.4, target: 'allFoes' }],
+    },
+  },
+  vaultlord3: {
+    id: 'vaultlord3', name: 'จอมมารผนึกอมตะ', element: 'dark', mark: '😈', boss: true,
+    stats: { hp: 81000, atk: 1770, def: 475, spd: 146, crit: 26 },
+    skill: {
+      name: 'อสูรกลืนวิญญาณ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.0, target: 'one' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'one' },
+      ],
+    },
+  },
 }
 
 export const FIRST_CLEAR_GEMS = 30

@@ -29,6 +29,7 @@ const GROUPS = [
       { to: '/dungeon', label: 'ดันเจี้ยน', mark: '🏯' },
       { to: '/hunt', label: 'รอยอดีต', mark: '🕯️' },
       { to: '/boss', label: 'บอสโลก', mark: '🐲' },
+      { to: '/vault', label: 'ดันเจี้ยนเหรด', mark: '🏦' },
     ],
   },
   {

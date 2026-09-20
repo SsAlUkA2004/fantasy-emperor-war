@@ -10,6 +10,7 @@ import { saveStageResult } from '../lib/progress'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { runCharDungeon } from '../lib/chardungeon'
+import { runRaidBoss } from '../lib/raiddungeon'
 import { spendHelper } from '../lib/helper'
 import { ROUND_LIMIT, decideByHp } from '../lib/pvp'
 import { DIFFICULTIES, STORY_ROUND_LIMIT } from '../data/stages'
@@ -48,7 +49,7 @@ export default function Battle() {
         ? { id: `d-${stage.floor + 1}`, name: `ชั้นที่ ${stage.floor + 1}` }
         : null
     }
-    if (stage.training || stage.gemStage || stage.materialStage) return null
+    if (stage.training || stage.gemStage || stage.materialStage || stage.raidDungeon) return null
 
     const base = stage.id.split('@')[0]
     const sfx = stage.id.includes('@') ? '@' + stage.id.split('@')[1] : ''
@@ -74,7 +75,13 @@ export default function Battle() {
   })()
 
   // กลับไปหน้าที่มาจริง ไม่ใช่แผนที่ด่านเสมอ
-  const backTo = stage?.dungeon ? '/dungeon' : stage?.charDungeon ? '/hunt' : '/stages'
+  const backTo = stage?.dungeon
+    ? '/dungeon'
+    : stage?.charDungeon
+      ? '/hunt'
+      : stage?.raidDungeon
+        ? '/vault'
+        : '/stages'
 
   // round เปลี่ยนค่าเมื่อกดเล่นอีกครั้ง ทำให้ตั้งสนามรบใหม่ทั้งหมด
   useEffect(() => {
@@ -173,6 +180,22 @@ export default function Battle() {
       return
     }
 
+    if (state.outcome === 'won' && stage.raidDungeon) {
+      const stars = starsEarned(state)
+      Promise.all([
+        runRaidBoss({ ...player, uid: user.uid }, stage),
+        awardExp(user.uid, roster.current, stage.exp ?? 0),
+      ])
+        .then(([r, levels]) => {
+          setReward({ stars, exp: stage.exp, levels, ...r })
+          return refresh()
+        })
+        .catch((e) =>
+          setReward({ stars, firstClear: false, gems: 0, failed: true, why: explainError('บันทึกผลไม่สำเร็จ', e) })
+        )
+      return
+    }
+
     if (state.outcome === 'won') {
       const stars = starsEarned(state)
       const exp = stage.exp ?? 0
@@ -244,7 +267,9 @@ export default function Battle() {
           onNext={() => navigate(`/battle/${nextStage.id}`)}
           onAgain={() => setRound((r) => r + 1)}
           onBack={() => navigate(backTo)}
-          backLabel={stage.dungeon ? 'กลับไปหอคอย' : 'กลับไปแผนที่'}
+          backLabel={
+            stage.dungeon ? 'กลับไปหอคอย' : stage.raidDungeon ? 'กลับไปดันเจี้ยนเหรด' : 'กลับไปแผนที่'
+          }
         />
       )}
     </main>
@@ -260,6 +285,7 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
   const noRunsLeft =
     Boolean(reward?.quotaSpent) ||
     reward?.runsLeft === 0 ||
+    reward?.raidLeft === 0 ||
     (reward?.hunt && reward.hunt.left <= 0)
 
   return (
@@ -306,6 +332,9 @@ function Result({ outcome, reward, training, gemStage, nextStage, onNext, onAgai
           )}
           {reward?.newFloor && <p className="levelup">พิชิตชั้นใหม่ได้แล้ว</p>}
           {reward?.coins > 0 && <p>ได้เหรียญ {reward.coins.toLocaleString('th-TH')}</p>}
+          {reward?.raidLeft !== undefined && (
+            <p className="meta tiny">บอสตัวนี้เหลืออีก {reward.raidLeft} ครั้งในชั่วโมงนี้</p>
+          )}
           {reward?.drop && (
             <p className="levelup" style={{ color: GRADES[reward.drop.grade].color }}>
               ได้{SLOTS[reward.drop.slot].name}
