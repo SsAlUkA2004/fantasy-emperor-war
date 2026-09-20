@@ -10,6 +10,14 @@
   --ember: #c25843;
   --myth: #ff4d6d;
 
+  /* สีประจำธาตุ ใช้กับแสงตอนร่ายท่าและแฟลชท่าไม้ตายในสนามรบ (ดู .combatant[data-cast]/.battle-arena[data-flash]) */
+  --el-fire: #ff8a5b;
+  --el-water: #6fb2d6;
+  --el-wind: #8fe0c8;
+  --el-earth: #c9a25a;
+  --el-light: #ffe9a8;
+  --el-dark: #b98ede;
+
   --display: 'Trirong', Georgia, serif;
   --body: 'IBM Plex Sans Thai', system-ui, sans-serif;
 }
@@ -677,6 +685,7 @@ a {
 
 .battle-arena {
   display: block;
+  position: relative;
 }
 
 .field-side {
@@ -706,6 +715,7 @@ a {
 }
 
 .combatant {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -789,6 +799,311 @@ a {
   margin-top: 0.28rem;
   font-size: 0.76rem;
   color: var(--parchment-dim);
+}
+
+/* ───────── อนิเมชันท่าโจมตี ─────────
+   ทำงานผ่าน data-cast (ฝั่งคนลงมือ) กับ data-impact (ฝั่งคนโดน) ที่ BattleStage.jsx
+   ตั้งชั่วคราวจาก state.lastAction แล้วเคลียร์เองหลังท่านั้นเล่นจบ ไม่ต้องมี state ถาวร
+   สีของแสงร่ายท่า/แฟลชท่าไม้ตายมาจาก data-element ผูกกับตัวแปรสีธาตุใน :root ด้านบน */
+
+.combatant[data-element='fire'] { --fx-color: var(--el-fire); }
+.combatant[data-element='water'] { --fx-color: var(--el-water); }
+.combatant[data-element='wind'] { --fx-color: var(--el-wind); }
+.combatant[data-element='earth'] { --fx-color: var(--el-earth); }
+.combatant[data-element='light'] { --fx-color: var(--el-light); }
+.combatant[data-element='dark'] { --fx-color: var(--el-dark); }
+
+@keyframes fx-cast-attack {
+  0% { transform: scale(1); filter: brightness(1); }
+  35% { transform: scale(1.035); filter: brightness(1.3); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes fx-cast-skill {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+  40% { transform: scale(1.05); box-shadow: 0 0 18px 4px var(--fx-color, var(--gold)); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes fx-cast-ultimate {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+  30% { transform: scale(1.08); box-shadow: 0 0 30px 9px var(--fx-color, var(--myth)); }
+  60% { transform: scale(1.04); box-shadow: 0 0 20px 6px var(--fx-color, var(--myth)); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes fx-stunned {
+  0%, 100% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(-3px); opacity: 0.6; }
+}
+
+.combatant[data-cast='attack'] { animation: fx-cast-attack 420ms ease; z-index: 2; }
+.combatant[data-cast='skill'] { animation: fx-cast-skill 560ms ease; z-index: 2; }
+.combatant[data-cast='ultimate'] { animation: fx-cast-ultimate 680ms ease; z-index: 2; border-color: var(--fx-color, var(--myth)); }
+.combatant[data-cast='stunned'] { animation: fx-stunned 380ms ease; }
+
+@keyframes fx-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(2px); }
+}
+
+@keyframes fx-shake-hard {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-10px); }
+  30% { transform: translateX(9px); }
+  45% { transform: translateX(-7px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(2px); }
+}
+
+@keyframes fx-flash {
+  0% { background-color: var(--flash-tint, transparent); }
+  100% { background-color: transparent; }
+}
+
+.combatant[data-impact]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: fx-flash 420ms ease-out;
+}
+
+.combatant[data-impact='damage'] { animation: fx-shake 420ms ease; }
+.combatant[data-impact='damage']::after { --flash-tint: rgba(194, 88, 67, 0.55); }
+
+.combatant[data-impact='crit'] { animation: fx-shake-hard 480ms ease; }
+.combatant[data-impact='crit']::after { --flash-tint: rgba(255, 77, 109, 0.65); animation-duration: 480ms; }
+
+.combatant[data-impact='heal']::after { --flash-tint: rgba(111, 214, 200, 0.5); }
+.combatant[data-impact='block']::after { --flash-tint: rgba(200, 164, 77, 0.5); }
+.combatant[data-impact='status']::after { --flash-tint: rgba(185, 142, 222, 0.45); }
+.combatant[data-impact='cleanse']::after { --flash-tint: rgba(232, 206, 133, 0.4); }
+
+/* ตัวเลขดาเมจ/ฟื้นพลังลอยขึ้นแล้วจางหาย วางซ้อนกันได้หลายอันถ้าท่าเดียวมีหลายผล (เช่นดาเมจ + สถานะ) */
+.dmg-pop {
+  position: absolute;
+  top: -0.35rem;
+  right: 0.7rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--parchment);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 3;
+  animation: fx-pop-float 800ms ease-out forwards;
+}
+
+@keyframes fx-pop-float {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-1.5rem); opacity: 0; }
+}
+
+.dmg-pop[data-impact='damage'] { color: var(--ember); }
+.dmg-pop[data-impact='crit'] { color: var(--myth); font-size: 1.2rem; }
+.dmg-pop[data-impact='heal'] { color: var(--rune); }
+.dmg-pop[data-impact='block'],
+.dmg-pop[data-impact='cleanse'] { color: var(--gold-bright); font-size: 0.78rem; }
+.dmg-pop[data-impact='status'] { color: #dcc4f5; font-size: 0.78rem; }
+
+/* ───────── เอฟเฟคธาตุตอนโจมตี (ของจริง ไม่ใช่แค่ตัวเลข) ─────────
+   อนุภาคพุ่งออกจากจุดกลางของ .combatant กระจายมุมเท่า ๆ กันรอบวง (ดู ElementBurst ใน BattleStage.jsx)
+   สีธาตุมาจากผู้ลงมือท่านั้นเสมอ ไม่ใช่ธาตุของเป้าหมาย เพราะเอฟเฟคเป็นของท่าที่ปล่อยออกมา
+   ไฟ/น้ำ/แสง/มืด ใช้ทรงกลมพุ่งออกเหมือนกัน ต่างกันที่สี/แสง/จังหวะ ส่วนลมกับดินมีทรง+การเคลื่อนไหวเฉพาะตัว */
+
+.vfx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 4;
+}
+
+.vfx-p {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+  animation-delay: var(--delay, 0ms);
+}
+
+.vfx[data-vfx-el='fire'] .vfx-p,
+.vfx[data-vfx-el='water'] .vfx-p,
+.vfx[data-vfx-el='light'] .vfx-p,
+.vfx[data-vfx-el='dark'] .vfx-p {
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  animation-name: vfx-burst-out;
+  animation-duration: 520ms;
+}
+
+@keyframes vfx-burst-out {
+  0% { opacity: 0; transform: rotate(var(--a)) translateY(0) scale(0.4); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--dist, 24px) * -1)) scale(0.3); }
+}
+
+.vfx[data-vfx-el='fire'] .vfx-p {
+  background: radial-gradient(circle at 30% 30%, #fff3b0, var(--el-fire) 55%, transparent 78%);
+  box-shadow: 0 0 6px 1px var(--el-fire);
+}
+
+.vfx[data-vfx-el='water'] .vfx-p {
+  background: radial-gradient(circle at 35% 30%, #eaffff, var(--el-water) 60%, transparent 80%);
+  box-shadow: 0 0 5px 1px var(--el-water);
+  animation-duration: 620ms;
+}
+
+.vfx[data-vfx-el='light'] .vfx-p {
+  background: radial-gradient(circle at 40% 30%, #ffffff, var(--el-light) 55%, transparent 80%);
+  box-shadow: 0 0 7px 2px var(--el-light);
+  animation-duration: 460ms;
+}
+
+.vfx[data-vfx-el='dark'] .vfx-p {
+  background: radial-gradient(circle at 35% 35%, #e6d4fb, var(--el-dark) 55%, transparent 82%);
+  box-shadow: 0 0 6px 2px var(--el-dark);
+  filter: blur(0.5px);
+  animation-duration: 680ms;
+}
+
+/* ลม: ริ้วเฉียงพุ่งผ่านแทนวงกลม ให้ความรู้สึกเป็นสายลม/ใบมีดลมตัด */
+.vfx[data-vfx-el='wind'] .vfx-p {
+  width: 20px;
+  height: 3px;
+  margin: -1.5px 0 0 -10px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--el-wind), transparent);
+  box-shadow: 0 0 5px 0 var(--el-wind);
+  animation-name: vfx-wind-p;
+  animation-duration: 420ms;
+}
+
+@keyframes vfx-wind-p {
+  0% { opacity: 0; transform: rotate(var(--a)) translateX(-6px) scaleX(0.4); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--dist, 30px)) scaleX(1.4); }
+}
+
+/* ดิน: ก้อนหินเหลี่ยม ๆ พุ่งขึ้นแล้วร่วงพร้อมหมุนตัวเหมือนโดนแรงโน้มถ่วงดึงลง */
+.vfx[data-vfx-el='earth'] .vfx-p {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #e4c384, var(--el-earth) 60%, #6b4b28 100%);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  animation-name: vfx-earth-p;
+  animation-duration: 560ms;
+}
+
+@keyframes vfx-earth-p {
+  0% { opacity: 0; transform: rotate(var(--a)) translateY(0) rotate(0deg) scale(0.7); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(18px) rotate(220deg) scale(0.5); }
+}
+
+.vfx-dust {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 26px;
+  height: 10px;
+  margin-left: -13px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(201, 162, 90, 0.55), transparent 70%);
+  filter: blur(1px);
+  opacity: 0;
+  animation: vfx-dust-out 520ms ease-out forwards;
+}
+
+@keyframes vfx-dust-out {
+  0% { opacity: 0; transform: scale(0.4); }
+  30% { opacity: 0.8; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* วงคลื่นน้ำกระเพื่อม / แรงดึงความมืด ใช้ทรงเดียวกัน ต่างกันแค่สีขอบ */
+.vfx-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  border: 2px solid var(--el-water);
+  opacity: 0;
+  animation: vfx-ring-out 560ms ease-out forwards;
+}
+
+.vfx[data-vfx-el='dark'] .vfx-ring {
+  border-color: var(--el-dark);
+  animation-duration: 640ms;
+}
+
+@keyframes vfx-ring-out {
+  0% { opacity: 0.9; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(3.2); }
+}
+
+/* ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั่วสนาม สีตามธาตุของคนร่าย */
+@keyframes fx-arena-flash {
+  0% { opacity: 0; }
+  30% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+@keyframes fx-arena-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+.battle-arena[data-flash] { animation: fx-arena-shake 420ms ease; }
+
+.battle-arena[data-flash]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(circle at 50% 35%, var(--flash-color, var(--myth)) 0%, transparent 70%);
+  animation: fx-arena-flash 680ms ease-out;
+}
+
+.battle-arena[data-flash='fire']::before { --flash-color: var(--el-fire); }
+.battle-arena[data-flash='water']::before { --flash-color: var(--el-water); }
+.battle-arena[data-flash='wind']::before { --flash-color: var(--el-wind); }
+.battle-arena[data-flash='earth']::before { --flash-color: var(--el-earth); }
+.battle-arena[data-flash='light']::before { --flash-color: var(--el-light); }
+.battle-arena[data-flash='dark']::before { --flash-color: var(--el-dark); }
+
+@media (prefers-reduced-motion: reduce) {
+  .combatant[data-cast],
+  .combatant[data-impact],
+  .combatant[data-impact]::after,
+  .battle-arena[data-flash],
+  .battle-arena[data-flash]::before,
+  .dmg-pop {
+    animation: none !important;
+  }
+
+  .vfx {
+    display: none !important;
+  }
 }
 
 /* บันทึกการต่อสู้ */

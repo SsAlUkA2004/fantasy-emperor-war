@@ -43,7 +43,36 @@ function popupText(hit) {
   return `-${hit.amount.toLocaleString('th-TH')}`
 }
 
-export function Combatant({ unit, active, selected, favoured, ally, onSelect, cast, impacts }) {
+const ELEMENT_PARTICLES = { fire: 6, water: 6, wind: 5, earth: 6, light: 7, dark: 6 }
+const BURST_DIST = { sm: 16, md: 24, lg: 34 }
+
+// อนุภาคเอฟเฟคธาตุจริง (ไม่ใช่แค่ข้อความ) พุ่งออกจากจุดกลางของ .combatant กระจายมุมรอบวงเท่า ๆ กัน
+// สีธาตุมาจากผู้ลงมือท่านั้นเสมอ ไม่ใช่ธาตุของเป้าหมาย เพราะเอฟเฟคคือของท่าที่ปล่อยออกมา
+// รูปร่าง/จังหวะแยกตามธาตุจริง ๆ ที่ styles.css (ไฟ/น้ำ/แสง/มืด เป็นวงกลมพุ่งออก, ลมเป็นริ้ว, ดินเป็นก้อนหมุนร่วง)
+function ElementBurst({ element, size = 'md', ring }) {
+  if (!element) return null
+  const count = ELEMENT_PARTICLES[element] ?? 6
+  const dist = BURST_DIST[size] ?? 24
+  return (
+    <span className="vfx" data-vfx-el={element} aria-hidden="true">
+      {Array.from({ length: count }).map((_, i) => (
+        <span
+          key={i}
+          className="vfx-p"
+          style={{
+            '--a': `${Math.round((360 / count) * i)}deg`,
+            '--delay': `${i * 30}ms`,
+            '--dist': `${dist}px`,
+          }}
+        />
+      ))}
+      {ring && <span className="vfx-ring" />}
+      {element === 'earth' && size !== 'sm' && <span className="vfx-dust" />}
+    </span>
+  )
+}
+
+export function Combatant({ unit, active, selected, favoured, ally, onSelect, cast, impacts, fxElement }) {
   const pct = Math.round((unit.hp / unit.maxHp) * 100)
   const element = ELEMENTS[unit.element]
   const primaryImpact = impacts?.[0] ? impactKindOf(impacts[0]) : undefined
@@ -81,6 +110,18 @@ export function Combatant({ unit, active, selected, favoured, ally, onSelect, ca
           {ally && ` · เลเวล ${unit.level} · เวท ${unit.mp} · เกจ ${unit.gauge}`}
         </div>
       </div>
+
+      {cast && cast !== 'stunned' && (
+        <ElementBurst element={fxElement} size={cast === 'ultimate' ? 'lg' : cast === 'skill' ? 'md' : 'sm'} />
+      )}
+
+      {impacts?.length > 0 && (primaryImpact === 'damage' || primaryImpact === 'crit') && (
+        <ElementBurst
+          element={fxElement}
+          size={primaryImpact === 'crit' ? 'lg' : 'md'}
+          ring={fxElement === 'water' || fxElement === 'dark'}
+        />
+      )}
 
       {impacts?.map((hit, i) => (
         <span
@@ -141,9 +182,10 @@ export default function BattleStage({
   const allies = state.units.filter((u) => u.side === 'ally')
   const yourTurn = actor?.side === 'ally' && !auto && !state.outcome
   const hitsFor = (key) => fx?.hits.filter((h) => h.targetKey === key)
+  // ธาตุของผู้ลงมือท่านี้ ใช้ทั้งกับอนุภาคเอฟเฟคตอนร่าย/ตอนโดน และแสงทั้งสนามตอนท่าไม้ตาย
+  const fxElement = fx ? state.units.find((u) => u.key === fx.actorKey)?.element : undefined
   // ท่าไม้ตายเท่านั้นที่เขย่า/ปล่อยแสงทั้งสนาม สีตามธาตุของคนร่าย
-  const ultimateElement =
-    fx?.type === 'ultimate' ? state.units.find((u) => u.key === fx.actorKey)?.element : undefined
+  const ultimateElement = fx?.type === 'ultimate' ? fxElement : undefined
 
   return (
     <div className="battle-arena" data-flash={ultimateElement}>
@@ -159,6 +201,7 @@ export default function BattleStage({
             onSelect={() => u.alive && setTarget(u.key)}
             cast={fx?.actorKey === u.key ? fx.type : null}
             impacts={hitsFor(u.key)}
+            fxElement={fxElement}
           />
         ))}
       </section>
@@ -182,6 +225,7 @@ export default function BattleStage({
             ally
             cast={fx?.actorKey === u.key ? fx.type : null}
             impacts={hitsFor(u.key)}
+            fxElement={fxElement}
           />
         ))}
       </section>
