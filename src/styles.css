@@ -1290,7 +1290,10 @@ a {
   100% { opacity: 0; transform: translateX(var(--x, 0px)) translateY(-8%) scale(var(--s, 1)); }
 }
 
-/* มืด: หลุมดำขยายตัวออกจากจุดศูนย์กลางพร้อมจานพอกพูนหมุนรอบ ทิศทางตรงข้ามธาตุอื่นที่ค่อย ๆ จางหาย */
+/* มืด: หลุมดำขยายตัวออกจากจุดศูนย์กลางพร้อมจานพอกพูนหมุนรอบ ทิศทางตรงข้ามธาตุอื่นที่ค่อย ๆ จางหาย
+   จุดที่เคยพลาด: ฐานเล็ก (3-5rem) แต่ปล่อยให้ transform: scale() พุ่งถึง 3.5-5.2 เท่าตอนยังทึบแสงเต็มที่
+   (opacity ค้างที่ 1 อยู่) รวมกับ box-shadow เรืองแสงที่ขยายตามสเกลไปด้วย กลายเป็นก้อนดำ+เรืองม่วงยักษ์
+   บดบังจอ (บั๊กที่ผู้ใช้เจอจริง) จำกัดสเกลสูงสุดไว้แถว ๆ 2-2.3 เท่า ให้ขนาดตอนเห็นชัดที่สุดใกล้เคียงธาตุอื่น */
 .vfx-ult-accretion {
   position: absolute;
   top: 50%;
@@ -1308,7 +1311,7 @@ a {
 @keyframes vfx-ult-accretion {
   0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
   25% { opacity: 0.8; }
-  100% { opacity: 0; transform: scale(3.5) rotate(280deg); }
+  100% { opacity: 0; transform: scale(2) rotate(280deg); }
 }
 
 .vfx-ult-hole {
@@ -1320,16 +1323,16 @@ a {
   margin: -1.5rem 0 0 -1.5rem;
   border-radius: 50%;
   background: radial-gradient(circle, #000 55%, var(--el-dark) 80%, transparent 100%);
-  box-shadow: 0 0 40px 14px var(--el-dark);
+  box-shadow: 0 0 20px 6px var(--el-dark);
   opacity: 0;
   animation: vfx-ult-hole 1050ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes vfx-ult-hole {
   0% { opacity: 0; transform: scale(0.1); }
-  20% { opacity: 1; }
-  70% { opacity: 1; transform: scale(4.5); }
-  100% { opacity: 0; transform: scale(5.2); }
+  20% { opacity: 1; transform: scale(0.9); }
+  70% { opacity: 1; transform: scale(2.1); }
+  100% { opacity: 0; transform: scale(2.3); }
 }
 
 .vfx-ult-text {
