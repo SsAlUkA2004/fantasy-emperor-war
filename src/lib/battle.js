@@ -167,6 +167,9 @@ export function createBattle(allyEntries, stage) {
     cursor: 0,
     log: [],
     outcome: null,
+    // สรุปท่าล่าสุดแบบมีโครงสร้าง (ไม่ใช่แค่ข้อความ) ให้ฝั่ง UI เอาไปเล่นอนิเมชันได้
+    // ว่าใครลงมือ ท่าไหน โดนใครบ้าง คริไหม ฯลฯ โดยไม่ต้องแกะข้อความ log เอาเอง
+    lastAction: null,
   }
 
   log(state, stage.intro, 'intro')
@@ -278,7 +281,14 @@ function runEffects(state, actor, move, chosenKey) {
       if (effect.kind === 'damage') {
         const bonus = effect.bonusOn && target.effects[effect.bonusOn] ? effect.bonusMult : 1
         const { amount, crit, element } = computeDamage(actor, target, effect.mult * scale * bonus)
-        applyDamage(state, target, amount)
+        const dealt = applyDamage(state, target, amount)
+        state.lastAction?.hits.push({
+          targetKey: target.key,
+          kind: dealt === 0 ? 'block' : 'damage',
+          amount: dealt,
+          crit,
+          elementAdv: element,
+        })
 
         const tags = [crit && 'คริติคอล', element && 'แพ้ทางธาตุ', bonus > 1 && 'ขยายผล'].filter(Boolean)
         log(
@@ -294,6 +304,7 @@ function runEffects(state, actor, move, chosenKey) {
         // กันบอสที่มีสกิลฟื้นพลังฟื้นเป็นก้อนมหาศาลจากเลือดที่ถูกพองไว้สู้ทีมห้าคน
         const heal = Math.round((target.baseMaxHp ?? target.maxHp) * effect.percent * scale)
         target.hp = Math.min(target.maxHp, target.hp + heal)
+        state.lastAction?.hits.push({ targetKey: target.key, kind: 'heal', amount: heal })
         log(state, `${target.name} ฟื้นพลัง ${heal} หน่วย`, actor.side)
         return
       }
@@ -302,6 +313,7 @@ function runEffects(state, actor, move, chosenKey) {
         target.effects.burn = 0
         target.effects.burnAtk = 0
         target.effects.stun = 0
+        state.lastAction?.hits.push({ targetKey: target.key, kind: 'cleanse' })
         log(state, `${target.name} หลุดจากสถานะติดลบ`, actor.side)
         return
       }
@@ -316,6 +328,8 @@ function runEffects(state, actor, move, chosenKey) {
         // พอเจอศัตรูเลือดหลายสิบล้านอย่างบอสโลก ไฟจะกินทีละหลายล้านต่อเทิร์น
         // แล้วละลายบอสทั้งตัวโดยที่ผู้เล่นแทบไม่ต้องทำอะไร
         if (effect.status === 'burn') target.effects.burnAtk = actor.atk
+
+        state.lastAction?.hits.push({ targetKey: target.key, kind: 'status', status: effect.status })
 
         const label = {
           burn: 'ติดไฟ',
@@ -335,8 +349,15 @@ function basicAttack(state, actor, targetKey) {
   if (!target) return
 
   const { amount, crit, element } = computeDamage(actor, target, 1)
-  applyDamage(state, target, amount)
+  const dealt = applyDamage(state, target, amount)
   actor.gauge = Math.min(100, actor.gauge + ATTACK_GAUGE)
+  state.lastAction?.hits.push({
+    targetKey: target.key,
+    kind: dealt === 0 ? 'block' : 'damage',
+    amount: dealt,
+    crit,
+    elementAdv: element,
+  })
 
   const tags = [crit && 'คริติคอล', element && 'แพ้ทางธาตุ'].filter(Boolean)
   log(
@@ -405,6 +426,7 @@ export function takeTurn(state, action = null) {
   if (!actor) return next
 
   if (actor.effects.stun > 0) {
+    next.lastAction = { actorKey: actor.key, side: actor.side, type: 'stunned', hits: [] }
     actor.effects.stun -= 1
     log(next, `${actor.name} ยังขยับไม่ได้`)
     endOfTurn(next, actor)
@@ -413,12 +435,23 @@ export function takeTurn(state, action = null) {
   }
 
   const move = action ?? decideAction(next, actor)
+  const willUltimate = move.type === 'ultimate' && actor.ultimate
+  const willSkill = move.type === 'skill' && actor.skill
 
-  if (move.type === 'ultimate' && actor.ultimate) {
+  // ตั้งก่อนเรียก runEffects/basicAttack เสมอ เพราะทั้งสองฟังก์ชันนั้นเก็บผลแต่ละก้อน
+  // (โดนใคร ดาเมจเท่าไหร่ คริไหม) ลงใน lastAction.hits ระหว่างทำงาน
+  next.lastAction = {
+    actorKey: actor.key,
+    side: actor.side,
+    type: willUltimate ? 'ultimate' : willSkill ? 'skill' : 'attack',
+    hits: [],
+  }
+
+  if (willUltimate) {
     actor.gauge = 0
     log(next, `${actor.name} ปลดปล่อย ${actor.ultimate.name}`, actor.side)
     runEffects(next, actor, actor.ultimate, move.target)
-  } else if (move.type === 'skill' && actor.skill) {
+  } else if (willSkill) {
     actor.mp -= actor.skill.mp
     actor.gauge = Math.min(100, actor.gauge + SKILL_GAUGE)
     log(next, `${actor.name} ร่าย ${actor.skill.name}`, actor.side)
