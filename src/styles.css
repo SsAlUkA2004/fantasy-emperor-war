@@ -1083,13 +1083,15 @@ a {
 .vfx-ult[data-vfx-el='light'] { --fx-color: var(--el-light); }
 .vfx-ult[data-vfx-el='dark'] { --fx-color: var(--el-dark); }
 
-/* แสง (และดีฟอลต์เผื่อธาตุไม่ตรงเงื่อนไขไหนเลย): พุ่งรัศมีจากจุดศูนย์กลาง + แฟลชแกนกลาง */
+/* แสง (และดีฟอลต์เผื่อธาตุไม่ตรงเงื่อนไขไหนเลย): พุ่งรัศมีจากจุดศูนย์กลาง + แฟลชแกนกลาง
+   ขนาดตั้งเป็น rem คงที่ ห้ามอิง vw/% ของ .battle-arena เด็ดขาด เพราะจอกว้าง (เดสก์ท็อป) จะทำให้
+   ก้อนนี้บวมจนกลายเป็นแสงเบลอก้อนใหญ่กลบรูปทรงของธาตุอื่นที่ตั้งใจให้ต่างกัน (บั๊กที่เจอจริงจากภาพผู้ใช้) */
 .vfx-ult-rays {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(70vw, 30rem);
-  height: min(70vw, 30rem);
+  width: 14rem;
+  height: 14rem;
   border-radius: 50%;
   background: repeating-conic-gradient(
     var(--fx-color, var(--myth)) 0deg 6deg,
@@ -1110,8 +1112,8 @@ a {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(50vw, 20rem);
-  height: min(50vw, 20rem);
+  width: 9rem;
+  height: 9rem;
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0%, var(--fx-color, var(--myth)) 45%, transparent 75%);
   opacity: 0;
@@ -1207,13 +1209,16 @@ a {
   100% { opacity: 0; transform: rotate(var(--rot, 0deg)) translateX(22%) scaleY(1); }
 }
 
-/* น้ำ: คลื่นซัดขึ้นจากขอบล่างพร้อมฟองฟู่ลอยตาม แทนวงกลมพุ่งแบบเดิม */
+/* น้ำ: คลื่นซัดขึ้นจากขอบล่างพร้อมฟองฟู่ลอยตาม แทนวงกลมพุ่งแบบเดิม
+   ขนาดตั้งเป็น rem คงที่เหมือนกับรัศมีด้านบน ไม่อิง % ของ .battle-arena เพราะกล่องนี้อาจสูง/กว้างมาก
+   บนจอเดสก์ท็อป (รวมแถวตัวละคร+log+ปุ่มกด) ถ้าใช้ % จะได้คลื่นที่ใหญ่เกินตัวจนเบลอเป็นก้อนแสง */
 .vfx-ult-wave {
   position: absolute;
-  bottom: -25%;
-  left: -10%;
-  width: 120%;
-  height: 65%;
+  bottom: -2.5rem;
+  left: 50%;
+  width: 20rem;
+  height: 9rem;
+  margin-left: -10rem;
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   background: linear-gradient(180deg, transparent, var(--el-water) 55%, #eaffff 100%);
   opacity: 0;
@@ -1221,9 +1226,9 @@ a {
 }
 
 @keyframes vfx-ult-wave {
-  0% { opacity: 0; transform: translateY(55%) scaleX(0.8); }
+  0% { opacity: 0; transform: translateY(2.5rem) scaleX(0.8); }
   30% { opacity: 0.85; }
-  100% { opacity: 0; transform: translateY(-8%) scaleX(1.1); }
+  100% { opacity: 0; transform: translateY(-0.4rem) scaleX(1.1); }
 }
 
 .vfx-ult-bubble {
