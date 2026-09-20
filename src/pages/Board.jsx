@@ -5,7 +5,7 @@ import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
 import { CHAPTERS, DIFFICULTIES } from '../data/stages'
-import { CHARACTERS, ELEMENTS } from '../data/characters'
+import { ALL_IDS, CHARACTERS, ELEMENTS, RARITIES } from '../data/characters'
 import { effectiveRarity } from '../data/ascension'
 import { entryPower, formatPower } from '../lib/power'
 import { explainError } from '../lib/errors'
@@ -17,15 +17,23 @@ const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
 // ─────────────────────────────────────────────────────────────
 // บอร์ดอันดับรวม
 //
-// อ่านเอกสารผู้เล่นชุดเดียวแล้วจัดอันดับสามแบบในเครื่อง
-// ไม่ได้ยิงสามคำขอแยกกัน เพราะสามอันดับใช้ข้อมูลจากเอกสารเดียวกันทั้งหมด
+// อ่านเอกสารผู้เล่นชุดเดียวแล้วจัดอันดับสี่แบบในเครื่อง
+// ไม่ได้ยิงหลายคำขอแยกกัน เพราะทุกอันดับใช้ข้อมูลจากเอกสารเดียวกันทั้งหมด
 // และโควตาอ่านของ Firestore คิดเป็นรายเอกสาร ไม่ใช่รายคำขอ
+//
+// อันดับตัวละคร (แท็บ 'character') ต่างจากสามแท็บแรกตรงที่ไม่ได้เทียบตัวเลขบนเอกสารผู้เล่นตรง ๆ
+// แต่ไล่ดูทีมตั้งรับ (defense) ของแต่ละคน หาว่ามีตัวละครที่เลือกอยู่ไหม ถ้ามีถึงจะเข้าอันดับ
+// ทีมตั้งรับเป็นแหล่งเดียวที่ผู้เล่นคนอื่นเห็นสถานะเต็ม (เลเวล ดาว ยกระดับ ปลุกร่าง อุปกรณ์)
+// ของตัวละครคนอื่นได้โดยไม่ต้องเปิดสิทธิ์อ่านกระเป๋าตัวละครส่วนตัว จึงยืมมาใช้ต่อที่นี่
+// ข้อจำกัดคือเห็นเฉพาะคนที่ติดร้อยอันดับแต้มประลองบนสุด และตั้งตัวนั้นไว้ในทีมตั้งรับเท่านั้น
+// เหมือนกับแท็บ "ค่าพลังสูงสุด" ที่ใช้กลุ่มตัวอย่างเดียวกันอยู่แล้ว ไม่ใช่ข้อจำกัดใหม่
 // ─────────────────────────────────────────────────────────────
 
 const TABS = [
   { id: 'pvp', name: 'แต้มประลอง', unit: 'แต้ม' },
   { id: 'power', name: 'ค่าพลังสูงสุด', unit: '⚔' },
   { id: 'story', name: 'ผ่านด่านเร็วสุด', unit: 'ด่าน' },
+  { id: 'character', name: 'จัดอันดับตัวละคร', unit: '⚔' },
 ]
 
 /** จำนวนด่านเนื้อเรื่องที่ผ่านแล้ว นับรวมทุกระดับความยาก */
@@ -65,6 +73,7 @@ export default function Board() {
   const { user } = usePlayer()
   const [rows, setRows] = useState(null)
   const [tab, setTab] = useState('pvp')
+  const [charFilter, setCharFilter] = useState('')
   const [error, setError] = useState(null)
   const [expanded, setExpanded] = useState(null)
   const [unitPeek, setUnitPeek] = useState(null)
@@ -85,7 +94,19 @@ export default function Board() {
     .sort((a, b) => b.score - a.score)
     .slice(0, 50)
 
+  // อันดับตัวละคร — หาว่าใครตั้งตัวละครที่เลือกไว้ในทีมตั้งรับบ้าง แล้วเรียงตามค่าพลังของตัวนั้น
+  const charRanking = charFilter
+    ? (rows ?? [])
+        .flatMap((r) => {
+          const entry = defenseEntries(r).find((e) => e.id === charFilter)
+          return entry ? [{ ...r, entry }] : []
+        })
+        .sort((a, b) => entryPower(b.entry) - entryPower(a.entry))
+        .slice(0, 50)
+    : []
+
   const myPlace = sorted.findIndex((r) => r.uid === user.uid)
+  const myCharPlace = charRanking.findIndex((r) => r.uid === user.uid)
   const unit = TABS.find((t) => t.id === tab)?.unit ?? ''
 
   return (
@@ -102,7 +123,15 @@ export default function Board() {
 
         <h1>บอร์ดอันดับ</h1>
         <p className="meta">
-          {myPlace >= 0 ? `ตอนนี้คุณอยู่อันดับ ${myPlace + 1}` : 'ตอนนี้คุณอยู่นอกห้าสิบอันดับแรก'}
+          {tab === 'character'
+            ? charFilter
+              ? myCharPlace >= 0
+                ? `ตอนนี้คุณอยู่อันดับ ${myCharPlace + 1}`
+                : 'คุณยังไม่ติดอันดับตัวนี้ (ต้องตั้งไว้ในทีมตั้งรับ)'
+              : 'เลือกตัวละครด้านล่างเพื่อดูอันดับ'
+            : myPlace >= 0
+              ? `ตอนนี้คุณอยู่อันดับ ${myPlace + 1}`
+              : 'ตอนนี้คุณอยู่นอกห้าสิบอันดับแรก'}
         </p>
 
         <div className="mode-tabs board-tabs">
@@ -126,10 +155,63 @@ export default function Board() {
         {tab === 'story' && (
           <p className="meta tiny">นับรวมทุกระดับความยาก ผ่านด่านเดียวกันสามโหมดนับเป็นสาม</p>
         )}
+        {tab === 'character' && (
+          <>
+            <select
+              className="filter-select"
+              value={charFilter}
+              onChange={(e) => setCharFilter(e.target.value)}
+            >
+              <option value="">เลือกตัวละครที่ต้องการดูอันดับ</option>
+              {['UR', ...RARITIES.slice().reverse()].map((rarity) => (
+                  <optgroup key={rarity} label={`ระดับ ${rarity}`}>
+                    {ALL_IDS.filter((id) => CHARACTERS[id].rarity === rarity).map((id) => (
+                      <option key={id} value={id}>
+                        {CHARACTERS[id].name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+            </select>
+            <p className="meta tiny">
+              ดูเฉพาะคนที่ติดร้อยอันดับแต้มประลองบนสุด และตั้งตัวละครนี้ไว้ในทีมตั้งรับเท่านั้น
+              ตั้งไว้ในทีมผจญภัยหรือบุกประลองอย่างเดียวจะไม่ถูกนับ
+            </p>
+          </>
+        )}
 
         {error && <div className="trace">{error}</div>}
         {rows === null && !error && <p className="meta">กำลังอ่านบอร์ด</p>}
 
+        {tab === 'character' ? (
+          <div className="board">
+            {charFilter && charRanking.length === 0 && (
+              <p className="meta">ยังไม่มีใครตั้งตัวละครนี้ไว้ในทีมตั้งรับ</p>
+            )}
+            {charRanking.map((r, i) => (
+              <div className="board-item" key={r.uid}>
+                <button
+                  className="board-row board-row-btn"
+                  data-me={r.uid === user.uid}
+                  onClick={() => setUnitPeek(r.entry)}
+                >
+                  <span className="board-place" data-top={i < 3}>
+                    {i + 1}
+                  </span>
+                  <span className="board-body">
+                    <span className="board-name">
+                      {CHARACTERS[charFilter]?.name}
+                      {r.guildTag && <span className="guild-tag">[{r.guildTag}]</span>}
+                    </span>
+                    <span className="meta">ผู้เล่น {r.username}</span>
+                  </span>
+                  <span className="board-points">⚔ {formatPower(entryPower(r.entry))}</span>
+                  <span className="board-caret label">ดูรายละเอียด</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="board">
           {sorted.map((r, i) => (
             <div className="board-item" key={r.uid}>
@@ -196,6 +278,7 @@ export default function Board() {
           ))}
           {sorted.length === 0 && rows && <p className="meta">ยังไม่มีข้อมูล</p>}
         </div>
+        )}
       </div>
 
       {unitPeek && <UnitPeek entry={unitPeek} onClose={() => setUnitPeek(null)} />}

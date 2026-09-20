@@ -5,16 +5,17 @@ import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 import { UR_BANNER_IDS, UR_RATES, ALL_UR_BANNER_IDS } from '../data/urbanner'
 import { PULL_COST, TEN_PULL_COST } from '../lib/gacha'
-import { pullUR } from '../lib/urgacha'
+import { UR_HARD_PITY, isURRetired, pullUR } from '../lib/urgacha'
 import { loadCollection } from '../lib/player'
 
 const RARITY_ORDER = { UR: 0, SSR: 1, SR: 2 }
 
 /**
- * การ์ดตู้ UR — ระดับความหายากสูงสุดของเกม ไม่มีการันตีเลย
+ * การ์ดตู้ UR — ระดับความหายากสูงสุดของเกม
  *
  * แยกเป็นคอมโพเนนต์อิสระจากตู้เดิมและตู้ธาตุทั้งหมด ไม่แตะสถานะของตู้อื่นเลย
- * ใช้ราคาสุ่มเดียวกับตู้อื่นแต่ไม่มีส่วนลดวันแรกและไม่มีตัวนับการันตี ตามที่ตั้งใจไว้
+ * ใช้ราคาสุ่มเดียวกับตู้อื่นแต่ไม่มีส่วนลดวันแรก มีการันตีสองชั้น (ดู lib/urgacha.js):
+ * สุ่มครบ 500 ครั้งการันตี UR แน่นอน และตัวละคร UR ตัวไหนเก็บครบแล้วจะไม่ออกซ้ำอีก
  */
 export default function URGacha() {
   const { user, player, refresh } = usePlayer()
@@ -30,6 +31,8 @@ export default function URGacha() {
   }, [user.uid])
 
   const hasChar = (id) => owned?.some((o) => o.id === id) ?? false
+  const sinceUR = player.urPitySinceUR ?? 0
+  const copyCount = player.urCopyCount ?? {}
 
   async function roll(count) {
     const cost = count === 10 ? TEN_PULL_COST : PULL_COST
@@ -71,11 +74,21 @@ export default function URGacha() {
 
       <p className="meta">
         ตู้ใหม่ที่มีระดับความหายากสูงสุดของเกม (UR) ตัวละครในตู้นี้ทั้งสิบเอ็ดตัวเป็นตัวใหม่ทั้งหมด
-        ไม่มีตัวนับการันตีใด ๆ แม้แต่ระดับ UR เอง — สุ่มอิสระตามอัตราด้านบนตรง ๆ ทุกครั้ง
+        สุ่มอิสระตามอัตราด้านบน แต่การันตี UR แน่นอนถ้าสุ่มครบ 500 ครั้งโดยไม่เคยได้เลย
       </p>
       <p className="meta tiny">
         ระดับ UR เพดานเลเวลตันที่ 100 และดันไปถึง 125 ได้เมื่อครบห้าดาว สูงกว่าระดับ SSR ทุกด้าน
+        ตัวไหนเก็บชิ้นส่วนพอหลอมครบห้าดาวแล้วจะไม่ออกซ้ำอีก เปิดทางให้ตัวอื่นออกแทน
       </p>
+
+      <section className="pity">
+        <div className="pity-row">
+          <span className="meta">อีก {Math.max(0, UR_HARD_PITY - sinceUR)} ครั้งได้ UR การันตีแน่นอน</span>
+          <div className="bar thin wide">
+            <span style={{ width: `${(sinceUR / UR_HARD_PITY) * 100}%` }} />
+          </div>
+        </div>
+      </section>
 
       <div className="roster-head">
         <span className="meta">
@@ -93,10 +106,12 @@ export default function URGacha() {
             UR_BANNER_IDS[rarity].map((id) => {
               const c = CHARACTERS[id]
               const mine = hasChar(id)
+              const retired = rarity === 'UR' && isURRetired(copyCount[id] ?? 0)
               return (
                 <span className="pool-chip" key={id} data-owned={mine} data-rarity={rarity}>
                   {mine ? ELEMENTS[c.element].mark : '❔'} {mine ? c.name : '???'}
                   <span className="pool-rarity">{rarity}</span>
+                  {retired && <span className="pool-rarity">เก็บครบ · ไม่ออกซ้ำ</span>}
                 </span>
               )
             })

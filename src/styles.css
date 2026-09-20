@@ -543,9 +543,22 @@ a {
 }
 
 .card-mark {
+  position: relative;
   font-size: 1.6rem;
   line-height: 1;
   flex: none;
+}
+
+/* จุดแดงบอกว่าตัวละครนี้พร้อมอัปเกรดตอนนี้ (อัปดาว/ยกระดับ/ปลุกร่าง) ใช้สีเดียวกับป้ายแจ้งเตือนแถบเมนูล่าง */
+.upgrade-dot {
+  position: absolute;
+  top: -0.15rem;
+  right: -0.35rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 0.5rem var(--ember);
 }
 
 .card-body h3 {
@@ -2002,6 +2015,15 @@ a {
   font-size: 0.8rem;
 }
 
+/* แถวอันดับตัวละครใช้ข้อความ "ดูรายละเอียด" แทนลูกศร ▲▼ ยาวกว่าเดิม กันไม่ให้ล้นแถวจอแคบ */
+.board-caret.label {
+  font-size: 0.7rem;
+  max-width: 4.2rem;
+  text-align: right;
+  white-space: normal;
+  line-height: 1.2;
+}
+
 .board-detail {
   margin-top: 0.35rem;
   padding: 0.75rem 0.9rem;
@@ -2908,6 +2930,87 @@ a {
   opacity: 0.75;
 }
 
+/* ───────── แลกชิ้นส่วน (ธาตุ/UR ในอนาคต) ───────── */
+/*
+ * เดิมใช้ .pool-chip (สไตล์ "รายชื่อในตู้" ที่ตัวยังไม่มีจะจาง/เส้นประ) มาทำเป็นปุ่มแลก
+ * ผลคือปุ่มที่ "แลกได้จริง" (ตัวที่ยังไม่มี) กลับจางที่สุด และปุ่มที่พอ/ไม่พอชิ้นส่วน
+ * แทบแยกไม่ออกเลยเพราะไม่มีสีบอกความต่าง — จึงแยกสไตล์เฉพาะของหน้าแลกออกมาต่างหาก
+ * โดยยึดว่า "พอชิ้นส่วนไหม" คือสิ่งสำคัญที่สุดที่ต้องเห็นชัดสุด ไม่ใช่ "มีตัวนี้ไหม"
+ */
+
+.shard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.shard-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.5rem 0.65rem;
+  font-family: var(--body);
+  font-size: 0.8rem;
+  text-align: left;
+  color: var(--parchment-dim);
+  background: rgba(20, 16, 43, 0.55);
+  border: 1px solid rgba(167, 159, 140, 0.25);
+  cursor: pointer;
+}
+
+.shard-chip-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.shard-chip-owned {
+  font-size: 0.62rem;
+  padding: 0.05rem 0.3rem;
+  color: var(--rune);
+  border: 1px solid rgba(111, 214, 200, 0.5);
+}
+
+.shard-chip-cost {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+/* พอแลกได้ · ยังไม่มีตัวนี้ — เคสหลักที่อยากให้เด่นที่สุด ชวนกดมากที่สุด */
+.shard-chip[data-affordable='true'] {
+  color: var(--parchment);
+  background: rgba(36, 27, 79, 0.85);
+  border-color: var(--gold);
+  box-shadow: 0 0 0.75rem rgba(200, 164, 77, 0.25);
+}
+
+.shard-chip[data-affordable='true'] .shard-chip-name {
+  color: var(--gold-bright);
+}
+
+/* พอแลกได้ · มีอยู่แล้ว — แลกได้เหมือนกันแต่ได้ชิ้นส่วนไปหลอมดาวแทน ใช้โทนรองแยกจากเคสตัวใหม่ */
+.shard-chip[data-affordable='true'][data-owned='true'] {
+  border-color: var(--rune);
+  box-shadow: 0 0 0.75rem rgba(111, 214, 200, 0.25);
+}
+
+.shard-chip[data-affordable='true'][data-owned='true'] .shard-chip-name {
+  color: var(--rune);
+}
+
+/* ชิ้นส่วนไม่พอ — จางชัดเจนและ cursor บอกว่ากดไม่ได้ ไม่ต้องมาเดาว่าทำไมกดไม่ติด */
+.shard-chip[data-affordable='false'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shard-chip:disabled {
+  pointer-events: none;
+}
+
 /* ───────── ป๊อปอัพก่อนเข้าด่าน ───────── */
 
 .panel.popup.brief {
@@ -3079,6 +3182,8 @@ a {
 
 .board-tabs {
   margin: 1rem 0;
+  /* สี่แท็บพอดี ไม่ใช่สามแบบฐาน (.mode-tabs) เดิม เรียงสองคูณสองให้แต่ละปุ่มมีที่พอสำหรับข้อความยาว */
+  grid-template-columns: repeat(2, 1fr);
 }
 
 /* ───────── แถบนำทางล่างจอ ───────── */
@@ -3330,4 +3435,140 @@ a {
   font-family: var(--display);
   font-size: 0.92rem;
   color: var(--gold-bright);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   รองรับทุกขนาดจอและทั้งสองแนว — คอมพิวเตอร์ ไอแพต แท็บเล็ต มือถือ
+   แนวคิดเดิมของแอปนี้คือ "การ์ดกลางจอ" กว้างไม่เกิน .sheet/.stage เสมอ
+   ซึ่งใช้ได้ดีอยู่แล้วทั้งมือถือแนวตั้งและแท็บเล็ต ส่วนนี้จึงเติมสามจุดที่ยังขาด:
+     1. จอกว้างระดับแท็บเล็ตแนวนอน/คอมพิวเตอร์ — ขยายการ์ดให้กว้างขึ้นตามจริง
+        แทนที่จะขึงแคบเท่ามือถือเสมอ พร้อมจัดแถบเมนูล่าง/ลิ้นชักเมนูให้กว้างเท่ากัน
+        ไม่ใช่เต็มจอ
+     2. มือถือแนวนอน (จอเตี้ย) — ตราเวทหมุนและช่องไฟแนวตั้งเดิมกินพื้นที่สูงเกินไป
+        จนบังปุ่มกดที่อยู่ใต้เพดานจอ ต้องย่อลงเฉพาะตอนจอเตี้ย
+     3. รอยบากของเครื่องที่หมุนแนวนอน (safe-area อยู่ซ้าย/ขวาแทนบน) — แถบเมนูล่าง
+        และตัวหน้าจอหลักต้องเว้นระยะให้พ้นรอยบากทั้งสองด้าน ไม่ใช่แค่ด้านล่างอย่างเดียว
+   ───────────────────────────────────────────────────────────── */
+
+.screen {
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+  padding-top: max(2rem, env(safe-area-inset-top));
+}
+
+.bottom-nav {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.nav-panel {
+  padding-left: max(1.1rem, env(safe-area-inset-left));
+  padding-right: max(1.1rem, env(safe-area-inset-right));
+}
+
+/* จอกว้างระดับแท็บเล็ตขึ้นไป (แนวตั้งของไอแพตเริ่มราว 48rem) — เนื้อหาใช้พื้นที่ได้มากขึ้น
+   แต่ยังคงเป็นการ์ดกึ่งกลางจอเหมือนเดิม ไม่ยืดเต็มความกว้างจอเพราะอ่านยาก */
+@media (min-width: 48rem) {
+  .sheet {
+    max-width: 42rem;
+  }
+
+  .stage {
+    max-width: 34rem;
+  }
+
+  .tagline {
+    max-width: 26rem;
+  }
+
+  /* แถบเมนูล่างและลิ้นชักเมนูเดิมยึด left:0/right:0 เต็มจอ พอจอกว้างเกินการ์ดหลัก
+     จะกลายเป็นแถบยาวโล่ง ๆ ผิดสัดส่วน — ตรึงให้กว้างเท่าการ์ดและจัดกึ่งกลางแทน */
+  .bottom-nav {
+    left: 50%;
+    right: auto;
+    width: 100%;
+    max-width: 42rem;
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(200, 164, 77, 0.3);
+    border-right: 1px solid rgba(200, 164, 77, 0.3);
+  }
+
+  .nav-sheet {
+    justify-content: center;
+  }
+
+  .nav-panel {
+    max-width: 42rem;
+    border-left: 1px solid rgba(200, 164, 77, 0.45);
+    border-right: 1px solid rgba(200, 164, 77, 0.45);
+  }
+}
+
+/* จอระดับคอมพิวเตอร์/แท็บเล็ตแนวนอนตัวใหญ่ — ขยายอีกเล็กน้อยเท่านั้น
+   เจตนาให้ยังรู้สึกเหมือนแอปมือถือขยายใหญ่ ไม่ใช่แดชบอร์ดหลายคอลัมน์ */
+@media (min-width: 64rem) {
+  .sheet {
+    max-width: 46rem;
+  }
+
+  .stage {
+    max-width: 36rem;
+  }
+
+  .bottom-nav,
+  .nav-panel {
+    max-width: 46rem;
+  }
+}
+
+/* มือถือแนวนอน (จอเตี้ย) — ย่อองค์ประกอบแนวตั้งที่กินพื้นที่มากลง กันปุ่มกดโดนแถบเมนูล่างบัง */
+@media (orientation: landscape) and (max-height: 32rem) {
+  .screen {
+    padding-top: max(0.9rem, env(safe-area-inset-top));
+    padding-bottom: 4rem;
+  }
+
+  .sigil-mount {
+    height: 7rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .sigil {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  .crest-th {
+    font-size: clamp(1.5rem, 6vw, 2.1rem);
+  }
+
+  .crest-en {
+    font-size: 0.6rem;
+  }
+
+  .tagline {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .panel {
+    margin-top: 1.25rem;
+  }
+
+  .bottom-nav .nav-tab {
+    padding: 0.3rem 0.2rem 0.35rem;
+  }
+
+  .nav-mark {
+    font-size: 1rem;
+  }
+
+  .nav-label {
+    font-size: 0.6rem;
+  }
+
+  .nav-panel {
+    max-height: 92dvh;
+    padding-top: 0.85rem;
+  }
 }

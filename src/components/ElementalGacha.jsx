@@ -196,7 +196,7 @@ export default function ElementalGacha() {
           มีอยู่ · R {elemShards.R ?? 0} · SR {elemShards.SR ?? 0} · SSR {elemShards.SSR ?? 0}
         </p>
 
-        <div className="pool-grid">
+        <div className="shard-grid">
           {ids.map((id) => {
             const c = CHARACTERS[id]
             const mine = hasChar(id)
@@ -205,16 +205,19 @@ export default function ElementalGacha() {
             return (
               <button
                 key={id}
-                className="pool-chip"
+                className="shard-chip"
                 data-rarity={c.rarity}
                 data-owned={mine}
+                data-affordable={canAfford}
                 disabled={busy || !canAfford}
                 onClick={() => redeem(id)}
               >
-                {ELEMENTS[c.element].mark} {c.name}
-                {mine && ' · มีแล้ว'}
-                <span className="pool-rarity">
-                  {c.rarity} · {cost}
+                <span className="shard-chip-name">
+                  {ELEMENTS[c.element].mark} {c.name}
+                  {mine && <span className="shard-chip-owned">มีแล้ว</span>}
+                </span>
+                <span className="shard-chip-cost">
+                  {c.rarity} · {cost} ชิ้น
                 </span>
               </button>
             )

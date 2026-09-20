@@ -5,10 +5,19 @@ import { db } from '../firebase'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { CHARACTERS, ELEMENTS, RARITIES, ROLES, TEAM_SIZE } from '../data/characters'
-import { effectiveRarity, awakenName } from '../data/ascension'
+import {
+  awakenBlockers,
+  awakenCost,
+  effectiveRarity,
+  awakenName,
+  tierBlockers,
+  tierCost,
+} from '../data/ascension'
+import { canAfford, EMPTY_BAG } from '../data/materials'
 import { loadCollection } from '../lib/player'
 import { entryLevelCap } from '../lib/stats'
 import { entryPower, formatPower } from '../lib/power'
+import { nextStarCost } from '../lib/gacha'
 
 // ─────────────────────────────────────────────────────────────
 // ตัวจัดทีมตัวเดียว ใช้ได้กับสามโหมด
@@ -85,6 +94,36 @@ export default function Team() {
       const e = owned?.find((o) => o.id === id)
       return e ? sum + entryPower(e) : sum
     }, 0)
+
+  /**
+   * ตัวละครตัวนี้พร้อมอัปเกรดอะไรสักอย่างอยู่ไหม (อัปดาว ยกระดับ หรือปลุกร่าง)
+   *
+   * เช็คแค่ "ทำได้เลยตอนนี้" (มีชิ้นส่วน/วัสดุพอ และผ่านเงื่อนไขอื่นแล้ว) ไม่ใช่แค่ "ยังไม่เต็ม"
+   * ไม่งั้นตัวที่ยังห่างไกลจากเงื่อนไขจะติดจุดค้างไว้ทั้งที่กดอัปอะไรตอนนี้ไม่ได้จริง
+   */
+  function canUpgrade(entry) {
+    const c = CHARACTERS[entry.id]
+    if (!c) return false
+
+    const rarity = effectiveRarity(entry.id, entry.tier ?? 0)
+    const starCost = nextStarCost(entry.star ?? 1, rarity)
+    if (starCost !== null && (entry.shards ?? 0) >= starCost) return true
+
+    const bag = { ...EMPTY_BAG, ...(player.materials ?? {}) }
+    const cap = entryLevelCap(entry.id, entry)
+
+    if (tierBlockers(entry.id, entry, cap).length === 0) {
+      const cost = tierCost(entry.tier ?? 0)
+      if (cost && canAfford(bag, cost)) return true
+    }
+
+    if (awakenBlockers(entry.id, entry).length === 0) {
+      const cost = awakenCost(entry.awaken ?? 0)
+      if (cost && canAfford(bag, cost)) return true
+    }
+
+    return false
+  }
 
   const current = powerOf(picks)
   const delta = current - powerOf(savedIds(mode))
@@ -239,7 +278,10 @@ export default function Team() {
 
             return (
               <div className="card roster-card" key={entry.id} data-picked={picked}>
-                <span className="card-mark">{ELEMENTS[c.element].mark}</span>
+                <span className="card-mark">
+                  {ELEMENTS[c.element].mark}
+                  {canUpgrade(entry) && <span className="upgrade-dot" title="พร้อมอัปเกรด" />}
+                </span>
                 <div className="card-body">
                   <h3>
                     {c.name}
