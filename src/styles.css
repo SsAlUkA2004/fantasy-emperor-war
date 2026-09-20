@@ -1072,7 +1072,6 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 1rem;
   pointer-events: none;
   z-index: 7;
 }
@@ -1084,55 +1083,69 @@ a {
 .ultcall[data-el='light'] { --ultcall-color: var(--el-light); }
 .ultcall[data-el='dark'] { --ultcall-color: var(--el-dark); }
 
+/* แถบกินความกว้างเต็มสนามรบ ไม่ใช่กล่องเท่าความกว้างข้อความแบบเดิมที่เหลือที่ว่างสองข้าง
+   ระยะขอบ/ขนาดตัวอักษรใช้ clamp() คุมเอง จะได้พอดีตั้งแต่มือถือ แท็บเล็ต ไปจนจอคอม โดยไม่ต้องแยก media query */
 .ultcall-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.22rem;
-  padding: 0.85rem 1.8rem;
+  gap: 0.2rem;
+  width: 100%;
+  padding: clamp(0.65rem, 2.4vw, 1.2rem) clamp(0.9rem, 3vw, 2rem);
   text-align: center;
   background: linear-gradient(
     90deg,
-    transparent,
-    rgba(11, 8, 24, 0.86) 16%,
-    rgba(11, 8, 24, 0.86) 84%,
-    transparent
+    rgba(11, 8, 24, 0.62),
+    rgba(11, 8, 24, 0.93) 24%,
+    rgba(11, 8, 24, 0.93) 76%,
+    rgba(11, 8, 24, 0.62)
   );
   border-top: 1px solid var(--ultcall-color, var(--gold));
   border-bottom: 1px solid var(--ultcall-color, var(--gold));
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.55);
   opacity: 0;
   animation: ultcall-in 1050ms ease-out forwards;
 }
 
+/* แถบเต็มความกว้างแล้ว ห้ามซูมทั้งกล่องตอนเข้าเหมือนเดิม ไม่งั้นมันจะล้นออกนอกสนามระหว่างอนิเมชัน
+   ความ "กระแทก" ย้ายไปอยู่ที่ตัวชื่อท่าแทน (ดู ultcall-name-in) */
 @keyframes ultcall-in {
-  0% { opacity: 0; transform: scale(1.24) translateY(7px); }
-  16% { opacity: 1; transform: scale(1) translateY(0); }
-  76% { opacity: 1; transform: scale(1) translateY(0); }
-  100% { opacity: 0; transform: scale(0.97) translateY(-7px); }
+  0% { opacity: 0; transform: translateY(10px); }
+  14% { opacity: 1; transform: translateY(0); }
+  78% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes ultcall-name-in {
+  0% { transform: scale(1.16); }
+  16% { transform: scale(1); }
+  100% { transform: scale(1); }
 }
 
 .ultcall-kicker {
   font-family: var(--body);
-  font-size: 0.66rem;
+  font-size: clamp(0.58rem, 1.6vw, 0.74rem);
   letter-spacing: 0.36em;
   text-indent: 0.36em;
   color: var(--parchment-dim);
 }
 
 .ultcall-name {
+  display: block;
   font-family: var(--display);
   font-weight: 700;
-  font-size: clamp(1.5rem, 6.5vw, 2.4rem);
-  line-height: 1.18;
+  font-size: clamp(1.35rem, 5.2vw, 2.9rem);
+  line-height: 1.16;
   color: var(--ultcall-color, var(--gold-bright));
   text-shadow:
     0 0 14px var(--ultcall-color, var(--gold)),
     0 2px 8px rgba(0, 0, 0, 0.95);
+  animation: ultcall-name-in 1050ms ease-out forwards;
 }
 
 .ultcall-owner {
   font-family: var(--body);
-  font-size: 0.78rem;
+  font-size: clamp(0.68rem, 1.9vw, 0.88rem);
   color: var(--parchment);
 }
 
@@ -1188,7 +1201,8 @@ a {
   }
 
   /* ชื่อท่ายังต้องอ่านออก แค่ไม่ต้องขยับ */
-  .ultcall-card {
+  .ultcall-card,
+  .ultcall-name {
     animation: none !important;
     opacity: 1 !important;
   }
