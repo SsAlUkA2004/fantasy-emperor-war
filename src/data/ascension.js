@@ -45,8 +45,11 @@ export const TIER_BOOST = 1.12
  *
  * ยกฐานของ SSR ขึ้น 18% แล้วชดเชยที่ตัวคูณศัตรูในด่านที่ใช้ทีม SSR เป็นฐาน
  * ความยากของด่านจึงไม่เปลี่ยน แต่ลำดับความแรงของตัวละครถูกต้องแล้ว
+ *
+ * UR อยู่นอกสายยกระดับ R → SR → SSR (ดู effectiveRarity/maxTierFor ด้านล่าง) จึงตั้งตัวคูณ
+ * ของตัวเองไว้สูงกว่า SSR ชัดเจน ยืนยันด้วยการรันจำลองว่า UR แท้แรงกว่า SSR แท้เสมอที่เลเวล/ดาวเท่ากัน
  */
-export const RARITY_POWER = { R: 1, SR: 1, SSR: 1.18 }
+export const RARITY_POWER = { R: 1, SR: 1, SSR: 1.18, UR: 1.32 }
 
 export function rarityPower(charId) {
   return RARITY_POWER[CHARACTERS[charId]?.rarity] ?? 1
@@ -67,15 +70,22 @@ export const AWAKEN_COST = {
   3: { ore: 1600, crystal: 900, scroll: 300 },
 }
 
-/** ความหายากจริงหลังยกระดับแล้ว */
+/**
+ * ความหายากจริงหลังยกระดับแล้ว
+ *
+ * UR ไม่อยู่ในลำดับ RARITIES (R/SR/SSR) เพราะไม่ใช่ปลายทางที่ตัวอื่นไต่ขึ้นมาได้
+ * และตัวมันเองก็ไต่ขึ้นไปที่ไหนต่อไม่ได้อีกแล้ว จึงคืนค่า 'UR' ตรง ๆ โดยไม่ต้องคำนวณ
+ */
 export function effectiveRarity(charId, tier = 0) {
   const base = CHARACTERS[charId]?.rarity ?? 'R'
+  if (base === 'UR') return 'UR'
   const index = Math.min(RARITIES.indexOf(base) + tier, RARITIES.length - 1)
   return RARITIES[index]
 }
 
 export function maxTierFor(charId) {
   const base = CHARACTERS[charId]?.rarity ?? 'R'
+  if (base === 'UR') return 0
   return RARITIES.length - 1 - RARITIES.indexOf(base)
 }
 
@@ -118,7 +128,8 @@ export function awakenBlockers(charId, entry) {
   if (awaken >= MAX_AWAKEN) return ['ปลุกร่างครบทุกขั้นแล้ว']
 
   const blockers = []
-  if (effectiveRarity(charId, entry.tier ?? 0) !== 'SSR') blockers.push('ต้องเป็นระดับ SSR ก่อน')
+  const rarity = effectiveRarity(charId, entry.tier ?? 0)
+  if (rarity !== 'SSR' && rarity !== 'UR') blockers.push('ต้องเป็นระดับ SSR ขึ้นไปก่อน')
   if ((entry.star ?? 1) < 5) blockers.push('ต้องครบ 5 ดาวก่อน')
   return blockers
 }

@@ -1691,6 +1691,227 @@ export const CHARACTERS = {
     },
     blurb: 'หมอสายมืดที่ไม้ตายเป็นดาเมจดูดเลือดหนัก ต่างจากหมอธาตุอื่นที่เน้นฟื้นทีม',
   },
+
+  // ───────── ตู้ UR · ระดับ SR (ดู urbanner.js) ─────────
+  pyros: {
+    id: 'pyros', name: 'ไพรอส', epithet: 'นักดาบเปลวรุ่นสอง',
+    rarity: 'SR', element: 'fire', role: 'striker', focus: 'farm',
+    stats: { hp: 780, atk: 168, def: 54, spd: 106, crit: 16, critRate: 15 },
+    skill: {
+      name: 'ฟันเพลิงคม', mp: 3, desc: 'โจมตีเดี่ยว 185% และทำให้เป้าหมายติดไฟ 2 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 1.85, target: 'one' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'one' },
+      ],
+    },
+    ultimate: {
+      name: 'เปลวราตรี', desc: 'โจมตีเดี่ยว 400% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายติดไฟอยู่',
+      effects: [{ kind: 'damage', mult: 4, target: 'one', bonusOn: 'burn', bonusMult: 1.5 }],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SR สายโจมตีเน้นไล่เก็บด่าน',
+  },
+  terrak: {
+    id: 'terrak', name: 'เทอร์รัก', epithet: 'ผู้พิทักษ์กำแพงหิน',
+    rarity: 'SR', element: 'earth', role: 'guardian', focus: 'farm',
+    stats: { hp: 1420, atk: 92, def: 118, spd: 74, crit: 5, critRate: 10 },
+    skill: {
+      name: 'โล่ศิลาแกร่ง', mp: 3, desc: 'ดึงเป้าโจมตี 2 เทิร์น และเพิ่มพลังป้องกันตัวเอง',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'ปฐพีปะทุ', desc: 'โจมตีศัตรูทุกตัว 150% และมีโอกาสครึ่งหนึ่งทำให้สตัน 1 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.5 },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SR สายป้องกัน ดึงเป้าและคุมสถานะได้ตั้งแต่ตัวถูก',
+  },
+  ventia: {
+    id: 'ventia', name: 'เวนเทีย', epithet: 'นักบวชสายลม',
+    rarity: 'SR', element: 'wind', role: 'mystic', focus: 'pvp',
+    stats: { hp: 980, atk: 118, def: 70, spd: 112, crit: 8, critRate: 10 },
+    skill: {
+      name: 'สายลมเยียวยา', mp: 3, desc: 'ฟื้นพลังทั้งทีม 20% และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.2, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'พายุชำระล้าง', desc: 'โจมตีศัตรูทุกตัว 200% และฟื้นพลังทั้งทีม 15%',
+      effects: [
+        { kind: 'damage', mult: 2, target: 'allFoes' },
+        { kind: 'heal', percent: 0.15, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SR สายสนับสนุนที่เร็วพอจะฟื้นก่อนโดนอัดในสนามประลอง',
+  },
+  umbrose: {
+    id: 'umbrose', name: 'อัมโบรส', epithet: 'นักล่าเงามืด',
+    rarity: 'SR', element: 'dark', role: 'striker', focus: 'pvp',
+    stats: { hp: 800, atk: 175, def: 50, spd: 108, crit: 18, critRate: 15 },
+    skill: {
+      name: 'จ้วงแทงเงา', mp: 3, desc: 'โจมตีเดี่ยว 190% และมีโอกาสหนึ่งในห้าทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 1.9, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.2 },
+      ],
+    },
+    ultimate: {
+      name: 'ประหารในเงามืด', desc: 'โจมตีเดี่ยว 430% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 4.3, target: 'one', bonusOn: 'stun', bonusMult: 1.5 }],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SR สายโจมตี เน้นจัดการเป้าเดี่ยวในสนามประลอง',
+  },
+  solvane: {
+    id: 'solvane', name: 'โซลเวน', epithet: 'อัศวินโล่แสง',
+    rarity: 'SR', element: 'light', role: 'guardian', focus: 'boss',
+    stats: { hp: 1380, atk: 96, def: 122, spd: 70, crit: 6, critRate: 10 },
+    skill: {
+      name: 'โล่แสงศักดิ์สิทธิ์', mp: 3, desc: 'ดึงเป้าโจมตี 3 เทิร์น และได้เกราะกันดาเมจหนึ่งครั้ง',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 3, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'แสงทวงคืน', desc: 'โจมตีเดี่ยว 500% และฟื้นพลังตัวเอง 20%',
+      effects: [
+        { kind: 'damage', mult: 5, target: 'one' },
+        { kind: 'heal', percent: 0.2, target: 'self' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SR สายป้องกัน ยืนรับบอสได้นานด้วยเกราะและฟื้นตัวเอง',
+  },
+
+  // ───────── ตู้ UR · ระดับ SSR ─────────
+  aurex: {
+    id: 'aurex', name: 'ออเร็กซ์', epithet: 'จอมวายุประจัญบาน',
+    rarity: 'SSR', element: 'wind', role: 'striker', focus: 'boss',
+    stats: { hp: 1100, atk: 205, def: 78, spd: 118, crit: 18, critRate: 15 },
+    skill: {
+      name: 'พายุใบมีด', mp: 3, desc: 'โจมตีศัตรูทุกตัว 150%',
+      effects: [{ kind: 'damage', mult: 1.5, target: 'allFoes' }],
+    },
+    ultimate: {
+      name: 'วายุสังหาร', desc: 'โจมตีเดี่ยว 540% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 5.4, target: 'one', bonusOn: 'stun', bonusMult: 1.5 }],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SSR เร็วที่สุดในกลุ่มสายโจมตี เหมาะตีบอสก่อนใคร',
+  },
+  nerissa: {
+    id: 'nerissa', name: 'เนริสซา', epithet: 'ผู้พิทักษ์วารี',
+    rarity: 'SSR', element: 'water', role: 'guardian', focus: 'all',
+    stats: { hp: 1650, atk: 150, def: 135, spd: 82, crit: 9, critRate: 10 },
+    skill: {
+      name: 'กำแพงคลื่นยักษ์', mp: 3, desc: 'ดึงเป้าโจมตี 2 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'มหาสมุทรถล่ม', desc: 'โจมตีศัตรูทุกตัว 260% และมีโอกาสสี่สิบเปอร์เซ็นต์ทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 2.6, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.4 },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SSR ตัวถังที่ใช้ได้ทุกสนามจริง ๆ',
+  },
+  gaiannon: {
+    id: 'gaiannon', name: 'ไกอันนอน', epithet: 'ผู้เฒ่าแห่งไกอา',
+    rarity: 'SSR', element: 'earth', role: 'mystic', focus: 'pvp',
+    stats: { hp: 1280, atk: 145, def: 100, spd: 96, crit: 11, critRate: 10 },
+    skill: {
+      name: 'พรแผ่นดิน', mp: 3, desc: 'ฟื้นพลังทั้งทีม 22% และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.22, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'ไกอาปกป้อง', desc: 'โจมตีศัตรูทุกตัว 230% ฟื้นพลังทั้งทีม 25% และให้เกราะทั้งทีม',
+      effects: [
+        { kind: 'damage', mult: 2.3, target: 'allFoes' },
+        { kind: 'heal', percent: 0.25, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้ UR ระดับ SSR หมอที่ทั้งฟื้นทั้งกันดาเมจในเทิร์นเดียว',
+  },
+
+  // ───────── ตู้ UR · ระดับ UR ─────────
+  //
+  // ระดับความหายากสูงสุดของเกม ไม่อยู่ในสาย R → SR → SSR (ดู RARITIES/effectiveRarity
+  // ใน data/ascension.js) จึงยกระดับตัวอื่นขึ้นมาเป็น UR ไม่ได้ ต้องสุ่มจากตู้ UR เท่านั้น
+  // เพดานเลเวลตันที่ 100 และดันไปถึง 125 ได้เมื่อครบห้าดาว (ดู RARITY_CAPS ใน lib/leveling.js)
+  nyxaroth: {
+    id: 'nyxaroth', name: 'ไนซาโรธ', epithet: 'จอมมารเหนือราตรี',
+    rarity: 'UR', element: 'dark', role: 'striker', focus: 'all',
+    stats: { hp: 1250, atk: 255, def: 95, spd: 112, crit: 24, critRate: 15 },
+    skill: {
+      name: 'เขี้ยวอสูรราตรี', mp: 3, desc: 'โจมตีเดี่ยว 210% และมีโอกาสสามสิบเปอร์เซ็นต์ทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 2.1, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.3 },
+      ],
+    },
+    ultimate: {
+      name: 'ราตรีกลืนกินภพ', desc: 'โจมตีเดี่ยว 620% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 6.2, target: 'one', bonusOn: 'stun', bonusMult: 1.5 }],
+    },
+    blurb: 'สายโจมตีระดับ UR ดาเมจต่อตัวสูงที่สุดในเกม ใช้ได้ทุกสนามตั้งแต่ฟาร์มยันตีบอส',
+  },
+  elyria: {
+    id: 'elyria', name: 'เอลิเรีย', epithet: 'เทวีแสงนิรันดร์',
+    rarity: 'UR', element: 'light', role: 'mystic', focus: 'all',
+    stats: { hp: 1750, atk: 185, def: 135, spd: 104, crit: 16, critRate: 10 },
+    skill: {
+      name: 'แสงเยียวยานิรันดร์', mp: 3, desc: 'ฟื้นพลังทั้งทีม 26% ล้างสถานะติดลบ และให้เกราะเพื่อนที่เลือดน้อยที่สุด',
+      effects: [
+        { kind: 'heal', percent: 0.26, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'lowestAlly' },
+      ],
+    },
+    ultimate: {
+      name: 'อรุณเทวประทาน', desc: 'โจมตีศัตรูทุกตัว 260% ฟื้นพลังทั้งทีม 35% และให้เกราะทั้งทีม',
+      effects: [
+        { kind: 'damage', mult: 2.6, target: 'allFoes' },
+        { kind: 'heal', percent: 0.35, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+      ],
+    },
+    blurb: 'สายสนับสนุนระดับ UR ฟื้นและกันดาเมจแรงกว่าหมอ SSR ทุกตัว ใช้ได้ทุกสนาม',
+  },
+  abyssara: {
+    id: 'abyssara', name: 'แอบิสซาร่า', epithet: 'ราชินีสมุทรลึก',
+    rarity: 'UR', element: 'water', role: 'guardian', focus: 'all',
+    stats: { hp: 1950, atk: 175, def: 155, spd: 88, crit: 12, critRate: 10 },
+    skill: {
+      name: 'กำแพงสมุทรลึก', mp: 3, desc: 'ดึงเป้าโจมตี 3 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 3, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 3, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'มหาสมุทรล้างโลก', desc: 'โจมตีศัตรูทุกตัว 300% มีโอกาสครึ่งหนึ่งทำให้สตัน และฟื้นพลังตัวเอง 30%',
+      effects: [
+        { kind: 'damage', mult: 3, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.5 },
+        { kind: 'heal', percent: 0.3, target: 'self' },
+      ],
+    },
+    blurb: 'สายป้องกันระดับ UR ตัวถังที่หนาที่สุดในเกม ยืนรับได้ทุกสนามโดยไม่ต้องเปลี่ยนทีม',
+  },
 }
 
 export const ALL_IDS = Object.keys(CHARACTERS)

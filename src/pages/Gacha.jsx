@@ -15,6 +15,7 @@ import {
 } from '../lib/gacha'
 import { loadCollection } from '../lib/player'
 import ElementalGacha from '../components/ElementalGacha'
+import URGacha from '../components/URGacha'
 
 export default function Gacha() {
   const { user, player, refresh } = usePlayer()
@@ -183,6 +184,9 @@ export default function Gacha() {
 
       {/* ตู้ธาตุหมุนเวียน — การ์ดใหม่แยกจากตู้ด้านบนทั้งหมด ไม่แก้อะไรในส่วนบนเลย */}
       <ElementalGacha />
+
+      {/* ตู้ UR — การ์ดใหม่อีกใบ แยกจากตู้ธาตุและตู้เดิมทั้งหมดเช่นกัน */}
+      <URGacha />
     </main>
   )
 }

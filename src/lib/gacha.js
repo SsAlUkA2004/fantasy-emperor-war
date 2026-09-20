@@ -158,25 +158,17 @@ function defaultAddDupe(pool, rarity) {
 }
 
 /**
- * แกนกลางของการสุ่มและบันทึกผล ใช้ร่วมกันได้กับกองตัวละครชุดไหนก็ได้
+ * แกนกลางของการบันทึกผลที่สุ่มมาแล้วลง Firestore ใช้ร่วมกันได้กับกองตัวละครชุดไหนก็ได้
  *
- * แยกออกมาจาก pull() เพื่อให้ตู้อื่นที่ไม่ได้อยู่ใน BANNERS ปกติ (เช่นตู้ธาตุหมุนเวียน
- * ใน lib/elementalgacha.js) ใช้ตรรกะการสุ่ม/หักเพชร/บันทึกชิ้นส่วนชุดเดียวกันได้
- * โดยแยกตัวนับการันตีเป็นคนละคู่ ผ่านพารามิเตอร์ pityFields ไม่ให้ไปปนกับตู้เดิม
+ * แยกออกมาจาก rollAndSave() เพื่อให้ตู้ที่ไม่มีตัวนับการันตีเลย (เช่นตู้ UR ใน
+ * lib/urgacha.js ซึ่ง "ไม่มีการันตี" ตามที่ออกแบบไว้) ใช้ตรรกะบันทึกผล/หักเพชร/สะสมชิ้นส่วน
+ * ชุดเดียวกันได้ โดยไม่ต้องยุ่งกับ pity ที่ตัวเองไม่มี
  */
-export async function rollAndSave(player, count, charPool, pityFields, extraPatch = {}, opts = {}) {
+export async function saveRollResults(player, results, extraPatch = {}, opts = {}) {
   // ใช้ปรับได้ว่าชิ้นส่วนตัวซ้ำไปสะสมไว้ที่ฟิลด์ไหนและรูปร่างเริ่มต้นเป็นอย่างไร
   // ตู้ธาตุหมุนเวียนใช้ 'elemShardPool' (ซ้อนอีกชั้นด้วยธาตุ) แทน 'shardPool' แบบตู้เดิม
   // เพื่อไม่ให้ชิ้นส่วนตัวละครตู้ธาตุไปปนกับเศษวิญญาณกลางของตู้อื่น
   const { poolField = 'shardPool', emptyPool = EMPTY_POOL, addDupe = defaultAddDupe } = opts
-
-  const pity = {
-    sinceSR: player[pityFields.sr] ?? 0,
-    sinceSSR: player[pityFields.ssr] ?? 0,
-  }
-
-  const results = []
-  for (let i = 0; i < count; i++) results.push(rollOne(pity, charPool))
 
   // กันไม่ให้ค่าว่างหลุดลงไปถึง Firestore
   // ถ้าเคยหลุด ข้อความที่ได้จะเป็น indexOf ของ undefined ซึ่งตามต้นตอยากมาก
@@ -253,18 +245,36 @@ export async function rollAndSave(player, count, charPool, pityFields, extraPatc
     }
   })
 
-  const userPatch = {
-    ...extraPatch,
-    [pityFields.sr]: pity.sinceSR,
-    [pityFields.ssr]: pity.sinceSSR,
-    [poolField]: pool,
-  }
-
-  batch.update(doc(db, 'users', uid), userPatch)
+  batch.update(doc(db, 'users', uid), { ...extraPatch, [poolField]: pool })
 
   await batch.commit()
 
   invalidateRoster()
+  return summary
+}
+
+/**
+ * สุ่มหลายครั้งพร้อมตัวนับการันตี แล้วบันทึกผลผ่าน saveRollResults()
+ *
+ * แยกตัวนับการันตีเป็นคนละคู่ต่อตู้ ผ่านพารามิเตอร์ pityFields ไม่ให้ไปปนกับตู้เดิม
+ * (ตู้ที่ไม่มีการันตีเลยอย่างตู้ UR ไม่ผ่านฟังก์ชันนี้ แต่เรียก saveRollResults ตรง ๆ แทน)
+ */
+export async function rollAndSave(player, count, charPool, pityFields, extraPatch = {}, opts = {}) {
+  const pity = {
+    sinceSR: player[pityFields.sr] ?? 0,
+    sinceSSR: player[pityFields.ssr] ?? 0,
+  }
+
+  const results = []
+  for (let i = 0; i < count; i++) results.push(rollOne(pity, charPool))
+
+  const summary = await saveRollResults(
+    player,
+    results,
+    { ...extraPatch, [pityFields.sr]: pity.sinceSR, [pityFields.ssr]: pity.sinceSSR },
+    opts
+  )
+
   return { summary, pity }
 }
 
