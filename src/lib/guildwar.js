@@ -63,7 +63,7 @@ export async function findWarTargets(me, myTeamCp) {
   while (picked.length < 3 && copy.length) {
     picked.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0])
   }
-  if (picked.length < 3) picked.push(...makeBots(me, 3 - picked.length, myTeamCp))
+  if (picked.length < 3) picked.push(...makeBots(me, 3 - picked.length))
   return picked
 }
 

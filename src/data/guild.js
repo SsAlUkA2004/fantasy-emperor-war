@@ -46,11 +46,20 @@ export function validateTag(tag) {
   return null
 }
 
+/**
+ * คะแนนต่อหนึ่งขั้นของเลเวลกิลด์ (คะแนนกิลด์ = ดาเมจที่สมาชิกตีบอสกิลด์รวมกัน)
+ *
+ * เดิม 5,000 ตอนที่ตีได้ราว 1 ล้านต่อครั้ง กิลด์ใหม่ก็ถึงเลเวล 20 (1.8 ล้านคะแนน) ในไม่กี่ครั้ง
+ * ตอนนี้กิลด์ 10 คนที่เล่นครบทำได้ราว 0.5-1 พันล้านต่อสัปดาห์ ตั้งไว้ที่ 15 ล้านให้เลเวล 20
+ * (5.4 พันล้านคะแนน) ใช้เวลาราวสองถึงสามเดือน ไม่ใช่สัปดาห์เดียว
+ */
+export const POINTS_PER_LEVEL_STEP = 15000000
+
 /** เลเวลกิลด์ขึ้นตามคะแนนสะสมของสมาชิกทั้งกิลด์ */
 export function guildLevel(points = 0) {
-  return Math.max(1, Math.min(20, Math.floor(Math.sqrt(points / 5000)) + 1))
+  return Math.max(1, Math.min(20, Math.floor(Math.sqrt(points / POINTS_PER_LEVEL_STEP)) + 1))
 }
 
 export function pointsForNextLevel(level) {
-  return Math.pow(level, 2) * 5000
+  return Math.pow(level, 2) * POINTS_PER_LEVEL_STEP
 }

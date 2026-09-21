@@ -1,5 +1,6 @@
 import { CHARACTERS, TEAM_SIZE } from './characters'
 import { rankOf } from './ranks'
+import { maxAwakenFor } from './ascension'
 import { entryPower } from '../lib/power'
 
 // ─────────────────────────────────────────────────────────────
@@ -9,9 +10,27 @@ import { entryPower } from '../lib/power'
 // เพราะถ้าเขียนบอทลงฐานข้อมูล มันจะไปโผล่ในกระดานอันดับและหน้าค้นหาเพื่อน
 // ปนกับคนจริง ซึ่งไม่ควร
 //
-// ความแข็งแกร่งผูกกับแต้มของผู้เล่นที่กำลังดูอยู่ จึงสูสีเสมอ
+// ความแข็งแกร่งผูกกับแรงค์ของผู้เล่นที่กำลังดูอยู่ (ดู BOT_CP_BY_RANK) ยิ่งแรงค์สูงบอทยิ่งเก่ง
 // ไม่ใช่ของง่ายให้ฟาร์มฟรี และไม่ใช่กำแพงที่ชนะไม่ได้
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * ค่าพลังต่อสู้เป้าหมายของบอทตามแรงค์ของผู้เล่น (ค่าพลังรวมทั้งทีมห้าตัว)
+ *
+ * ไล่ตามลำดับแรงค์ ผู้ฝึกหัดราว 5,000 ถึงกึ่งเทพราว 300,000 ขั้นบนเพิ่มทีละราว 1.7-1.8 เท่า
+ * (เพิ่มแบบคูณ ไม่ใช่บวก เพราะค่าพลังของทีมโตแบบทบต้นตามเลเวล ดาว และการปลุกร่าง)
+ * ผู้ฝึกหัดที่ 5,000 ต่ำกว่าทีมที่ตัวละครธรรมดาห้าตัวเลเวล 1 ทำได้ (ราว 5,700) บอทจึงตันที่เลเวล 1 ดาว 1
+ * และมีค่าพลังราว 5,700 แทน ดู BOT_TEAMS สามชุดแรกที่เลือกตัวค่าพลังต่ำสุดไว้เพื่อเหตุนี้
+ * ช่องที่ i คือแรงค์ index i ใน RANKS
+ */
+export const BOT_CP_BY_RANK = [5000, 17000, 30000, 55000, 95000, 170000, 300000]
+
+/** บอทสามตัวต่อรอบ อ่อนกว่า พอดี และแข็งกว่าเล็กน้อยรอบค่าเป้าหมายของแรงค์นั้น */
+const BOT_SCALES = [0.9, 1.0, 1.1]
+
+export function botTargetCp(points = 0) {
+  return BOT_CP_BY_RANK[rankOf(points).index] ?? BOT_CP_BY_RANK[0]
+}
 
 const BOT_NAMES = [
   'เงาไร้นาม', 'อัศวินพเนจร', 'ผู้เฝ้าประตูเก่า', 'นักรบไร้ธง',
@@ -21,9 +40,9 @@ const BOT_NAMES = [
 
 /** ชุดตัวละครของแต่ละบอท ไล่จากอ่อนไปแข็งตามลำดับ */
 const BOT_TEAMS = [
-  ['bren', 'moss', 'torg', 'neria', 'corvin'],
-  ['torg', 'neria', 'bren', 'moss', 'corvin'],
-  ['athen', 'moss', 'torg', 'bren', 'neria'],
+  ['moss', 'mossrik', 'aerdon', 'bren', 'aqualin'],
+  ['ashwen', 'breezel', 'radia', 'torrek', 'terrun'],
+  ['aqualin', 'moss', 'torrek', 'riplen', 'ashwen'],
   ['galen', 'lumina', 'corvin', 'neria', 'bren'],
   ['athen', 'galen', 'lumina', 'bren', 'moss'],
   ['zephyr', 'iris', 'moss', 'corvin', 'neria'],
@@ -33,9 +52,14 @@ const BOT_TEAMS = [
   ['drakos', 'galen', 'lumina', 'velka', 'moss'],
   ['drakos', 'umbra', 'lumina', 'velka', 'zephyr'],
   ['drakos', 'umbra', 'solaris', 'velka', 'iris'],
+  // สามชุดท้ายมีตัว UR/UR+ เพราะทีม SSR ล้วนเก่งได้ไม่ถึงราว 300,000 ที่กึ่งเทพต้องการ
+  ['seraphyx', 'zephyrion', 'elyria', 'drakos', 'umbra'],
+  ['nyxaroth', 'abyssara', 'ignatrix', 'elyria', 'zephyrion'],
+  ['chronathar', 'seraphyx', 'nyxaroth', 'elyria', 'ignatrix'],
 ]
 
-function makeEntry(id, level, star = 1, tier = 0) {
+// awaken คือขั้นปลุกร่างที่ต้องการ แต่ละตัวถูกตัดที่ขั้นสูงสุดของตัวมันเอง (ตัว UR ไปได้ 5 ตัวอื่น 3)
+function makeEntry(id, level, star = 1, tier = 0, awaken = 0) {
   return {
     id,
     level,
@@ -43,12 +67,12 @@ function makeEntry(id, level, star = 1, tier = 0) {
     exp: 0,
     skillLevel: Math.min(10, 1 + Math.floor(level / 12)),
     tier,
-    awaken: 0,
+    awaken: Math.min(awaken, maxAwakenFor(id)),
   }
 }
 
-function teamCp(ids, level, star = 1, tier = 0) {
-  return ids.reduce((sum, id) => sum + entryPower(makeEntry(id, level, star, tier)), 0)
+function teamCp(ids, level, star = 1, tier = 0, awaken = 0) {
+  return ids.reduce((sum, id) => sum + entryPower(makeEntry(id, level, star, tier, awaken)), 0)
 }
 
 /**
@@ -59,12 +83,12 @@ function teamCp(ids, level, star = 1, tier = 0) {
  * พอถึงแรงค์สูงบอทเลยแรงกว่าผู้เล่นสามเท่า ซึ่งท้าไปก็แพ้อย่างเดียว
  * ตอนนี้เทียบกับค่าพลังจริงของทีมบุกแทน บอทจึงสูสีเสมอไม่ว่าผู้เล่นจะปั้นมาแค่ไหน
  */
-function fitLevel(ids, targetCp, star, tier) {
+function fitLevel(ids, targetCp, star, tier, awaken = 0) {
   let lo = 1
   let hi = 100
   while (lo < hi) {
     const mid = (lo + hi) >> 1
-    if (teamCp(ids, mid, star, tier) < targetCp) lo = mid + 1
+    if (teamCp(ids, mid, star, tier, awaken) < targetCp) lo = mid + 1
     else hi = mid
   }
   return lo
@@ -78,13 +102,17 @@ function fitLevel(ids, targetCp, star, tier) {
  * ถ้าดันแต่เลเวล บอทจะตันแล้วกลายเป็นของฟรีให้ฟาร์มแต้ม
  */
 function fitBuild(ids, targetCp) {
-  for (const tier of [0, 1, 2]) {
-    for (const star of [1, 2, 3, 4, 5]) {
-      const level = fitLevel(ids, targetCp, star, tier)
-      if (level < 100) return { level, star, tier }
+  // ปลุกร่างเป็นวงนอกสุด ลองเป็นทางเลือกสุดท้ายหลังเลเวล ดาว และขั้นยกระดับตันแล้วเท่านั้น
+  // เป้าหมายของแรงค์ต่ำจึงได้บิลด์แบบเดิมทุกอย่าง มีแต่แรงค์สูงที่ต้องอาศัยการปลุกร่างถึงจะไปถึง
+  for (const awaken of [0, 1, 2, 3, 4, 5]) {
+    for (const tier of [0, 1, 2]) {
+      for (const star of [1, 2, 3, 4, 5]) {
+        const level = fitLevel(ids, targetCp, star, tier, awaken)
+        if (level < 100) return { level, star, tier, awaken }
+      }
     }
   }
-  return { level: 100, star: 5, tier: 2 }
+  return { level: 100, star: 5, tier: 2, awaken: 5 }
 }
 
 /**
@@ -97,18 +125,17 @@ function fitBuild(ids, targetCp) {
  * ไม่พอสามคน (ซึ่งเป็นเกือบตลอดเวลาตอนผู้เล่นยังน้อย) — ถ้าไม่สุ่มอะไรเลย กดหาคู่ใหม่กี่ครั้ง
  * ก็จะได้บอทชุดเดิมทุกตัวเป๊ะ ๆ เพราะแต้มกับค่าพลังทีมไม่เปลี่ยนระหว่างกด
  */
-export function makeBots(player, count = 3, myTeamCp = 0) {
+export function makeBots(player, count = 3) {
   const points = player?.pvpPoints ?? 0
   const tier = rankOf(points).index
 
-  // ถ้ายังไม่รู้ค่าพลังของผู้เล่น ใช้ค่าประมาณจากแต้มไปก่อน
-  const target = myTeamCp > 0 ? myTeamCp : 6000 + points * 6
+  // เป้าหมายผูกกับแรงค์ ไม่ผูกกับค่าพลังของผู้เล่นแล้ว (เดิมเทียบทีมบุกของผู้เล่นตรง ๆ)
+  // แรงค์สูงจึงเจอบอทแรงตามที่ตั้งไว้เสมอ ไม่ว่าทีมตัวเองจะปั้นมาแค่ไหน
+  const target = botTargetCp(points)
+  const SCALES = BOT_SCALES
 
-  // สามระดับ อ่อนกว่า สูสี และแข็งกว่าเล็กน้อย
-  // ตั้งให้ต่ำกว่าค่าพลังจริงเล็กน้อยทั้งสามตัว เพราะในการสู้อัตโนมัติ
-  // การจัดชุดตัวละครมีผลมากกว่าค่าพลัง บอทที่ค่าพลังเท่ากันจึงมักชนะ
-  const SCALES = [0.78, 0.92, 1.05]
-
+  // ผู้ฝึกหัดใช้ได้แค่สามชุดแรก ชุดถัดไปแม้เลเวล 1 ดาว 1 ก็มีค่าพลังเกินเป้า 5,000 ไปมาก
+  const maxSlot = tier === 0 ? 2 : BOT_TEAMS.length - 1
   const usedSlots = new Set()
   const bots = []
   for (let i = 0; i < count; i++) {
@@ -118,7 +145,7 @@ export function makeBots(player, count = 3, myTeamCp = 0) {
     let slot = base
     for (let guard = 0; guard < 6; guard++) {
       const offset = Math.floor(Math.random() * 3) - 1
-      slot = Math.max(0, Math.min(BOT_TEAMS.length - 1, base + offset))
+      slot = Math.max(0, Math.min(maxSlot, base + offset))
       if (!usedSlots.has(slot)) break
     }
     usedSlots.add(slot)
@@ -135,7 +162,7 @@ export function makeBots(player, count = 3, myTeamCp = 0) {
       playerLevel: build.level,
       pvpPoints: Math.max(0, points + [-60, 0, 70][i % 3]),
       titleIndex: 0,
-      defense: ids.map((id) => makeEntry(id, build.level, build.star, build.tier)),
+      defense: ids.map((id) => makeEntry(id, build.level, build.star, build.tier, build.awaken)),
     })
   }
   return bots

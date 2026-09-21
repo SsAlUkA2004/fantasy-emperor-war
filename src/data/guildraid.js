@@ -14,10 +14,17 @@ import { BOSSES } from './worldboss'
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export const RAID_HITS_PER_DAY = 3
-export const RAID_DAMAGE_CAP = 3000000
+/**
+ * เพดานดาเมจต่อหนึ่งครั้งของกิลด์เรด ตั้งไว้ 30% ของเพดานบอสโลก (40 ล้าน) ตามสัดส่วนเดิม (3 ล้านต่อ 10 ล้าน)
+ * ต้องตรงกับเลข 12000000 ในกฎ firestore.rules ของเอกสาร raid ของกิลด์
+ */
+export const RAID_DAMAGE_CAP = 12000000
 
-/** ดาเมจหนึ่งพันแลกเหรียญกิลด์หนึ่งเหรียญ */
-export const DAMAGE_PER_COIN = 1000
+/**
+ * ดาเมจสี่พันแลกเหรียญกิลด์หนึ่งเหรียญ
+ * ตั้งให้ตีเต็มเพดานได้ 3,000 เหรียญต่อครั้งเท่าเดิม (เดิม 3 ล้านหาร 1,000) ร้านค้ากิลด์จึงไม่ต้องขยับราคา
+ */
+export const DAMAGE_PER_COIN = 4000
 
 export function raidWeek(date = new Date()) {
   return Math.floor(date.getTime() / WEEK_MS)
@@ -28,9 +35,13 @@ export function raidBossForWeek(week = raidWeek()) {
   return BOSSES[(week + 2) % BOSSES.length]
 }
 
-/** เลือดของบอสกิลด์ ตั้งไว้ราวหนึ่งในห้าของบอสโลก */
+/**
+ * เลือดของบอสกิลด์ ตั้งไว้ 17% ของบอสโลก (153-242 ล้าน)
+ * ใกล้เคียงดาเมจทั้งสัปดาห์ของผู้เล่นตีแรงหนึ่งคน (21 ครั้ง × ราว 10 ล้าน) เหมือนสัดส่วนตอนตั้งครั้งแรก
+ * กิลด์ที่มีคนแรงหลายคนจึงล้มได้ก่อนหมดสัปดาห์ ส่วนกิลด์เล็กใช้ทั้งสัปดาห์
+ */
 export function raidPoolHp(spec) {
-  return Math.round(spec.poolHp * 0.22)
+  return Math.round(spec.poolHp * 0.17)
 }
 
 export function coinsFromDamage(damage = 0) {

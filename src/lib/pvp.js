@@ -48,7 +48,7 @@ export async function findOpponents(me, myTeamCp = 0) {
   // เกมนี้เล่นกันในกลุ่มเพื่อน ถ้ารอคนจริงอย่างเดียว
   // ช่วงแรกหน้าประลองจะว่างเปล่าจนกดอะไรไม่ได้เลย
   if (picked.length < 3) {
-    picked.push(...makeBots(me, 3 - picked.length, myTeamCp))
+    picked.push(...makeBots(me, 3 - picked.length))
   }
 
   return picked
