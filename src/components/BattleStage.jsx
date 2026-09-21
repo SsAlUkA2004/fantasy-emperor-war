@@ -29,6 +29,7 @@ const STATUS_LABEL = {
   taunt: 'ดึงเป้า',
   defUp: 'ป้องกัน+',
   shield: 'ได้เกราะ',
+  skillLock: 'ล็อกสกิล',
 }
 
 /** ชนิดผลลัพธ์ที่ใช้เลือกสี/อนิเมชัน คริกับดาเมจธรรมดาแยกกันแม้จะมาจาก hit.kind เดียวกัน */
@@ -42,6 +43,7 @@ function popupText(hit) {
   if (hit.kind === 'block') return 'กันได้'
   if (hit.kind === 'cleanse') return 'หายสถานะ'
   if (hit.kind === 'status') return STATUS_LABEL[hit.status] ?? hit.status
+  if (hit.kind === 'mpDown') return `เวท-${hit.amount}`
   return `-${hit.amount.toLocaleString('th-TH')}`
 }
 
@@ -128,6 +130,7 @@ export function Combatant({ unit, active, selected, favoured, ally, onSelect, ca
           {unit.effects.burn > 0 && <span className="tag burn">ติดไฟ</span>}
           {unit.effects.taunt > 0 && <span className="tag">ดึงเป้า</span>}
           {unit.effects.stun > 0 && <span className="tag">สตัน</span>}
+          {unit.effects.skillLock > 0 && <span className="tag">ล็อกสกิล</span>}
           {unit.effects.shield && <span className="tag">เกราะ</span>}
         </div>
         <div className="bar">

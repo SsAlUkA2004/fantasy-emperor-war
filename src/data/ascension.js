@@ -21,11 +21,18 @@ export const MAX_AWAKEN = 3
  * ระดับ UR ปลุกร่างได้ห้าขั้น มากกว่า SSR ที่ได้สามขั้น
  * เป็นอีกเหตุผลหนึ่ง (นอกจาก RARITY_POWER และสกิลตั้งต้นที่แรงกว่า) ที่ทำให้ UR แท้
  * ปั้นสุดแล้วทิ้งห่าง SSR แท้ได้จริง ไม่ใช่แค่เพดานเลเวลสูงกว่าเฉย ๆ
+ *
+ * UR+ ใช้เพดานเดียวกับ UR (ห้าขั้น) ไม่ได้เพิ่มขั้นปลุกร่างอีก เพราะความแรงที่เหนือกว่า
+ * มาจาก RARITY_POWER/RARITY_CAPS/ค่าพื้นฐานที่สูงกว่าอยู่แล้ว ไม่ต้องพึ่งขั้นปลุกร่างเพิ่ม
  */
 export const MAX_AWAKEN_UR = 5
 
+function isTopTier(rarity) {
+  return rarity === 'UR' || rarity === 'UR+'
+}
+
 export function maxAwakenFor(charId) {
-  return CHARACTERS[charId]?.rarity === 'UR' ? MAX_AWAKEN_UR : MAX_AWAKEN
+  return isTopTier(CHARACTERS[charId]?.rarity) ? MAX_AWAKEN_UR : MAX_AWAKEN
 }
 
 /** ชื่อของแต่ละขั้นปลุกร่าง ใช้แสดงแทนตัวเลขเปล่า ๆ สองขั้นท้ายมีแต่ตัว UR ที่ไปถึง */
@@ -59,8 +66,11 @@ export const TIER_BOOST = 1.12
  *
  * UR อยู่นอกสายยกระดับ R → SR → SSR (ดู effectiveRarity/maxTierFor ด้านล่าง) จึงตั้งตัวคูณ
  * ของตัวเองไว้สูงกว่า SSR ชัดเจน ยืนยันด้วยการรันจำลองว่า UR แท้แรงกว่า SSR แท้เสมอที่เลเวล/ดาวเท่ากัน
+ *
+ * UR+ อยู่นอกสายเดียวกัน (เหมือน UR) แต่ตั้งตัวคูณสูงกว่า UR อีกขั้น ยืนยันด้วยการรันจำลอง
+ * แบบเดียวกันว่า UR+ แท้แรงกว่า UR แท้เสมอที่เลเวล/ดาวเท่ากัน
  */
-export const RARITY_POWER = { R: 1, SR: 1, SSR: 1.18, UR: 1.32 }
+export const RARITY_POWER = { R: 1, SR: 1, SSR: 1.18, UR: 1.32, 'UR+': 1.45 }
 
 export function rarityPower(charId) {
   return RARITY_POWER[CHARACTERS[charId]?.rarity] ?? 1
@@ -87,19 +97,19 @@ export const AWAKEN_COST = {
 /**
  * ความหายากจริงหลังยกระดับแล้ว
  *
- * UR ไม่อยู่ในลำดับ RARITIES (R/SR/SSR) เพราะไม่ใช่ปลายทางที่ตัวอื่นไต่ขึ้นมาได้
- * และตัวมันเองก็ไต่ขึ้นไปที่ไหนต่อไม่ได้อีกแล้ว จึงคืนค่า 'UR' ตรง ๆ โดยไม่ต้องคำนวณ
+ * UR/UR+ ไม่อยู่ในลำดับ RARITIES (R/SR/SSR) เพราะไม่ใช่ปลายทางที่ตัวอื่นไต่ขึ้นมาได้
+ * และตัวมันเองก็ไต่ขึ้นไปที่ไหนต่อไม่ได้อีกแล้ว จึงคืนค่าความหายากตั้งต้นตรง ๆ โดยไม่ต้องคำนวณ
  */
 export function effectiveRarity(charId, tier = 0) {
   const base = CHARACTERS[charId]?.rarity ?? 'R'
-  if (base === 'UR') return 'UR'
+  if (isTopTier(base)) return base
   const index = Math.min(RARITIES.indexOf(base) + tier, RARITIES.length - 1)
   return RARITIES[index]
 }
 
 export function maxTierFor(charId) {
   const base = CHARACTERS[charId]?.rarity ?? 'R'
-  if (base === 'UR') return 0
+  if (isTopTier(base)) return 0
   return RARITIES.length - 1 - RARITIES.indexOf(base)
 }
 
@@ -143,7 +153,7 @@ export function awakenBlockers(charId, entry) {
 
   const blockers = []
   const rarity = effectiveRarity(charId, entry.tier ?? 0)
-  if (rarity !== 'SSR' && rarity !== 'UR') blockers.push('ต้องเป็นระดับ SSR ขึ้นไปก่อน')
+  if (rarity !== 'SSR' && !isTopTier(rarity)) blockers.push('ต้องเป็นระดับ SSR ขึ้นไปก่อน')
   if ((entry.star ?? 1) < 5) blockers.push('ต้องครบ 5 ดาวก่อน')
   return blockers
 }

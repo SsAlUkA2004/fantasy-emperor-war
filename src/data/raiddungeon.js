@@ -66,13 +66,13 @@ export function raidTier(tierId) {
 }
 
 /**
- * เช็คว่ามีตัวละครระดับ SSR ขึ้นไป (นับ UR ด้วยเพราะแรงกว่า SSR ทุกด้าน) ที่เลเวลถึงเกณฑ์
+ * เช็คว่ามีตัวละครระดับ SSR ขึ้นไป (นับ UR/UR+ ด้วยเพราะแรงกว่า SSR ทุกด้าน) ที่เลเวลถึงเกณฑ์
  * ครบตามจำนวนที่ระดับความยากนั้นต้องการหรือยัง — เป็นเงื่อนไขปลดล็อก ไม่ใช่การบังคับทีมที่ใช้สู้จริง
  */
 export function meetsRequirement(owned, need) {
   const count = (owned ?? []).filter((o) => {
     const r = effectiveRarity(o.id, o.tier ?? 0)
-    return (r === 'SSR' || r === 'UR') && (o.level ?? 1) >= need.level
+    return (r === 'SSR' || r === 'UR' || r === 'UR+') && (o.level ?? 1) >= need.level
   }).length
   return count >= need.count
 }

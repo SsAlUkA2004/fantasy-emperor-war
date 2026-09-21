@@ -2,6 +2,7 @@ import { BANNERS, CHARACTERS, STARTER_IDS } from './characters'
 import { EXCHANGE_COST, POOL_NAMES } from './exchange'
 import { ALL_ELEMENTAL_IDS } from './elemental'
 import { ALL_UR_BANNER_IDS } from './urbanner'
+import { ALL_URPLUS_BANNER_IDS } from './urplusbanner'
 
 // ─────────────────────────────────────────────────────────────
 // แหล่งที่มาของตัวละครแต่ละตัว
@@ -16,7 +17,12 @@ import { ALL_UR_BANNER_IDS } from './urbanner'
 // ─────────────────────────────────────────────────────────────
 
 const elementalSet = new Set(ALL_ELEMENTAL_IDS)
-const urExclusiveSet = new Set(ALL_UR_BANNER_IDS.filter((id) => CHARACTERS[id]?.rarity === 'UR'))
+const urExclusiveSet = new Set(
+  [...ALL_UR_BANNER_IDS, ...ALL_URPLUS_BANNER_IDS].filter((id) => {
+    const r = CHARACTERS[id]?.rarity
+    return r === 'UR' || r === 'UR+'
+  })
+)
 
 export function sourcesFor(charId) {
   const c = CHARACTERS[charId]
@@ -37,6 +43,9 @@ export function sourcesFor(charId) {
   }
   if (ALL_UR_BANNER_IDS.includes(charId)) {
     list.push({ kind: 'gacha', label: 'กาชา · ตู้ UR', to: '/gacha' })
+  }
+  if (ALL_URPLUS_BANNER_IDS.includes(charId)) {
+    list.push({ kind: 'gacha', label: 'กาชา · ตู้จักรพรรดิโคลโน', to: '/gacha' })
   }
 
   const exclusive = elementalSet.has(charId) || urExclusiveSet.has(charId)

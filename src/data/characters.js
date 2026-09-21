@@ -9,9 +9,14 @@
 // ชนิดของผลลัพธ์
 //   damage  { mult, target, bonusOn, bonusMult }  ทำดาเมจ
 //   heal    { percent, target }                   ฟื้นพลัง
-//   status  { status, turns, target, chance }     ติดสถานะ
-//   cleanse { target }                            ล้างสถานะติดลบ
+//   status  { status, turns, target, chance }     ติดสถานะ (รวม skillLock ล็อกสกิล 1 รอบ แต่ใช้ท่าไม้ตายได้ปกติ)
+//   cleanse { target }                            ล้างสถานะติดลบ (รวม skillLock ด้วย)
+//   mpDown  { amount, target, chance }            ลดพลังเวทของเป้าหมายลงตรง ๆ ไม่ต่ำกว่าศูนย์
 // เป้าหมาย: one | allFoes | self | lowestAlly | allAllies
+//
+// ตัวละครกำหนด attackEffects (ไม่บังคับมี) ได้ด้วย เป็นรายการผลลัพธ์แบบเดียวกับข้างบน
+// (ไม่ต้องมี target เพราะเล็งเป้าที่โดนตีอยู่แล้วเสมอ) ให้ท่าโจมตีธรรมดามีโอกาสติดสถานะ
+// เพิ่มเติม เช่น { kind: 'status', status: 'stun', turns: 1, chance: 0.3 }
 // ─────────────────────────────────────────────────────────────
 
 export const ELEMENTS = {
@@ -1912,6 +1917,261 @@ export const CHARACTERS = {
       ],
     },
     blurb: 'สายป้องกันระดับ UR ตัวถังที่หนาและตีแรงกว่าตัวถัง SSR ทุกตัวในเกม ยืนรับได้ทุกสนามโดยไม่ต้องเปลี่ยนทีม',
+  },
+
+  // ───────── ตู้จักรพรรดิโคลโน · ระดับ SR ─────────
+  emberlyn: {
+    id: 'emberlyn', name: 'เอมเบอร์ลิน', epithet: 'ดาบเพลิงหนุ่ม',
+    rarity: 'SR', element: 'fire', role: 'striker', focus: 'all',
+    stats: { hp: 855, atk: 170, def: 57, spd: 108, crit: 16, critRate: 15 },
+    skill: {
+      name: 'ฟันเพลิงกล้า', mp: 3, desc: 'โจมตีเดี่ยว 190% และทำให้เป้าหมายติดไฟ 2 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 1.9, target: 'one' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'one' },
+      ],
+    },
+    ultimate: {
+      name: 'อัคนีเผาผลาญ', desc: 'โจมตีเดี่ยว 420% แรงขึ้นครึ่งหนึ่งถ้าเป้าหมายติดไฟอยู่',
+      effects: [{ kind: 'damage', mult: 4.2, target: 'one', bonusOn: 'burn', bonusMult: 1.5 }],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SR สายโจมตีเพลิงมาตรฐาน จุดไฟแล้วปล่อยไม้ตายซ้ำได้แรงขึ้น',
+  },
+  coralek: {
+    id: 'coralek', name: 'คอราเล็ค', epithet: 'โล่ปะการัง',
+    rarity: 'SR', element: 'water', role: 'guardian', focus: 'farm',
+    stats: { hp: 1400, atk: 106, def: 116, spd: 78, crit: 6, critRate: 10 },
+    skill: {
+      name: 'กำแพงปะการัง', mp: 3, desc: 'ดึงเป้าโจมตี 2 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'คลื่นปะการังถล่ม', desc: 'โจมตีศัตรูทุกตัว 220% และฟื้นพลังตัวเอง 20%',
+      effects: [
+        { kind: 'damage', mult: 2.2, target: 'allFoes' },
+        { kind: 'heal', percent: 0.2, target: 'self' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SR ตัวถังน้ำมาตรฐาน ดึงเป้าแล้วยืนรับได้ยาว',
+  },
+  terrawen: {
+    id: 'terrawen', name: 'เทอร์ราเวน', epithet: 'หมอสมุนไพรพนา',
+    rarity: 'SR', element: 'earth', role: 'mystic', focus: 'pvp',
+    stats: { hp: 1010, atk: 96, def: 80, spd: 90, crit: 7, critRate: 10 },
+    skill: {
+      name: 'พรสมุนไพร', mp: 3, desc: 'ฟื้นพลังทั้งทีม 24% และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.24, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'แผ่นดินฟื้นคืน', desc: 'ฟื้นพลังทั้งทีม 34% และให้เกราะทั้งทีม 1 เทิร์น',
+      effects: [
+        { kind: 'heal', percent: 0.34, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SR หมอดินมาตรฐาน ฟื้นทีมและล้างสถานะได้ตั้งแต่ระดับนี้',
+  },
+  galewick: {
+    id: 'galewick', name: 'เกลวิค', epithet: 'จอมธนูสายลม',
+    rarity: 'SR', element: 'wind', role: 'striker', focus: 'all',
+    stats: { hp: 810, atk: 166, def: 55, spd: 120, crit: 17, critRate: 15 },
+    skill: {
+      name: 'ศรวายุ', mp: 3, desc: 'โจมตีเดี่ยว 185% และมีโอกาสยี่สิบเปอร์เซ็นต์ทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 1.85, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.2 },
+      ],
+    },
+    ultimate: {
+      name: 'พายุเข็มทำลาย', desc: 'โจมตีเดี่ยว 400% แรงขึ้นสี่สิบเปอร์เซ็นต์ถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 4.0, target: 'one', bonusOn: 'stun', bonusMult: 1.4 }],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SR สายโจมตีลมที่เร็วที่สุดในกลุ่มตัวใหม่ชุดนี้',
+  },
+
+  // ───────── ตู้จักรพรรดิโคลโน · ระดับ SSR ─────────
+  tidalis: {
+    id: 'tidalis', name: 'ไทดาลิส', epithet: 'คมคลื่นสีเงิน',
+    rarity: 'SSR', element: 'water', role: 'striker', focus: 'boss',
+    stats: { hp: 1110, atk: 206, def: 82, spd: 106, crit: 18, critRate: 15 },
+    skill: {
+      name: 'เขี้ยวคลื่นเงิน', mp: 3, desc: 'โจมตีเดี่ยว 230% และมีโอกาสสามสิบเปอร์เซ็นต์ทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 2.3, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.3 },
+      ],
+    },
+    ultimate: {
+      name: 'สึนามิทำลายล้าง', desc: 'โจมตีเดี่ยว 600% แรงขึ้นสี่สิบเปอร์เซ็นต์ถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 6.0, target: 'one', bonusOn: 'stun', bonusMult: 1.4 }],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SSR สายโจมตีน้ำเน้นตีบอสตัวเดียวหนัก ๆ',
+  },
+  terragarde: {
+    id: 'terragarde', name: 'เทอร์ราการ์ด', epithet: 'ปราการหินนิรันดร์',
+    rarity: 'SSR', element: 'earth', role: 'guardian', focus: 'farm',
+    stats: { hp: 1780, atk: 162, def: 145, spd: 80, crit: 10, critRate: 10 },
+    skill: {
+      name: 'กำแพงศิลานิรันดร์', mp: 3, desc: 'ดึงเป้าโจมตี 2 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'แผ่นดินถล่มทลาย', desc: 'โจมตีศัตรูทุกตัว 250% และให้เกราะทั้งทีม 1 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 2.5, target: 'allFoes' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SSR ตัวถังดินหนาที่สุดในกลุ่มตัวใหม่ชุดนี้ ปกป้องทั้งทีมได้',
+  },
+  lucerna: {
+    id: 'lucerna', name: 'ลูเซอร์นา', epithet: 'อาลักษณ์แสงสวรรค์',
+    rarity: 'SSR', element: 'light', role: 'mystic', focus: 'pvp',
+    stats: { hp: 1260, atk: 182, def: 93, spd: 106, crit: 14, critRate: 10 },
+    skill: {
+      name: 'อักษรแสงชำระ', mp: 3, desc: 'ฟื้นพลังทั้งทีม 26% และล้างสถานะติดลบ',
+      effects: [
+        { kind: 'heal', percent: 0.26, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+      ],
+    },
+    ultimate: {
+      name: 'บทสวรรค์ประทาน', desc: 'โจมตีศัตรูทุกตัว 200% ฟื้นพลังทั้งทีม 38% และให้เกราะทั้งทีม',
+      effects: [
+        { kind: 'damage', mult: 2.0, target: 'allFoes' },
+        { kind: 'heal', percent: 0.38, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SSR หมอแสงที่ทั้งฟื้นทั้งกันดาเมจในท่าเดียว เหมาะกับสนามประลอง',
+  },
+  nocturael: {
+    id: 'nocturael', name: 'น็อคทูราเอล', epithet: 'เขี้ยวราตรีลับ',
+    rarity: 'SSR', element: 'dark', role: 'striker', focus: 'all',
+    stats: { hp: 1010, atk: 236, def: 74, spd: 126, crit: 25, critRate: 15 },
+    skill: {
+      name: 'เขี้ยวราตรี', mp: 3, desc: 'โจมตีเดี่ยว 260% และมีโอกาสสามสิบห้าเปอร์เซ็นต์ทำให้สตัน',
+      effects: [
+        { kind: 'damage', mult: 2.6, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.35 },
+      ],
+    },
+    ultimate: {
+      name: 'ราตรีกลืนกิน', desc: 'โจมตีเดี่ยว 560% แรงขึ้นห้าสิบเปอร์เซ็นต์ถ้าเป้าหมายสตัน',
+      effects: [{ kind: 'damage', mult: 5.6, target: 'one', bonusOn: 'stun', bonusMult: 1.5 }],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ SSR สายโจมตีมืดที่เร็วและแรงที่สุดในกลุ่มตัวใหม่ชุดนี้',
+  },
+
+  // ───────── ตู้จักรพรรดิโคลโน · ระดับ UR ─────────
+  seraphyx: {
+    id: 'seraphyx', name: 'เซราฟิกซ์', epithet: 'ทัพหน้าแสงเจิดจรัส',
+    rarity: 'UR', element: 'light', role: 'striker', focus: 'all',
+    stats: { hp: 1180, atk: 262, def: 92, spd: 116, crit: 23, critRate: 16 },
+    skill: {
+      name: 'ปีกแสงสหัสรังสี', mp: 3, desc: 'โจมตีศัตรูทุกตัว 170%',
+      effects: [{ kind: 'damage', mult: 1.7, target: 'allFoes' }],
+    },
+    ultimate: {
+      name: 'มหาสุริยะทำลายล้าง', desc: 'โจมตีศัตรูทุกตัว 460% แรงขึ้นห้าสิบเปอร์เซ็นต์กับเป้าหมายที่สตันอยู่',
+      effects: [{ kind: 'damage', mult: 4.6, target: 'allFoes', bonusOn: 'stun', bonusMult: 1.5 }],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ UR สายโจมตีแสงตัวแรกในเกมที่สกิลธรรมดาก็ตีทุกตัวได้ เคลียร์ทีมศัตรูเร็วที่สุด',
+  },
+  ignatrix: {
+    id: 'ignatrix', name: 'อิกนาทริกซ์', epithet: 'ผู้ประสาทพรอัคคี',
+    rarity: 'UR', element: 'fire', role: 'mystic', focus: 'all',
+    stats: { hp: 1680, atk: 192, def: 128, spd: 100, crit: 15, critRate: 10 },
+    skill: {
+      name: 'พรอัคคีชำระ', mp: 3, desc: 'ฟื้นพลังทั้งทีม 30% ล้างสถานะติดลบ และทำให้เป้าหมายติดไฟ 2 เทิร์น',
+      effects: [
+        { kind: 'heal', percent: 0.3, target: 'allAllies' },
+        { kind: 'cleanse', target: 'allAllies' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'one' },
+      ],
+    },
+    ultimate: {
+      name: 'เถ้าถ่านนิรันดร์', desc: 'ฟื้นพลังทั้งทีม 42% ให้เกราะทั้งทีม และทำให้ศัตรูทุกตัวติดไฟ 3 เทิร์น',
+      effects: [
+        { kind: 'heal', percent: 0.42, target: 'allAllies' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'allAllies' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'allFoes', chance: 1 },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ UR สายสนับสนุนเพลิงที่ทั้งฟื้นทั้งจุดไฟใส่ศัตรูทั้งกระดาน ใช้ได้ทุกสนาม',
+  },
+  zephyrion: {
+    id: 'zephyrion', name: 'เซเฟียเรียน', epithet: 'กำแพงมหาวายุ',
+    rarity: 'UR', element: 'wind', role: 'guardian', focus: 'all',
+    stats: { hp: 1900, atk: 180, def: 150, spd: 95, crit: 13, critRate: 10 },
+    skill: {
+      name: 'กำแพงมหาวาตะ', mp: 3, desc: 'ดึงเป้าโจมตี 2 เทิร์น เพิ่มป้องกัน และได้เกราะ',
+      effects: [
+        { kind: 'status', status: 'taunt', turns: 2, target: 'self' },
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+    ultimate: {
+      name: 'วาตะทำลายล้าง', desc: 'โจมตีศัตรูทุกตัว 340% มีโอกาสห้าสิบห้าเปอร์เซ็นต์ทำให้สตัน และฟื้นพลังตัวเอง 25%',
+      effects: [
+        { kind: 'damage', mult: 3.4, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.55 },
+        { kind: 'heal', percent: 0.25, target: 'self' },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ UR ตัวถังลมที่หนาและตีแรงกว่าตัวถัง SSR ทุกตัว ใช้ได้ทุกสนาม',
+  },
+
+  // ───────── ตู้จักรพรรดิโคลโน · ระดับ UR+ ─────────
+  //
+  // ระดับความหายากใหม่สูงกว่า UR ขึ้นไปอีกขั้น (ดู RARITY_POWER/RARITY_CAPS ใน
+  // data/ascension.js กับ lib/leveling.js) เหมือน UR ทุกประการคือไม่อยู่ในสาย R → SR → SSR
+  // ยกระดับตัวอื่นขึ้นมาเป็น UR+ ไม่ได้ ต้องสุ่มจากตู้นี้เท่านั้น
+  //
+  // เป็นตัวละครตัวแรกที่ใช้ effect kind ใหม่สองอย่าง (ดูคำอธิบายที่หัวไฟล์)
+  //   mpDown    ลดพลังเวทเป้าหมายตรง ๆ
+  //   skillLock ล็อกสกิลเป้าหมาย 1 รอบ แต่ท่าไม้ตายยังใช้ได้ปกติ (คนละอย่างกับ stun ที่ขยับไม่ได้ทั้งเทิร์น)
+  // และเป็นตัวแรกที่กำหนด attackEffects ให้ท่าโจมตีธรรมดามีโอกาสติดสถานะด้วย
+  //
+  // ปลดล็อกตู้นี้ต้องอยู่แรงค์แชมเปี้ยนขึ้นไป (highestRank >= 3) และผ่านด่าน 8-6 แล้ว
+  // (ดู isURPlusUnlocked ใน lib/urplusgacha.js) เพราะเป็นเนื้อหาปลายเกม ไม่ใช่ของผู้เล่นใหม่
+  chronathar: {
+    id: 'chronathar', name: 'จักรพรรดิโคลนาธาร์', epithet: 'ผู้พิชิตกาลเวลา',
+    rarity: 'UR+', element: 'dark', role: 'guardian', focus: 'all',
+    stats: { hp: 2150, atk: 195, def: 178, spd: 92, crit: 15, critRate: 12 },
+    attackEffects: [{ kind: 'status', status: 'stun', turns: 1, chance: 0.3 }],
+    skill: {
+      name: 'ล็อกออฟ', mp: 3,
+      desc: 'โจมตีเดี่ยว 200% ล็อกสกิลเป้าหมาย 1 เทิร์น (ท่าไม้ตายยังใช้ได้ปกติ) และลดพลังเวทลง 2 หน่วย',
+      effects: [
+        { kind: 'damage', mult: 2.0, target: 'one' },
+        { kind: 'status', status: 'skillLock', turns: 1, target: 'one' },
+        { kind: 'mpDown', amount: 2, target: 'one' },
+      ],
+    },
+    ultimate: {
+      name: 'จักรพรรดิโคลโน',
+      desc: 'โจมตีศัตรูทุกตัว 400% มีโอกาสแปดสิบเปอร์เซ็นต์ทำให้สตันและลดพลังเวทลง 3 หน่วย และมีโอกาสสี่สิบเปอร์เซ็นต์ล็อกสกิลแต่ละตัว 1 เทิร์น',
+      effects: [
+        { kind: 'damage', mult: 4.0, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.8 },
+        { kind: 'mpDown', amount: 3, target: 'allFoes', chance: 0.8 },
+        { kind: 'status', status: 'skillLock', turns: 1, target: 'allFoes', chance: 0.4 },
+      ],
+    },
+    blurb: 'ตัวใหม่จากตู้จักรพรรดิโคลโน ระดับ UR+ ระดับความหายากสูงสุดใหม่ของเกม สายป้องกันที่ควบคุมสนามรบได้ทั้งกระดาน ล็อกสกิลและลดพลังเวทศัตรูจนขยับไม่ได้ ปลดล็อกต้องอยู่แรงค์แชมเปี้ยนขึ้นไปและผ่านด่าน 8-6 มาแล้ว',
   },
 }
 

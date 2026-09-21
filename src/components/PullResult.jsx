@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CHARACTERS, ELEMENTS, ROLES } from '../data/characters'
 
-const RARITY_ORDER = { UR: 0, SSR: 1, SR: 2, R: 3 }
+const RARITY_ORDER = { 'UR+': 0, UR: 1, SSR: 2, SR: 3, R: 4 }
 
 // ห้าคอลัมน์คูณสองแถวพอดีหนึ่งหน้า เกินนี้ (มีแค่ตู้ UR สุ่มห้าสิบทีเดียว) ถึงจะขึ้นหน้าถัดไป
 const PAGE_SIZE = 10
 
 function titleFor(best) {
+  if (best === 'UR+') return 'ได้ตัวระดับสูงสุดขั้นเทพ'
   if (best === 'UR') return 'ได้ตัวระดับสูงสุด'
   if (best === 'SSR') return 'ได้ตัวระดับตำนาน'
   if (best === 'SR') return 'ได้ตัวหายาก'
@@ -54,7 +55,7 @@ export default function PullResult({ results, count, again, gems, busy, onAgain,
         <div className="panel-head">{titleFor(best)}</div>
 
         <p className="meta tally">
-          {['UR', 'SSR', 'SR', 'R']
+          {['UR+', 'UR', 'SSR', 'SR', 'R']
             .filter((r) => tally[r])
             .map((r) => `${r} ${tally[r]} ตัว`)
             .join(' · ')}
