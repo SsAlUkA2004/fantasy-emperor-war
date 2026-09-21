@@ -180,7 +180,10 @@ export async function saveMatch(player, foe, won) {
     pvpRunAt: serverTimestamp(),
     pvpRunCount: sameDay ? (player.pvpRunCount ?? 0) + 1 : 1,
     pvpWeekIndex: weekIndex(),
-    pvpWeekCount: sameWeek ? (player.pvpWeekCount ?? 0) + 1 : 1,
+    // firestore.rules ปฏิเสธถ้า pvpWeekCount เกิน 100 แต่โควตาประลองวันละ 20 ครั้งรวมเจ็ดวันได้ถึง 140
+    // ผู้เล่นสายประลองจึงจะบันทึกผลไม่ได้เลยตั้งแต่กลางสัปดาห์ ต้องหยุดนับที่เพดานกฎ
+    // (เควสรายสัปดาห์ใช้แค่เป้า 25 ครั้ง ค่าเกินนั้นไม่มีใครอ่าน)
+    pvpWeekCount: Math.min(100, sameWeek ? (player.pvpWeekCount ?? 0) + 1 : 1),
   })
 
   return { delta, points, highest, seasonHighest }

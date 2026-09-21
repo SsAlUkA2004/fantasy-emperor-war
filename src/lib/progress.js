@@ -29,6 +29,13 @@ import { weekIndex } from '../data/worldboss'
 // พอผูกกับโควตารายวัน เลเวลผู้เล่นจึงบอกว่า "เล่นมากี่วัน" ซึ่งปลอมไม่ได้
 // ─────────────────────────────────────────────────────────────
 
+// ตัวนับผ่านด่านผจญภัยต่อวัน/สัปดาห์ ใช้แค่ให้เควสอ่าน (เป้าหมายสูงสุดแค่ 5 ต่อวัน / 40 ต่อสัปดาห์)
+// แต่ firestore.rules ปฏิเสธคำขอทั้งก้อนถ้าค่านี้เกิน 50 / 300 (ดู dailyQuotasOk, questCountersOk)
+// ผู้เล่นที่ไต่ด่านรวดเดียวแล้วชนะเกิน 50 ครั้งในวันเดียว จึงโดนปฏิเสธ "บันทึกผลไม่สำเร็จ" ทุกครั้งที่ผ่านด่าน
+// ทั้งที่เล่นถูกต้อง ต้องหยุดนับที่เพดานเดียวกับกฎ ไม่ให้เขียนเกิน (เกินไปก็ไม่มีเควสไหนใช้ค่านั้น)
+const ADV_DAY_COUNT_CAP = 50
+const ADV_WEEK_COUNT_CAP = 300
+
 /** ผ่านด่านเนื้อเรื่องครั้งแรก ได้ค่าประสบการณ์ผู้เล่นสามเท่าของที่ตัวละครได้ */
 const FIRST_CLEAR_ACCOUNT_MULT = 3
 
@@ -178,9 +185,9 @@ export async function saveStageResult(player, stage, stars, exp) {
       [stageId]: Math.max(previous, stars),
     },
     advRunAt: serverTimestamp(),
-    advRunCount: sameAdvDay ? (player.advRunCount ?? 0) + 1 : 1,
+    advRunCount: Math.min(ADV_DAY_COUNT_CAP, sameAdvDay ? (player.advRunCount ?? 0) + 1 : 1),
     advWeekIndex: weekIndex(),
-    advWeekCount: sameAdvWeek ? (player.advWeekCount ?? 0) + 1 : 1,
+    advWeekCount: Math.min(ADV_WEEK_COUNT_CAP, sameAdvWeek ? (player.advWeekCount ?? 0) + 1 : 1),
   }
 
   if (firstClear) {
