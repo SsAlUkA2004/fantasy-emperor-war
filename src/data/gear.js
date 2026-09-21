@@ -31,6 +31,10 @@ export const GRADES = {
   orange: { id: 'orange', name: 'ตำนาน', color: '#e0a05a', mult: 3.9, order: 4, sell: 900 },
   red: { id: 'red', name: 'เทพ', color: '#d96b5e', mult: 5.4, order: 5, sell: 2000 },
   pink: { id: 'pink', name: 'อมตะ', color: '#e88bc0', mult: 7.5, order: 6, sell: 4500 },
+  // เกรดสูงสุดใหม่ ได้จากตู้อุปกรณ์โคลโนเท่านั้น (ดู data/chronogear.js) ไม่มีในตารางดรอปของแหล่งไหนเลย
+  // (SOURCE_RANGE ด้านล่างไม่มีแหล่งไหนขยับเพดานถึงเกรดนี้) สีตั้งใจให้ต่างจากทุกเกรดก่อนหน้า
+  // (ทุกเกรดก่อนนี้เป็นโทนสีสด ส่วนนี้เป็นโทนขาวเรืองแสงบนพื้นการ์ดสีดำ ตัด CSS ใหม่ที่ ChronoGearGacha.jsx)
+  black: { id: 'black', name: 'เทพนิยาย', color: '#f2ecff', mult: 10.5, order: 7, sell: 10000 },
 }
 
 export const GRADE_IDS = Object.keys(GRADES)
@@ -48,6 +52,7 @@ export const SUBSTAT_COUNT = {
   orange: 2,
   red: 3,
   pink: 3,
+  black: 4,
 }
 
 /** ค่าฐานของค่ารองแต่ละชนิด ก่อนคูณเกรด ระดับไอเทม และตีบวก (กลุ่มที่ยิ่งเพิ่มยิ่งดีไม่มีเพดาน) */
@@ -79,6 +84,7 @@ export const NARROW_STAT_GRADE = {
   orange: 6,
   red: 8,
   pink: 10,
+  black: 13,
 }
 
 export const NARROW_STAT_ILVL_STEP = 0.15
@@ -96,7 +102,7 @@ export function narrowGearStat(gear, isMain = true) {
   return Math.round(perGrade * byIlvl * byPlus * mult * gearVariance(gear))
 }
 
-/** เฉพาะอมตะเท่านั้นที่มีสิทธิ์ติดค่ารองพิเศษนี้ เพิ่มดาเมจสกิลและท่าไม้ตายโดยตรง */
+/** เฉพาะอมตะขึ้นไปเท่านั้นที่มีสิทธิ์ติดค่ารองพิเศษนี้ เพิ่มดาเมจสกิลและท่าไม้ตายโดยตรง */
 export const SKILL_POWER_BASE = 8
 export const SKILL_POWER_ILVL_STEP = 0.35
 export const SKILL_POWER_PLUS_STEP = 0.03
@@ -165,14 +171,18 @@ export function substatValue(statKey, gear) {
 }
 
 /**
- * ค่าพลังสกิล % ที่ของอมตะติดมาด้วย มีเฉพาะเกรดอมตะเท่านั้น
+ * ค่าพลังสกิล % ที่ของอมตะขึ้นไปติดมาด้วย มีเฉพาะเกรดอมตะกับเทพนิยายเท่านั้น
  * ขึ้นกับระดับไอเทมและตีบวกช้ากว่าค่าสถานะทั่วไป เพราะไปคูณดาเมจสกิลตรง ๆ
+ *
+ * เทพนิยายแรงกว่าอมตะตามสัดส่วนตัวคูณเกรด (gradeMult) ไม่ใช่ค่าคงที่แยกต่างหาก
+ * กันไม่ให้ของอมตะเก่าที่มีอยู่แล้วเปลี่ยนค่าไปเมื่อเพิ่มเกรดใหม่เข้ามา (gradeMult ของอมตะยังคงเป็น 1 เท่าเดิม)
  */
 export function skillPowerValue(gear) {
-  if (!gear || gear.grade !== 'pink') return 0
+  if (!gear || (gear.grade !== 'pink' && gear.grade !== 'black')) return 0
+  const gradeMult = (GRADES[gear.grade]?.mult ?? GRADES.pink.mult) / GRADES.pink.mult
   const byIlvl = 1 + ((gear.ilvl ?? 1) - 1) * SKILL_POWER_ILVL_STEP
   const byPlus = 1 + (gear.plus ?? 0) * SKILL_POWER_PLUS_STEP
-  return Math.round(SKILL_POWER_BASE * byIlvl * byPlus * gearVariance(gear))
+  return Math.round(SKILL_POWER_BASE * gradeMult * byIlvl * byPlus * gearVariance(gear))
 }
 
 /**
@@ -187,7 +197,7 @@ export function rollSubstats(grade, slotId) {
 
   const slot = SLOTS[slotId]
   const pool = [...Object.keys(SUBSTAT_BASE), ...NARROW_STATS].filter((k) => k !== slot?.stat)
-  const picks = grade === 'pink' ? ['skillPower'] : []
+  const picks = grade === 'pink' || grade === 'black' ? ['skillPower'] : []
 
   while (picks.length < count && pool.length) {
     const idx = Math.floor(Math.random() * pool.length)
