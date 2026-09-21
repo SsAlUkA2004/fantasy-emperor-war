@@ -9,6 +9,7 @@
   --rune: #6fd6c8;
   --ember: #c25843;
   --myth: #ff4d6d;
+  --myth-plus: #ffe066;
 
   /* สีประจำธาตุ ใช้กับแสงตอนร่ายท่าและแฟลชท่าไม้ตายในสนามรบ (ดู .combatant[data-cast]/.battle-arena[data-flash]) */
   --el-fire: #ff8a5b;
@@ -1735,6 +1736,12 @@ a {
   box-shadow: 0 0 1.5rem rgba(255, 77, 109, 0.35);
 }
 
+.pull-card[data-rarity='UR+'] {
+  border-color: var(--myth-plus);
+  background: linear-gradient(180deg, rgba(255, 224, 102, 0.26), rgba(20, 16, 43, 0.8));
+  box-shadow: 0 0 1.75rem rgba(255, 224, 102, 0.45);
+}
+
 .pull-mark {
   font-size: 1.7rem;
   line-height: 1.3;
@@ -2106,6 +2113,11 @@ a {
 .pull-popup[data-best='UR'] .panel-head {
   color: var(--myth);
   text-shadow: 0 0 1.75rem rgba(255, 77, 109, 0.6);
+}
+
+.pull-popup[data-best='UR+'] .panel-head {
+  color: var(--myth-plus);
+  text-shadow: 0 0 2rem rgba(255, 224, 102, 0.7);
 }
 
 .tally {
@@ -2767,6 +2779,11 @@ a {
   border-color: rgba(255, 77, 109, 0.65);
 }
 
+.rarity[data-rarity='UR+'] {
+  color: var(--myth-plus);
+  border-color: rgba(255, 224, 102, 0.65);
+}
+
 /* ตัวที่ยกระดับมาใช้สีม่วงอมชมพู ต่างจากตัวที่เกิดมาเป็นระดับนั้นชัดเจน */
 .rarity[data-upgraded='true'] {
   color: #d79ae0;
@@ -3247,6 +3264,12 @@ a {
   background: rgba(200, 164, 77, 0.08);
 }
 
+.ahead-chip[data-rarity='UR+'] {
+  color: var(--myth-plus);
+  border-color: rgba(255, 224, 102, 0.6);
+  background: rgba(255, 224, 102, 0.08);
+}
+
 .ahead-chip[data-rarity='UR'] {
   color: var(--myth);
   border-color: rgba(255, 77, 109, 0.6);
@@ -3314,6 +3337,11 @@ a {
 .collect-cell[data-owned='true'][data-rarity='UR'] {
   border-color: var(--myth);
   box-shadow: inset 0 0 1.5rem rgba(255, 77, 109, 0.2);
+}
+
+.collect-cell[data-owned='true'][data-rarity='UR+'] {
+  border-color: var(--myth-plus);
+  box-shadow: inset 0 0 1.75rem rgba(255, 224, 102, 0.3);
 }
 
 .collect-mark {
@@ -3403,6 +3431,11 @@ a {
 .pool-chip[data-owned='true'][data-rarity='UR'] {
   color: var(--myth);
   border-color: var(--myth);
+}
+
+.pool-chip[data-owned='true'][data-rarity='UR+'] {
+  color: var(--myth-plus);
+  border-color: var(--myth-plus);
 }
 
 .pool-rarity {

@@ -324,7 +324,7 @@ export default function Team() {
             onChange={(e) => setFilterRarity(e.target.value)}
           >
             <option value="all">ทุกระดับ</option>
-            {[...RARITIES, 'UR'].map((r) => (
+            {[...RARITIES, 'UR', 'UR+'].map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>

@@ -49,7 +49,7 @@ export default function Collection() {
 
         {error && <div className="trace">{error}</div>}
 
-        {['UR', ...RARITIES.slice().reverse()]
+        {['UR+', 'UR', ...RARITIES.slice().reverse()]
           .map((rarity) => {
             const ids = Object.keys(CHARACTERS).filter((id) => CHARACTERS[id].rarity === rarity)
             const mine = ids.filter((id) => have(id)).length

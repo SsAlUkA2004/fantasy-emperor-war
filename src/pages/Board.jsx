@@ -166,7 +166,7 @@ export default function Board() {
               onChange={(e) => setCharFilter(e.target.value)}
             >
               <option value="">เลือกตัวละครที่ต้องการดูอันดับ</option>
-              {['UR', ...RARITIES.slice().reverse()].map((rarity) => (
+              {['UR+', 'UR', ...RARITIES.slice().reverse()].map((rarity) => (
                   <optgroup key={rarity} label={`ระดับ ${rarity}`}>
                     {ALL_IDS.filter((id) => CHARACTERS[id].rarity === rarity).map((id) => (
                       <option key={id} value={id}>

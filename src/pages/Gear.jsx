@@ -157,7 +157,7 @@ export default function Gear() {
             onChange={(e) => setPickRarity(e.target.value)}
           >
             <option value="all">ทุกระดับ</option>
-            {[...RARITIES, 'UR'].map((r) => (
+            {[...RARITIES, 'UR', 'UR+'].map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>

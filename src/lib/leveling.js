@@ -3,6 +3,7 @@ export const RARITY_CAPS = {
   SR: { base: 50, ascended: 80 },
   SSR: { base: 75, ascended: 100 },
   UR: { base: 100, ascended: 125 },
+  'UR+': { base: 100, ascended: 130 },
 }
 
 export const MAX_STAR = 5

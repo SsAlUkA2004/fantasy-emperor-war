@@ -115,7 +115,10 @@ function makeUnit(base, opts) {
     alive: true,
     skill: base.skill ?? null,
     ultimate: base.ultimate ?? null,
-    effects: { burn: 0, burnAtk: 0, taunt: 0, defUp: 0, stun: 0, shield: false },
+    // ผลพิเศษของท่าโจมตีธรรมดา (ไม่บังคับมี) เช่น "โอกาสสามสิบเปอร์เซ็นต์ทำให้สตัน"
+    // รูปแบบเดียวกับ effect ในสกิล/ท่าไม้ตาย แต่ไม่มี target เพราะเป้าหมายคือคนที่โดนตีอยู่แล้วเสมอ
+    attackEffects: base.attackEffects ?? null,
+    effects: { burn: 0, burnAtk: 0, taunt: 0, defUp: 0, stun: 0, skillLock: 0, shield: false },
   }
 }
 
@@ -209,11 +212,12 @@ export function movesFor(unit) {
   const moves = [{ type: 'attack', name: 'โจมตี', hint: 'ดาเมจ 100%', ready: true }]
 
   if (unit.skill) {
+    const locked = unit.effects.skillLock > 0
     moves.push({
       type: 'skill',
       name: unit.skill.name,
-      hint: `ใช้พลังเวท ${unit.skill.mp}`,
-      ready: unit.mp >= unit.skill.mp,
+      hint: locked ? 'ถูกล็อกสกิลอยู่' : `ใช้พลังเวท ${unit.skill.mp}`,
+      ready: !locked && unit.mp >= unit.skill.mp,
     })
   }
   if (unit.ultimate) {
@@ -271,76 +275,95 @@ function resolveTargets(state, actor, spec, chosenKey) {
   }
 }
 
+const STATUS_LOG_LABEL = {
+  burn: 'ติดไฟ',
+  stun: 'ขยับไม่ได้',
+  taunt: 'ดึงเป้าโจมตี',
+  defUp: 'ป้องกันเพิ่มขึ้น',
+  shield: 'ได้เกราะ',
+  skillLock: 'ถูกล็อกสกิล',
+}
+
+/**
+ * ใช้ผลลัพธ์หนึ่งก้อน (damage/heal/cleanse/status/mpDown) กับเป้าหมายหนึ่งตัว
+ *
+ * แยกออกมาจาก runEffects เพื่อให้ basicAttack เรียกใช้ตรรกะชุดเดียวกันได้
+ * (ผ่าน unit.attackEffects) โดยไม่ต้องมี resolveTargets เพราะท่าโจมตีธรรมดารู้เป้าหมายอยู่แล้ว
+ */
+function applyEffectToTarget(state, actor, effect, target, scale = 1) {
+  if (effect.kind === 'damage') {
+    const bonus = effect.bonusOn && target.effects[effect.bonusOn] ? effect.bonusMult : 1
+    const { amount, crit, element } = computeDamage(actor, target, effect.mult * scale * bonus)
+    const dealt = applyDamage(state, target, amount)
+    state.lastAction?.hits.push({
+      targetKey: target.key,
+      kind: dealt === 0 ? 'block' : 'damage',
+      amount: dealt,
+      crit,
+      elementAdv: element,
+    })
+
+    const tags = [crit && 'คริติคอล', element && 'แพ้ทางธาตุ', bonus > 1 && 'ขยายผล'].filter(Boolean)
+    log(
+      state,
+      `${target.name} เสีย ${amount} หน่วย${tags.length ? ` (${tags.join(' ')})` : ''}`,
+      actor.side
+    )
+    return
+  }
+
+  if (effect.kind === 'heal') {
+    // ใช้ baseMaxHp (เลือดก่อนคูณ hpScale) ไม่ใช่ maxHp ตรง ๆ
+    // กันบอสที่มีสกิลฟื้นพลังฟื้นเป็นก้อนมหาศาลจากเลือดที่ถูกพองไว้สู้ทีมห้าคน
+    const heal = Math.round((target.baseMaxHp ?? target.maxHp) * effect.percent * scale)
+    target.hp = Math.min(target.maxHp, target.hp + heal)
+    state.lastAction?.hits.push({ targetKey: target.key, kind: 'heal', amount: heal })
+    log(state, `${target.name} ฟื้นพลัง ${heal} หน่วย`, actor.side)
+    return
+  }
+
+  if (effect.kind === 'cleanse') {
+    target.effects.burn = 0
+    target.effects.burnAtk = 0
+    target.effects.stun = 0
+    target.effects.skillLock = 0
+    state.lastAction?.hits.push({ targetKey: target.key, kind: 'cleanse' })
+    log(state, `${target.name} หลุดจากสถานะติดลบ`, actor.side)
+    return
+  }
+
+  if (effect.kind === 'mpDown') {
+    if (effect.chance && Math.random() > effect.chance) return
+    const before = target.mp
+    target.mp = Math.max(0, target.mp - effect.amount)
+    const lost = before - target.mp
+    state.lastAction?.hits.push({ targetKey: target.key, kind: 'mpDown', amount: lost })
+    log(state, `${target.name} เสียพลังเวท ${lost} หน่วย`, actor.side)
+    return
+  }
+
+  if (effect.kind === 'status') {
+    if (effect.chance && Math.random() > effect.chance) return
+    if (effect.status === 'shield') target.effects.shield = true
+    else target.effects[effect.status] = effect.turns
+
+    // จำพลังโจมตีของคนที่จุดไฟไว้ด้วย
+    // เดิมไฟเผาคิดจากเปอร์เซ็นต์ของเลือดสูงสุดอย่างเดียว
+    // พอเจอศัตรูเลือดหลายสิบล้านอย่างบอสโลก ไฟจะกินทีละหลายล้านต่อเทิร์น
+    // แล้วละลายบอสทั้งตัวโดยที่ผู้เล่นแทบไม่ต้องทำอะไร
+    if (effect.status === 'burn') target.effects.burnAtk = actor.atk
+
+    state.lastAction?.hits.push({ targetKey: target.key, kind: 'status', status: effect.status })
+    log(state, `${target.name} ${STATUS_LOG_LABEL[effect.status] ?? effect.status}`, actor.side)
+  }
+}
+
 function runEffects(state, actor, move, chosenKey) {
   const scale = actor.skillScale
 
   move.effects.forEach((effect) => {
     const targets = resolveTargets(state, actor, effect.target, chosenKey)
-
-    targets.forEach((target) => {
-      if (effect.kind === 'damage') {
-        const bonus = effect.bonusOn && target.effects[effect.bonusOn] ? effect.bonusMult : 1
-        const { amount, crit, element } = computeDamage(actor, target, effect.mult * scale * bonus)
-        const dealt = applyDamage(state, target, amount)
-        state.lastAction?.hits.push({
-          targetKey: target.key,
-          kind: dealt === 0 ? 'block' : 'damage',
-          amount: dealt,
-          crit,
-          elementAdv: element,
-        })
-
-        const tags = [crit && 'คริติคอล', element && 'แพ้ทางธาตุ', bonus > 1 && 'ขยายผล'].filter(Boolean)
-        log(
-          state,
-          `${target.name} เสีย ${amount} หน่วย${tags.length ? ` (${tags.join(' ')})` : ''}`,
-          actor.side
-        )
-        return
-      }
-
-      if (effect.kind === 'heal') {
-        // ใช้ baseMaxHp (เลือดก่อนคูณ hpScale) ไม่ใช่ maxHp ตรง ๆ
-        // กันบอสที่มีสกิลฟื้นพลังฟื้นเป็นก้อนมหาศาลจากเลือดที่ถูกพองไว้สู้ทีมห้าคน
-        const heal = Math.round((target.baseMaxHp ?? target.maxHp) * effect.percent * scale)
-        target.hp = Math.min(target.maxHp, target.hp + heal)
-        state.lastAction?.hits.push({ targetKey: target.key, kind: 'heal', amount: heal })
-        log(state, `${target.name} ฟื้นพลัง ${heal} หน่วย`, actor.side)
-        return
-      }
-
-      if (effect.kind === 'cleanse') {
-        target.effects.burn = 0
-        target.effects.burnAtk = 0
-        target.effects.stun = 0
-        state.lastAction?.hits.push({ targetKey: target.key, kind: 'cleanse' })
-        log(state, `${target.name} หลุดจากสถานะติดลบ`, actor.side)
-        return
-      }
-
-      if (effect.kind === 'status') {
-        if (effect.chance && Math.random() > effect.chance) return
-        if (effect.status === 'shield') target.effects.shield = true
-        else target.effects[effect.status] = effect.turns
-
-        // จำพลังโจมตีของคนที่จุดไฟไว้ด้วย
-        // เดิมไฟเผาคิดจากเปอร์เซ็นต์ของเลือดสูงสุดอย่างเดียว
-        // พอเจอศัตรูเลือดหลายสิบล้านอย่างบอสโลก ไฟจะกินทีละหลายล้านต่อเทิร์น
-        // แล้วละลายบอสทั้งตัวโดยที่ผู้เล่นแทบไม่ต้องทำอะไร
-        if (effect.status === 'burn') target.effects.burnAtk = actor.atk
-
-        state.lastAction?.hits.push({ targetKey: target.key, kind: 'status', status: effect.status })
-
-        const label = {
-          burn: 'ติดไฟ',
-          stun: 'ขยับไม่ได้',
-          taunt: 'ดึงเป้าโจมตี',
-          defUp: 'ป้องกันเพิ่มขึ้น',
-          shield: 'ได้เกราะ',
-        }[effect.status]
-        log(state, `${target.name} ${label}`, actor.side)
-      }
-    })
+    targets.forEach((target) => applyEffectToTarget(state, actor, effect, target, scale))
   })
 }
 
@@ -365,6 +388,10 @@ function basicAttack(state, actor, targetKey) {
     `${actor.name} โจมตี ${target.name} เสีย ${amount} หน่วย${tags.length ? ` (${tags.join(' ')})` : ''}`,
     actor.side
   )
+
+  if (target.alive && actor.attackEffects) {
+    actor.attackEffects.forEach((effect) => applyEffectToTarget(state, actor, effect, target))
+  }
 }
 
 function endOfTurn(state, actor) {
@@ -386,6 +413,7 @@ function endOfTurn(state, actor) {
   }
   if (actor.effects.taunt > 0) actor.effects.taunt -= 1
   if (actor.effects.defUp > 0) actor.effects.defUp -= 1
+  if (actor.effects.skillLock > 0) actor.effects.skillLock -= 1
 }
 
 function checkOutcome(state) {
@@ -475,7 +503,7 @@ export function decideAction(state, actor) {
 
   if (actor.ultimate && actor.gauge >= 100) return { type: 'ultimate', target }
 
-  if (actor.skill && actor.mp >= actor.skill.mp) {
+  if (actor.skill && actor.effects.skillLock === 0 && actor.mp >= actor.skill.mp) {
     const effects = actor.skill.effects
     const heals = effects.some((e) => e.kind === 'heal')
     const buffsSelf = effects.every((e) => e.target === 'self')

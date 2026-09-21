@@ -16,6 +16,8 @@ import {
 import { loadCollection } from '../lib/player'
 import ElementalGacha from '../components/ElementalGacha'
 import URGacha from '../components/URGacha'
+import URPlusGacha from '../components/URPlusGacha'
+import ChronoGearGacha from '../components/ChronoGearGacha'
 import PullResult from '../components/PullResult'
 
 export default function Gacha() {
@@ -189,6 +191,12 @@ export default function Gacha() {
 
       {/* ตู้ UR — การ์ดใหม่อีกใบ แยกจากตู้ธาตุและตู้เดิมทั้งหมดเช่นกัน */}
       <URGacha />
+
+      {/* ตู้จักรพรรดิโคลโน — ระดับ UR+ ใหม่ ล็อกไว้จนกว่าจะถึงแรงค์แชมเปี้ยนและผ่านด่าน 8-6 */}
+      <URPlusGacha />
+
+      {/* ตู้อุปกรณ์โคลโน — สุ่มอุปกรณ์แทนตัวละคร แยกอิสระจากตู้ตัวละครทั้งหมดด้านบน */}
+      <ChronoGearGacha />
     </main>
   )
 }
