@@ -13,45 +13,37 @@ import { db } from '../firebase'
 import { createBattle, takeTurn, currentUnit } from './battle'
 import { applyDelta, pointDelta, rankOf, MATCHES_PER_DAY } from '../data/ranks'
 import { isSameThaiDay, runsLeft } from './dayclock'
-import { makeBots } from '../data/bots'
+import { assembleOpponents, pointRange } from '../data/matchmaking'
 import { weekIndex } from '../data/worldboss'
 
 /**
- * หาคู่แข่งที่แต้มใกล้เคียงกัน
+ * หาคู่แข่งหกช่อง สามช่องแรกเป็นผู้เล่นจริงที่แรงค์ห่างจากเราไม่เกินหนึ่งขั้น ที่เหลือเป็นบอท
  *
- * ดึงคนที่แต้มต่ำกว่าเราลงมาและสูงกว่าเราขึ้นไปอย่างละชุด แล้วสุ่มเลือกสามคน
+ * ดึงเฉพาะคนที่แต้มอยู่ในช่วงแรงค์ข้างเคียง (ดู pointRange) ลงมาและขึ้นไปจากเราอย่างละชุด
  * ที่ทำสองทิศเพราะถ้าดึงทางเดียว คนที่อยู่บนสุดของกระดานจะไม่เจอใครเลย
+ * แล้วให้ assembleOpponents สุ่มเลือกสามคนและเติมบอทให้ครบ
+ * พารามิเตอร์ตัวที่สองไม่ได้ใช้แล้ว (บอทผูกกับแรงค์ ไม่ใช่ค่าพลังของผู้เล่น) เก็บไว้ให้ผู้เรียกเดิมไม่พัง
  */
-export async function findOpponents(me, myTeamCp = 0) {
+export async function findOpponents(me) {
   const points = me.pvpPoints ?? 0
   const base = collection(db, 'users')
+  const { lo, hi } = pointRange(points)
 
-  const [below, above] = await Promise.all([
-    getDocs(query(base, where('pvpPoints', '<=', points), orderBy('pvpPoints', 'desc'), limit(12))),
-    getDocs(query(base, where('pvpPoints', '>', points), orderBy('pvpPoints', 'asc'), limit(12))),
-  ])
+  const belowQuery = query(
+    base,
+    where('pvpPoints', '>=', lo),
+    where('pvpPoints', '<=', points),
+    orderBy('pvpPoints', 'desc'),
+    limit(20)
+  )
+  const aboveQuery = Number.isFinite(hi)
+    ? query(base, where('pvpPoints', '>', points), where('pvpPoints', '<', hi), orderBy('pvpPoints', 'asc'), limit(20))
+    : query(base, where('pvpPoints', '>', points), orderBy('pvpPoints', 'asc'), limit(20))
 
-  const pool = [...below.docs, ...above.docs]
-    .map((d) => ({ uid: d.id, ...d.data() }))
-    .filter((u) => u.uid !== me.uid && u.starterChosen)
+  const [below, above] = await Promise.all([getDocs(belowQuery), getDocs(aboveQuery)])
+  const pool = [...below.docs, ...above.docs].map((d) => ({ uid: d.id, ...d.data() }))
 
-  // เอาเฉพาะคนที่ตั้งทีมรับไว้แล้ว คนที่ยังไม่ตั้งจะท้าไม่ได้อยู่ดี
-  const ready = pool.filter((u) => Array.isArray(u.defense) && u.defense.length)
-
-  const picked = []
-  const copy = [...ready]
-  while (picked.length < 3 && copy.length) {
-    picked.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0])
-  }
-
-  // เติมด้วยคู่ซ้อมจนครบสาม
-  // เกมนี้เล่นกันในกลุ่มเพื่อน ถ้ารอคนจริงอย่างเดียว
-  // ช่วงแรกหน้าประลองจะว่างเปล่าจนกดอะไรไม่ได้เลย
-  if (picked.length < 3) {
-    picked.push(...makeBots(me, 3 - picked.length))
-  }
-
-  return picked
+  return assembleOpponents(me, pool)
 }
 
 /**
