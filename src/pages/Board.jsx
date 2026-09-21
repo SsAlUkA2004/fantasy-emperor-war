@@ -11,7 +11,7 @@ import { entryPower, formatPower } from '../lib/power'
 import { explainError } from '../lib/errors'
 import { defenseEntries } from '../lib/pvp'
 import { nameFor } from '../lib/displayname'
-import { addFriend, loadFriendIds } from '../lib/friends'
+import { acceptRequest, friendStatusOf, loadFriendStatus, sendFriendRequest } from '../lib/friends'
 import { boardSlot, msUntilNextSlot, slotStart } from '../lib/boardclock'
 import UnitPeek from '../components/UnitPeek'
 
@@ -81,7 +81,7 @@ function furthest(user) {
 }
 
 export default function Board() {
-  const { user } = usePlayer()
+  const { user, player } = usePlayer()
   const [rows, setRows] = useState(null)
   const [tab, setTab] = useState('pvp')
   const [charFilter, setCharFilter] = useState('')
@@ -89,24 +89,37 @@ export default function Board() {
   const [expanded, setExpanded] = useState(null)
   const [unitPeek, setUnitPeek] = useState(null)
   const [boardSlotShown, setBoardSlotShown] = useState(null)
-  const [friendIds, setFriendIds] = useState(null)
+  const [friendStatus, setFriendStatus] = useState(null)
   const [adding, setAdding] = useState(null)
   const [friendError, setFriendError] = useState(null)
 
   useEffect(() => {
-    loadFriendIds(user.uid)
-      .then(setFriendIds)
-      .catch(() => setFriendIds(new Set()))
+    loadFriendStatus(user.uid)
+      .then(setFriendStatus)
+      .catch(() => setFriendStatus({ friends: new Set(), sent: new Set(), incoming: new Set() }))
   }, [user.uid])
 
   async function add(row) {
     setAdding(row.uid)
     setFriendError(null)
     try {
-      await addFriend(user.uid, row)
-      setFriendIds((s) => new Set(s).add(row.uid))
+      // ถ้าอีกฝั่งส่งคำขอมาหาเราอยู่แล้ว การกดครั้งนี้คือการรับ ไม่ใช่ส่งคำขอใหม่
+      if (friendStatus.incoming.has(row.uid)) {
+        await acceptRequest(user.uid, row)
+        setFriendStatus((s) => ({ ...s, friends: new Set(s.friends).add(row.uid) }))
+      } else {
+        const outcome = await sendFriendRequest(
+          { uid: user.uid, username: player.username, nickname: player.nickname },
+          row
+        )
+        setFriendStatus((s) =>
+          outcome === 'accepted'
+            ? { ...s, friends: new Set(s.friends).add(row.uid) }
+            : { ...s, sent: new Set(s.sent).add(row.uid) }
+        )
+      }
     } catch (e) {
-      setFriendError(explainError('เพิ่มเพื่อนไม่สำเร็จ', e))
+      setFriendError(e?.code ? explainError('ส่งคำขอเป็นเพื่อนไม่สำเร็จ', e) : e.message)
     }
     setAdding(null)
   }
@@ -114,8 +127,10 @@ export default function Board() {
   // ปุ่มอยู่ข้างในแถวที่เป็น <button> อยู่แล้ว จึงใช้ span role="button" แทน (ซ้อน <button> ใน <button> ไม่ได้)
   // และกัน stopPropagation ไม่ให้การกดปุ่มไปสลับเปิด/ปิดรายละเอียดของแถว
   function friendMark(row) {
-    if (row.uid === user.uid || friendIds === null) return null
-    if (friendIds.has(row.uid)) return <span className="friend-badge">เพื่อน</span>
+    if (row.uid === user.uid || friendStatus === null) return null
+    const status = friendStatusOf(user.uid, row.uid, friendStatus)
+    if (status === 'friend') return <span className="friend-badge">เพื่อน</span>
+    if (status === 'sent') return <span className="friend-badge">ส่งคำขอแล้ว</span>
 
     const busy = adding === row.uid
     const run = (e) => {
@@ -136,7 +151,7 @@ export default function Board() {
           }
         }}
       >
-        {busy ? 'กำลังเพิ่ม' : '＋ เพิ่มเพื่อน'}
+        {busy ? 'กำลังส่ง' : status === 'incoming' ? '＋ รับเป็นเพื่อน' : '＋ เพิ่มเพื่อน'}
       </span>
     )
   }

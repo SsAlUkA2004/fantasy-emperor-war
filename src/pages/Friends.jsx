@@ -2,7 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
-import { addFriend, findPlayer, loadFriends, removeFriend } from '../lib/friends'
+import {
+  acceptRequest,
+  cancelRequest,
+  findPlayer,
+  loadFriends,
+  loadIncomingRequests,
+  loadSentRequests,
+  rejectRequest,
+  removeFriend,
+  sendFriendRequest,
+  syncFriendships,
+} from '../lib/friends'
 import { STAGES } from '../data/stages'
 import { PLAYER_MAX_LEVEL } from '../lib/leveling'
 import { RANKS, rankLabel, titleName } from '../data/ranks'
@@ -31,6 +42,9 @@ export default function Friends() {
   const navigate = useNavigate()
   const [peek, setPeek] = useState(null)
   const [friends, setFriends] = useState(null)
+  const [incoming, setIncoming] = useState([])
+  const [sent, setSent] = useState([])
+  const [notice, setNotice] = useState(null)
   const [term, setTerm] = useState('')
   const [found, setFound] = useState(undefined)
   const [busy, setBusy] = useState(false)
@@ -38,13 +52,33 @@ export default function Friends() {
   // เปิดได้ทีละคน เก็บ uid ของคนที่กางอยู่ (null = ย่อหมด)
   const [expanded, setExpanded] = useState(null)
 
+  /**
+   * โหลดรายชื่อเพื่อน คำขอที่ได้รับ และคำขอที่ส่งไปทั้งหมดใหม่
+   * เก็บงานค้างก่อน (คำขอที่อีกฝั่งรับหรือปฏิเสธแล้ว เพื่อนที่ลบเราออกไปแล้ว) แล้วบอกผลให้ผู้เล่นรู้
+   */
+  async function reload({ force = false } = {}) {
+    const changes = await syncFriendships(user.uid, { force })
+    const lines = [
+      ...changes.accepted.map((r) => `${displayName(r)} ตอบรับคำขอของคุณแล้ว`),
+      ...changes.declined.map((r) => `${displayName(r)} ปฏิเสธคำขอของคุณ`),
+      ...changes.removed.map((r) => `${displayName(r)} ลบคุณออกจากเพื่อน`),
+    ]
+    if (lines.length) setNotice(lines.join(' · '))
+    const [list, inc, out] = await Promise.all([
+      loadFriends(user.uid),
+      loadIncomingRequests(user.uid),
+      loadSentRequests(user.uid),
+    ])
+    setFriends(list)
+    setIncoming(inc)
+    setSent(out)
+  }
+
   useEffect(() => {
-    loadFriends(user.uid)
-      .then(setFriends)
-      .catch((err) => {
-        setFriends([])
-        setError(explain('อ่านรายชื่อเพื่อนไม่สำเร็จ', err))
-      })
+    reload({ force: true }).catch((err) => {
+      setFriends([])
+      setError(explain('อ่านรายชื่อเพื่อนไม่สำเร็จ', err))
+    })
   }, [user.uid])
 
   async function search() {
@@ -69,30 +103,48 @@ export default function Friends() {
     }
     setBusy(true)
     setError(null)
+    setNotice(null)
     try {
-      await addFriend(user.uid, target)
+      const outcome = await sendFriendRequest(
+        { uid: user.uid, username: player.username, nickname: player.nickname },
+        target
+      )
+      setNotice(
+        outcome === 'accepted'
+          ? `${displayName(target)} ส่งคำขอมาหาคุณอยู่แล้ว ตอนนี้เป็นเพื่อนกันแล้ว`
+          : `ส่งคำขอถึง ${displayName(target)} แล้ว รออีกฝั่งกดตอบรับ`
+      )
       setFound(undefined)
       setTerm('')
-      setFriends(await loadFriends(user.uid))
+      await reload()
     } catch (err) {
-      setError(explain('เพิ่มเพื่อนไม่สำเร็จ', err))
+      setError(err?.code ? explain('ส่งคำขอไม่สำเร็จ', err) : err.message)
     }
     setBusy(false)
   }
 
-  async function drop(uid) {
+  // ทุกปุ่มด้านล่างทำแบบเดียวกัน: ลงมือ แล้วโหลดรายการใหม่ ถ้าพลาดบอกสาเหตุ
+  async function act(fn, failText) {
     setBusy(true)
     setError(null)
+    setNotice(null)
     try {
-      await removeFriend(user.uid, uid)
-      setFriends(await loadFriends(user.uid))
+      await fn()
+      await reload()
     } catch (err) {
-      setError(explain('ลบเพื่อนไม่สำเร็จ', err))
+      setError(explain(failText, err))
     }
     setBusy(false)
   }
 
+  const drop = (uid) => act(() => removeFriend(user.uid, uid), 'ลบเพื่อนไม่สำเร็จ')
+  const accept = (req) => act(() => acceptRequest(user.uid, req), 'รับคำขอไม่สำเร็จ')
+  const reject = (uid) => act(() => rejectRequest(user.uid, uid), 'ปฏิเสธคำขอไม่สำเร็จ')
+  const cancel = (uid) => act(() => cancelRequest(user.uid, uid), 'ยกเลิกคำขอไม่สำเร็จ')
+
   const already = (uid) => friends?.some((f) => f.uid === uid)
+  const requested = (uid) => sent.some((r) => r.uid === uid)
+  const incomingFrom = (uid) => incoming.find((r) => r.uid === uid)
 
   return (
     <main className="screen top">
@@ -121,6 +173,7 @@ export default function Friends() {
         </div>
 
         {error && <div className="trace">{error}</div>}
+        {notice && <p className="meta">{notice}</p>}
 
         {found === null && <p className="meta">ไม่พบผู้เล่นชื่อนี้</p>}
 
@@ -134,18 +187,61 @@ export default function Friends() {
             </div>
             {already(found.uid) ? (
               <span className="meta">เป็นเพื่อนแล้ว</span>
+            ) : requested(found.uid) ? (
+              <span className="meta">ส่งคำขอแล้ว รอตอบรับ</span>
+            ) : incomingFrom(found.uid) ? (
+              <button className="rune-link" disabled={busy} onClick={() => accept(incomingFrom(found.uid))}>
+                รับเป็นเพื่อน
+              </button>
             ) : (
-              <button className="rune-link" onClick={() => add(found)}>
-                เพิ่ม
+              <button className="rune-link" disabled={busy} onClick={() => add(found)}>
+                ส่งคำขอเป็นเพื่อน
               </button>
             )}
           </div>
         )}
 
+        {incoming.length > 0 && (
+          <>
+            <h2 className="section-title">คำขอเป็นเพื่อน ({incoming.length})</h2>
+            {incoming.map((r) => (
+              <div className="card found" key={r.uid}>
+                <div className="card-body">
+                  <h3>{displayName(r)}</h3>
+                  <p className="meta tiny">อยากเป็นเพื่อนกับคุณ</p>
+                </div>
+                <button className="rune-link" disabled={busy} onClick={() => accept(r)}>
+                  รับ
+                </button>
+                <button className="plain-link inline" disabled={busy} onClick={() => reject(r.uid)}>
+                  ปฏิเสธ
+                </button>
+              </div>
+            ))}
+          </>
+        )}
+
+        {sent.length > 0 && (
+          <>
+            <h2 className="section-title">คำขอที่ส่งไป รอตอบรับ</h2>
+            {sent.map((r) => (
+              <div className="card found" key={r.uid}>
+                <div className="card-body">
+                  <h3>{displayName(r)}</h3>
+                  <p className="meta tiny">ยังไม่ได้ตอบรับ</p>
+                </div>
+                <button className="plain-link inline" disabled={busy} onClick={() => cancel(r.uid)}>
+                  ยกเลิก
+                </button>
+              </div>
+            ))}
+          </>
+        )}
+
         <h2 className="section-title">รายชื่อเพื่อน</h2>
 
         {friends === null && <p className="meta">กำลังอ่านรายชื่อ</p>}
-        {friends?.length === 0 && <p className="meta">ยังไม่มีเพื่อน ลองค้นหาชื่อที่รู้จักดู</p>}
+        {friends?.length === 0 && <p className="meta">ยังไม่มีเพื่อน ลองค้นหาชื่อที่รู้จักแล้วส่งคำขอดู อีกฝั่งต้องกดตอบรับก่อนถึงจะเป็นเพื่อนกัน</p>}
 
         {friends?.map((f) => (
           <article className="friend" key={f.uid} data-open={expanded === f.uid}>
