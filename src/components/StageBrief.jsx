@@ -7,7 +7,7 @@ import { rankRoster, readStage, stageTips } from '../lib/advisor'
 import { loadCollection } from '../lib/player'
 import { teamPower, stagePower, matchup, formatPower, entryPower } from '../lib/power'
 import { explainError } from '../lib/errors'
-import { HELPER_RUNS_PER_DAY, helperRunsLeft, loadHelpers } from '../lib/helper'
+import { helperRunsLeft, isAdventureStage, loadFriendHelpers, loadHelpers } from '../lib/helper'
 import { displayName } from '../lib/displayname'
 
 /**
@@ -34,6 +34,16 @@ export default function StageBrief({ stage, onStart, onClose }) {
   useEffect(() => {
     if (canBorrow) loadHelpers(user.uid).then(setHelpers).catch(() => setHelpers([]))
   }, [canBorrow])
+
+  // ตัวที่แรงที่สุดของเพื่อน ยืมได้เฉพาะด่านผจญภัย (เนื้อเรื่อง) ไม่ใช่ลานฝึก เหมือง หอคอย รอยอดีต หรือประลอง
+  const canBorrowFriend = isAdventureStage(stage)
+  const [friendHelpers, setFriendHelpers] = useState(null)
+
+  useEffect(() => {
+    if (canBorrowFriend) {
+      loadFriendHelpers(user.uid).then(setFriendHelpers).catch(() => setFriendHelpers([]))
+    }
+  }, [canBorrowFriend, user.uid])
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -128,6 +138,39 @@ export default function StageBrief({ stage, onStart, onClose }) {
                 </button>
               ))}
             </div>
+          </>
+        )}
+
+        {canBorrowFriend && friendHelpers !== null && (
+          <>
+            <h3 className="section-title">ยืมตัวที่แรงที่สุดของเพื่อน</h3>
+            {friendHelpers.length === 0 ? (
+              <p className="meta tiny">
+                ยังไม่มีเพื่อนที่มีตัวละครให้ยืม เพิ่มเพื่อนได้จากหน้าบอร์ดอันดับหรือหน้าเพื่อน
+              </p>
+            ) : (
+              <>
+                <p className="meta tiny">
+                  ตัวที่ยืมมาสู้ให้เป็นตัวที่หก ไม่กินช่องทีม ใช้ตัวที่ค่าพลังสูงสุดของเพื่อนคนนั้น
+                  ยืมได้เฉพาะด่านผจญภัย เลือกได้ทีละหนึ่งตัว (ตัวช่วยจากผู้เล่นอันดับต้นด้านบนก็เลือกแทนกันอยู่)
+                </p>
+                <div className="helper-row">
+                  {friendHelpers.map((h) => (
+                    <button
+                      key={h.uid}
+                      className="helper-chip"
+                      data-active={helper?.uid === h.uid}
+                      onClick={() => setHelper(helper?.uid === h.uid ? null : h)}
+                    >
+                      <span className="helper-name">{h.name}</span>
+                      <span className="meta tiny">
+                        ⚔ {formatPower(h.power)} · เพื่อน {displayName(h)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 

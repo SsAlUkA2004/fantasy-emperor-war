@@ -11,9 +11,17 @@ import { entryPower, formatPower } from '../lib/power'
 import { explainError } from '../lib/errors'
 import { defenseEntries } from '../lib/pvp'
 import { nameFor } from '../lib/displayname'
+import { addFriend, loadFriendIds } from '../lib/friends'
+import { boardSlot, msUntilNextSlot, slotStart } from '../lib/boardclock'
 import UnitPeek from '../components/UnitPeek'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
+
+/** ข้อมูลบอร์ดของรอบล่าสุดที่อ่านมา เก็บไว้ระดับโมดูลให้อยู่รอดตอนออกจากหน้านี้แล้วกลับมาใหม่ */
+let boardCache = null
+
+const clock = (ms) =>
+  new Date(ms).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false })
 
 // ─────────────────────────────────────────────────────────────
 // บอร์ดอันดับรวม
@@ -80,11 +88,112 @@ export default function Board() {
   const [error, setError] = useState(null)
   const [expanded, setExpanded] = useState(null)
   const [unitPeek, setUnitPeek] = useState(null)
+  const [boardSlotShown, setBoardSlotShown] = useState(null)
+  const [friendIds, setFriendIds] = useState(null)
+  const [adding, setAdding] = useState(null)
+  const [friendError, setFriendError] = useState(null)
 
   useEffect(() => {
-    getDocs(query(collection(db, 'users'), orderBy('pvpPoints', 'desc'), limit(100)))
-      .then((snap) => setRows(snap.docs.map((d) => ({ uid: d.id, ...d.data() }))))
-      .catch((e) => setError(explainError('อ่านบอร์ดไม่สำเร็จ', e)))
+    loadFriendIds(user.uid)
+      .then(setFriendIds)
+      .catch(() => setFriendIds(new Set()))
+  }, [user.uid])
+
+  async function add(row) {
+    setAdding(row.uid)
+    setFriendError(null)
+    try {
+      await addFriend(user.uid, row)
+      setFriendIds((s) => new Set(s).add(row.uid))
+    } catch (e) {
+      setFriendError(explainError('เพิ่มเพื่อนไม่สำเร็จ', e))
+    }
+    setAdding(null)
+  }
+
+  // ปุ่มอยู่ข้างในแถวที่เป็น <button> อยู่แล้ว จึงใช้ span role="button" แทน (ซ้อน <button> ใน <button> ไม่ได้)
+  // และกัน stopPropagation ไม่ให้การกดปุ่มไปสลับเปิด/ปิดรายละเอียดของแถว
+  function friendMark(row) {
+    if (row.uid === user.uid || friendIds === null) return null
+    if (friendIds.has(row.uid)) return <span className="friend-badge">เพื่อน</span>
+
+    const busy = adding === row.uid
+    const run = (e) => {
+      e.stopPropagation()
+      if (!busy) add(row)
+    }
+    return (
+      <span
+        className="friend-add"
+        role="button"
+        tabIndex={0}
+        aria-disabled={busy}
+        onClick={run}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            run(e)
+          }
+        }}
+      >
+        {busy ? 'กำลังเพิ่ม' : '＋ เพิ่มเพื่อน'}
+      </span>
+    )
+  }
+
+  // อ่านบอร์ดใหม่ตามรอบ 15 นาที (ดู lib/boardclock.js) ไม่ใช่ทุกครั้งที่เปิดหน้า
+  // ข้อมูลรอบเดียวกันใช้ซ้ำจาก boardCache ได้แม้ออกไปแล้วกลับมาใหม่ โดยไม่อ่านฐานข้อมูลซ้ำ
+  // ค้างหน้านี้ไว้ก็อัปเดตเองเมื่อถึงรอบ ไม่ต้องกดอะไร (แถวเดิมยังอยู่ระหว่างรอข้อมูลใหม่ จอไม่กระพริบ)
+  useEffect(() => {
+    let alive = true
+    let timer = null
+    let loadedSlot = null
+
+    async function sync() {
+      const slot = boardSlot()
+      if (boardCache?.slot === slot) {
+        setRows(boardCache.rows)
+        setBoardSlotShown(slot)
+        loadedSlot = slot
+      } else {
+        try {
+          const snap = await getDocs(
+            query(collection(db, 'users'), orderBy('pvpPoints', 'desc'), limit(100))
+          )
+          const data = snap.docs.map((d) => ({ uid: d.id, ...d.data() }))
+          boardCache = { slot, rows: data }
+          if (!alive) return
+          setRows(data)
+          setBoardSlotShown(slot)
+          setError(null)
+          loadedSlot = slot
+        } catch (e) {
+          // ถ้ามีข้อมูลรอบก่อนอยู่ ให้คงไว้ ไม่ล้างบอร์ดทิ้งเพราะอ่านรอบนี้พลาด
+          if (alive) setError(explainError('อ่านบอร์ดไม่สำเร็จ', e))
+        }
+      }
+      if (alive) schedule()
+    }
+
+    // เผื่อ 1 วินาทีกันตัวจับเวลาของเบราว์เซอร์ตื่นก่อนถึงรอบจริงเล็กน้อย และสุ่มหน่วงไม่เกิน 20 วินาที
+    // ไม่ให้ทุกเครื่องที่เปิดค้างไว้ยิงอ่านพร้อมกันตรงขอบรอบพอดี
+    function schedule() {
+      clearTimeout(timer)
+      timer = setTimeout(sync, msUntilNextSlot() + 1000 + Math.floor(Math.random() * 20000))
+    }
+
+    // แท็บที่ซ่อนอยู่ตัวจับเวลาจะถูกหน่วง พอกลับมาดูให้เช็คว่าข้ามรอบไปแล้วหรือยัง
+    function onVisible() {
+      if (document.visibilityState === 'visible' && boardSlot() !== loadedSlot) sync()
+    }
+
+    sync()
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      alive = false
+      clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [])
 
   const sorted = (rows ?? [])
@@ -137,6 +246,13 @@ export default function Board() {
               : 'ตอนนี้คุณอยู่นอกห้าสิบอันดับแรก'}
         </p>
 
+        {boardSlotShown !== null && (
+          <p className="meta tiny">
+            บอร์ดอัปเดตทุก 15 นาที · ข้อมูลรอบ {clock(slotStart(boardSlotShown))} · รอบถัดไป{' '}
+            {clock(slotStart(boardSlotShown + 1))}
+          </p>
+        )}
+
         <div className="mode-tabs board-tabs">
           {TABS.map((t) => (
             <button
@@ -185,6 +301,7 @@ export default function Board() {
         )}
 
         {error && <div className="trace">{error}</div>}
+        {friendError && <div className="trace">{friendError}</div>}
         {rows === null && !error && <p className="meta">กำลังอ่านบอร์ด</p>}
 
         {tab === 'character' ? (
@@ -215,6 +332,7 @@ export default function Board() {
                       ผู้เล่น {nameFor(r, user.uid)}
                       {r.guildName && ` · กิลด์${r.guildName}`}
                     </span>
+                    {friendMark(r)}
                   </span>
                   <span className="board-points">⚔ {formatPower(entryPower(r.entry))}</span>
                   <span className="board-caret label">ดูรายละเอียด</span>
@@ -252,6 +370,7 @@ export default function Board() {
                       : `${rankOf(r.pvpPoints ?? 0).mark} ${rankLabel(r.pvpPoints ?? 0)} · เลเวล ${r.playerLevel ?? 1}`}
                     {r.guildName && ` · ${r.guildName}`}
                   </span>
+                  {friendMark(r)}
                 </span>
                 <span className="board-points">
                   {tab === 'power' ? `⚔ ${formatPower(r.score)}` : `${fmt(r.score)} ${unit}`}

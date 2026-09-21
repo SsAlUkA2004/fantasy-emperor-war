@@ -55,6 +55,12 @@ export async function addFriend(uid, friend) {
   })
 }
 
+/** รหัสเพื่อนทั้งหมดของเรา ไว้เช็คว่าใครเป็นเพื่อนแล้วบ้าง (บอร์ดใช้เลือกว่าจะโชว์ปุ่มเพิ่มหรือป้าย "เพื่อน") */
+export async function loadFriendIds(uid) {
+  const snap = await getDocs(collection(db, 'users', uid, 'friends'))
+  return new Set(snap.docs.map((d) => d.id))
+}
+
 export async function removeFriend(uid, friendUid) {
   await deleteDoc(doc(db, 'users', uid, 'friends', friendUid))
 }

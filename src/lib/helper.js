@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import { isSameThaiDay, runsLeft } from './dayclock'
 import { entryPower } from './power'
 import { CHARACTERS } from '../data/characters'
+import { loadFriends } from './friends'
 
 // ─────────────────────────────────────────────────────────────
 // ยืมตัวช่วยจากผู้เล่นอันดับต้น
@@ -43,6 +44,50 @@ export async function loadHelpers(myUid, count = 3) {
       }
     })
     .slice(0, count)
+}
+
+/** ด่านผจญภัย (เนื้อเรื่อง) รหัสเป็น บท-ลำดับ เช่น 8-6 หรือ 8-6@hard ไม่รวมลานฝึก เหมือง หอคอย รอยอดีต และดันเจี้ยนเหรด */
+export function isAdventureStage(stage) {
+  return /^\d+-\d+(@[a-z]+)?$/.test(stage?.id ?? '')
+}
+
+/**
+ * ตัวที่แรงที่สุดของผู้เล่นคนหนึ่ง (ตามค่าพลังจริง รวมเลเวล ดาว ยกระดับ ปลุกร่าง อุปกรณ์)
+ *
+ * ดูจาก roster ซึ่งเป็นสรุปตัวละครทุกตัวที่เจ้าตัวจดไว้บนเอกสารผู้เล่น (ดู buildRoster ใน lib/power.js)
+ * ไม่ใช่แค่ห้าตัวในทีมตั้งรับ จึงได้ "ตัวที่โหดที่สุดของเขาจริง ๆ" ไม่ต้องอ่านกระเป๋าตัวละครส่วนตัวที่กฎไม่เปิดให้
+ * บัญชีเก่าที่ยังไม่เคยจด roster ตกกลับไปใช้ทีมตั้งรับแทน
+ */
+export function strongestOf(u) {
+  const fromRoster = Object.values(u?.roster ?? {})
+  const pool = fromRoster.length ? fromRoster : Array.isArray(u?.defense) ? u.defense : []
+  const valid = pool.filter((e) => e && CHARACTERS[e.id])
+  if (!valid.length) return null
+  return valid.reduce((a, b) => (entryPower(b) > entryPower(a) ? b : a))
+}
+
+/** เพื่อนของเราทุกคนที่มีตัวละคร พร้อมตัวที่แรงที่สุดของแต่ละคน เรียงจากแรงไปอ่อน */
+export async function loadFriendHelpers(myUid) {
+  const friends = await loadFriends(myUid)
+  return friends
+    .filter((f) => !f.missing)
+    .map((f) => {
+      const best = strongestOf(f)
+      if (!best) return null
+      return {
+        uid: f.uid,
+        username: f.username,
+        nickname: f.nickname ?? null,
+        guildTag: f.guildTag ?? null,
+        rosterPower: f.rosterPower ?? 0,
+        entry: best,
+        name: CHARACTERS[best.id].name,
+        power: entryPower(best),
+        isFriend: true,
+      }
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.power - a.power)
 }
 
 /** นับโควตาหลังใช้ตัวช่วยจบด่าน */
