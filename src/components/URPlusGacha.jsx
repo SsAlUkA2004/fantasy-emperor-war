@@ -25,7 +25,7 @@ function costFor(count) {
  * การ์ดตู้จักรพรรดิโคลโน — ระดับความหายากสูงสุดใหม่ของเกม (UR+)
  *
  * ล็อกไว้จนกว่าผู้เล่นจะถึงแรงค์แชมเปี้ยนและผ่านด่าน 8-6 (ดู isURPlusUnlocked)
- * เพราะเป็นเนื้อหาปลายเกม ตัวการันตีสองชั้น 500/900 ดูรายละเอียดที่ lib/urplusgacha.js
+ * เพราะเป็นเนื้อหาปลายเกม ตัวการันตีสองชั้น 400/900 ดูรายละเอียดที่ lib/urplusgacha.js
  */
 export default function URPlusGacha() {
   const { user, player, refresh } = usePlayer()
