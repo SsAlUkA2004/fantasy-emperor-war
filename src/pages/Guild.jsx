@@ -12,8 +12,8 @@ import {
   guildLevel,
   pointsForNextLevel,
 } from '../data/guild'
-import {
 import { displayName } from '../lib/displayname'
+import {
   browseGuilds,
   guildPower,
   reportPower,
