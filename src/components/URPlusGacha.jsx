@@ -14,6 +14,7 @@ import {
   isURPlusUnlocked,
   pullURPlus,
 } from '../lib/urplusgacha'
+import { isURRetired } from '../lib/urgacha'
 import { loadCollection } from '../lib/player'
 import PullResult from './PullResult'
 
@@ -48,6 +49,7 @@ export default function URPlusGacha() {
   const hasChar = (id) => owned?.some((o) => o.id === id) ?? false
   const sinceUR = player.urPlusPitySinceUR ?? 0
   const sinceURPlus = player.urPlusPitySinceURPlus ?? 0
+  const copyCount = player.urPlusCopyCount ?? {}
 
   async function roll(count) {
     const cost = costFor(count)
@@ -114,6 +116,7 @@ export default function URPlusGacha() {
         <>
           <p className="meta tiny">
             ระดับ UR+ เพดานเลเวลตันที่ 100 และดันไปถึง 130 ได้เมื่อครบห้าดาว สูงกว่าระดับ UR ทุกด้าน
+            ตัว UR ตัวไหนเก็บชิ้นส่วนพอหลอมครบห้าดาวแล้วจะไม่ออกซ้ำอีก เปิดทางให้ตัวอื่นออกแทน
           </p>
 
           <section className="pity">
@@ -151,10 +154,12 @@ export default function URPlusGacha() {
                 URPLUS_BANNER_IDS[rarity].map((id) => {
                   const c = CHARACTERS[id]
                   const mine = hasChar(id)
+                  const retired = rarity === 'UR' && isURRetired(copyCount[id] ?? 0)
                   return (
                     <span className="pool-chip" key={id} data-owned={mine} data-rarity={rarity}>
                       {mine ? ELEMENTS[c.element].mark : '❔'} {mine ? c.name : '???'}
                       <span className="pool-rarity">{rarity}</span>
+                      {retired && <span className="pool-rarity">เก็บครบ · ไม่ออกซ้ำ</span>}
                     </span>
                   )
                 })

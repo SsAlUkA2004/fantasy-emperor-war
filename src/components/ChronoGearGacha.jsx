@@ -3,7 +3,15 @@ import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { GRADES, SLOTS, gearName } from '../data/gear'
 import { CHRONOGEAR_NAME, CHRONOGEAR_RATES, CHRONOGEAR_GRADE_IDS } from '../data/chronogear'
-import { CHRONOGEAR_PULL_COST, CHRONOGEAR_TEN_PULL_COST, CHRONOGEAR_HARD_PITY, pullChronoGear } from '../lib/chronogear'
+import { RANKS } from '../data/ranks'
+import {
+  CHRONOGEAR_PULL_COST,
+  CHRONOGEAR_TEN_PULL_COST,
+  CHRONOGEAR_HARD_PITY,
+  CHRONOGEAR_RANK_REQUIRED,
+  isChronoGearUnlocked,
+  pullChronoGear,
+} from '../lib/chronogear'
 
 function costFor(count) {
   return count === 10 ? CHRONOGEAR_TEN_PULL_COST : CHRONOGEAR_PULL_COST
@@ -27,6 +35,8 @@ export default function ChronoGearGacha() {
   const [error, setError] = useState(null)
 
   const sinceBlack = player.chronoGearPitySinceBlack ?? 0
+  const unlocked = isChronoGearUnlocked(player)
+  const rankName = RANKS[CHRONOGEAR_RANK_REQUIRED]?.name ?? 'จอมทัพ'
 
   async function roll(count) {
     const cost = costFor(count)
@@ -61,10 +71,12 @@ export default function ChronoGearGacha() {
             {CHRONOGEAR_GRADE_IDS.map((g) => `${GRADES[g].name} ${CHRONOGEAR_RATES[g] * 100}%`).join(' · ')}
           </p>
         </div>
-        <div className="purse">
-          <span className="gem">◆</span>
-          {player.gems.toLocaleString('th-TH')}
-        </div>
+        {unlocked && (
+          <div className="purse">
+            <span className="gem">◆</span>
+            {player.gems.toLocaleString('th-TH')}
+          </div>
+        )}
       </header>
 
       <p className="meta">
@@ -76,30 +88,43 @@ export default function ChronoGearGacha() {
         (พลังสกิลของเทพนิยายก็แรงกว่าอมตะตามสัดส่วนเดียวกัน)
       </p>
 
-      <section className="pity">
-        <div className="pity-row">
-          <span className="meta">
-            อีก {Math.max(0, CHRONOGEAR_HARD_PITY - sinceBlack)} ครั้งได้เทพนิยายการันตีแน่นอน
-          </span>
-          <div className="bar thin wide">
-            <span style={{ width: `${(sinceBlack / CHRONOGEAR_HARD_PITY) * 100}%` }} />
+      {!unlocked ? (
+        <div className="pity">
+          <p className="meta locked-note">ตู้นี้เป็นเนื้อหาปลายเกม ต้องปลดล็อกก่อนจึงจะสุ่มได้</p>
+          <div className="stage-row" data-locked={true}>
+            <span className="stage-body">
+              <span className="stage-name">✗ เคยอยู่แรงค์ {rankName} ขึ้นไป</span>
+            </span>
           </div>
         </div>
-      </section>
+      ) : (
+        <>
+          <section className="pity">
+            <div className="pity-row">
+              <span className="meta">
+                อีก {Math.max(0, CHRONOGEAR_HARD_PITY - sinceBlack)} ครั้งได้เทพนิยายการันตีแน่นอน
+              </span>
+              <div className="bar thin wide">
+                <span style={{ width: `${(sinceBlack / CHRONOGEAR_HARD_PITY) * 100}%` }} />
+              </div>
+            </div>
+          </section>
 
-      {error && <div className="trace">{error}</div>}
+          {error && <div className="trace">{error}</div>}
 
-      <div className="pull-row">
-        <button className="rune-link" disabled={busy} onClick={() => roll(1)}>
-          สุ่ม 1 ครั้ง · {CHRONOGEAR_PULL_COST}
-        </button>
-        <button className="rune-link" disabled={busy} onClick={() => roll(10)}>
-          สุ่ม 10 ครั้ง · {CHRONOGEAR_TEN_PULL_COST}
-        </button>
-      </div>
-      <p className="meta tiny center">สุ่มสิบครั้งถูกกว่าสุ่มทีละครั้งอยู่ 500 เพชร</p>
+          <div className="pull-row">
+            <button className="rune-link" disabled={busy} onClick={() => roll(1)}>
+              สุ่ม 1 ครั้ง · {CHRONOGEAR_PULL_COST}
+            </button>
+            <button className="rune-link" disabled={busy} onClick={() => roll(10)}>
+              สุ่ม 10 ครั้ง · {CHRONOGEAR_TEN_PULL_COST}
+            </button>
+          </div>
+          <p className="meta tiny center">สุ่มสิบครั้งถูกกว่าสุ่มทีละครั้งอยู่ 500 เพชร</p>
 
-      {busy && <p className="meta center">กำลังหลอมของ</p>}
+          {busy && <p className="meta center">กำลังหลอมของ</p>}
+        </>
+      )}
 
       {results && (
         <div className="veil" role="dialog" aria-modal="true">

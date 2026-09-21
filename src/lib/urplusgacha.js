@@ -1,6 +1,7 @@
 import { PULL_COST, TEN_PULL_COST, saveRollResults } from './gacha'
 import { SHARDS_PER_DUPE } from '../data/exchange'
 import { URPLUS_RATES, urPlusBannerPool } from '../data/urplusbanner'
+import { isURRetired } from './urgacha'
 
 // ─────────────────────────────────────────────────────────────
 // ตู้จักรพรรดิโคลโน — ฝั่งตรรกะการสุ่ม
@@ -8,8 +9,11 @@ import { URPLUS_RATES, urPlusBannerPool } from '../data/urplusbanner'
 // การันตีสองชั้นเหมือนตู้ธาตุ/ตู้เริ่มต้น (rollOne ใน lib/gacha.js) แต่ขยับระดับขึ้นไปที่ UR/UR+:
 //   sinceUR     รีเซ็ตเมื่อได้ UR หรือ UR+ (ทั้งคู่ถือว่า "UR ขึ้นไป") ครบ 400 ครั้งการันตี UR ขึ้นไปแน่นอน
 //   sinceURPlus รีเซ็ตเฉพาะเมื่อได้ UR+ ครบ 900 ครั้งการันตี UR+ แน่นอน
-// ไม่มีกลไก "เก็บครบไม่ออกซ้ำ" แบบตู้ UR เดิม เพราะตู้นี้มีตัว UR+ แค่ตัวเดียว ถ้าตัดออกเมื่อ
-// เก็บครบจะเหลือ UR อย่างเดียวในกลุ่ม "UR ขึ้นไป" ทำให้การันตี UR+ ที่ 900 ไม่มีความหมาย
+//
+// ตัวละครระดับ UR แต่ละตัว "เก็บครบ" (ห้าดาว ดู isURRetired ใน lib/urgacha.js) แล้วจะไม่ออกซ้ำอีก
+// เหมือนตู้ UR เดิม ถ้า UR ทั้งสามตัวเก็บครบพร้อมกัน ปล่อยให้สุ่มได้ตามปกติกันพูลว่าง
+// กลไกนี้ใช้กับ UR เท่านั้น ไม่ใช้กับ UR+ เพราะมีตัวเดียว ถ้าตัดออกการันตี 900 จะไม่มีตัวให้ออก
+// จำนวนครั้งที่ได้ UR แต่ละตัวเก็บที่ player.urPlusCopyCount (แยกจาก urCopyCount ของตู้ UR เดิม)
 //
 // ตัวซ้ำระดับ SR/SSR สะสมเศษวิญญาณกลาง (shardPool) แบบเดียวกับตู้อื่น เพราะแปดตัวนี้ไม่ได้ผูกขาด
 // ยังแลกเปลี่ยนได้ตามปกติ ส่วนตัวซ้ำระดับ UR/UR+ ไม่มีกองกลางให้สะสม (แลกเปลี่ยนไม่ได้)
@@ -39,7 +43,7 @@ export function isURPlusUnlocked(player) {
 }
 
 /** ส่งออกเฉพาะให้ทดสอบตรง ๆ ได้ (ไม่ยุ่ง Firestore) — pullURPlus() ด้านล่างคือทางที่ใช้จริง */
-export function rollOneURPlus(pool, pity) {
+export function rollOneURPlus(pool, pity, copyCount = {}) {
   let rarity
 
   if (pity.sinceURPlus + 1 >= URPLUS_HARD_PITY) {
@@ -70,7 +74,12 @@ export function rollOneURPlus(pool, pity) {
     pity.sinceURPlus += 1
   }
 
-  const list = pool[rarity] ?? []
+  let list = pool[rarity] ?? []
+  if (rarity === 'UR') {
+    const eligible = list.filter((id) => !isURRetired(copyCount[id] ?? 0))
+    // เก็บครบทุกตัวพร้อมกันแล้ว ไม่มีตัวไหนให้เลี่ยงอีก ปล่อยสุ่มได้ตามปกติกันพูลว่าง
+    if (eligible.length) list = eligible
+  }
   const id = list[Math.floor(Math.random() * list.length)]
   return { id, rarity }
 }
@@ -96,9 +105,13 @@ export async function pullURPlus(player, count) {
     sinceURPlus: player.urPlusPitySinceURPlus ?? 0,
   }
 
+  const copyCount = { ...(player.urPlusCopyCount ?? {}) }
+
   const results = []
   for (let i = 0; i < count; i++) {
-    results.push(rollOneURPlus(pool, pity))
+    const r = rollOneURPlus(pool, pity, copyCount)
+    results.push(r)
+    if (r.rarity === 'UR') copyCount[r.id] = (copyCount[r.id] ?? 0) + 1
   }
 
   const summary = await saveRollResults(
@@ -108,6 +121,7 @@ export async function pullURPlus(player, count) {
       gems: player.gems - cost,
       urPlusPitySinceUR: pity.sinceUR,
       urPlusPitySinceURPlus: pity.sinceURPlus,
+      urPlusCopyCount: copyCount,
     },
     { addDupe: urPlusAddDupe }
   )

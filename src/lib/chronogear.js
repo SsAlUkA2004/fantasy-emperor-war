@@ -20,6 +20,16 @@ export const CHRONOGEAR_TEN_PULL_COST = 4500
 export const CHRONOGEAR_HARD_PITY = 60 // ครบ 60 ครั้งได้เทพนิยายการันตีแน่นอน
 export const CHRONOGEAR_ILVL = 5
 
+/**
+ * ต้องเคยไปถึงแรงค์จอมทัพ (RANKS[4] ใน data/ranks.js) ขึ้นไปถึงจะสุ่มตู้นี้ได้
+ * ใช้ player.highestRank (ขึ้นได้อย่างเดียว) เหมือนตู้จักรพรรดิโคลโน ตกแรงค์แล้วไม่ถูกล็อกคืน
+ */
+export const CHRONOGEAR_RANK_REQUIRED = 4
+
+export function isChronoGearUnlocked(player) {
+  return (player?.highestRank ?? 0) >= CHRONOGEAR_RANK_REQUIRED
+}
+
 const bag = (uid) => collection(db, 'users', uid, 'gear')
 
 /** สุ่มเกรดหนึ่งครั้ง โดยดูตัวนับการันตีประกอบ — ส่งออกแยกให้ทดสอบตรง ๆ ได้ ไม่ยุ่ง Firestore */
@@ -56,6 +66,10 @@ export function rollChronoGear(grade) {
 }
 
 export async function pullChronoGear(player, count) {
+  if (!isChronoGearUnlocked(player)) {
+    throw new Error('ต้องอยู่แรงค์จอมทัพขึ้นไปก่อนถึงจะสุ่มตู้นี้ได้')
+  }
+
   const cost = count === 10 ? CHRONOGEAR_TEN_PULL_COST : CHRONOGEAR_PULL_COST * count
   if (player.gems < cost) throw new Error('เพชรไม่พอ')
 
