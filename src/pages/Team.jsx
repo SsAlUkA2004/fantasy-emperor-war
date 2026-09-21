@@ -17,7 +17,7 @@ import { canAfford, EMPTY_BAG } from '../data/materials'
 import { loadCollection } from '../lib/player'
 import { entryLevelCap } from '../lib/stats'
 import { entryPower, formatPower } from '../lib/power'
-import { nextStarCost } from '../lib/gacha'
+import { ascendAll, nextStarCost } from '../lib/gacha'
 
 // ─────────────────────────────────────────────────────────────
 // ตัวจัดทีมตัวเดียว ใช้ได้กับสามโหมด
@@ -45,6 +45,8 @@ export default function Team() {
   const [error, setError] = useState(null)
   const [filterElement, setFilterElement] = useState('all')
   const [filterRarity, setFilterRarity] = useState('all')
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkDone, setBulkDone] = useState(null)
 
   useEffect(() => {
     loadCollection(user.uid).then(setOwned)
@@ -123,6 +125,41 @@ export default function Team() {
     }
 
     return false
+  }
+
+  /**
+   * ตัวละครนี้มีชิ้นส่วนพอขึ้นดาวได้ทันทีไหม
+   *
+   * อิงสูตรต้นทุนแบบเดียวกับ ascend()/ascendAll() เป๊ะ ๆ คือใช้ระดับตั้งต้นของตัวละคร
+   * (CHARACTERS[id].rarity) ไม่ใช่ระดับที่ยกระดับแล้วแบบที่ canUpgrade() ใช้ตอนโชว์จุดเตือน
+   * ไม่งั้นปุ่ม "อัปดาวทั้งหมด" อาจนับตัวที่กดจริงแล้วไม่ขึ้นดาว หรือมองข้ามตัวที่ขึ้นได้จริง
+   */
+  function starReady(entry) {
+    const c = CHARACTERS[entry.id]
+    if (!c) return false
+    const cost = nextStarCost(entry.star ?? 1, c.rarity)
+    return cost !== null && (entry.shards ?? 0) >= cost
+  }
+
+  const starUpgradable = owned?.filter(starReady) ?? []
+
+  async function ascendAllStars() {
+    setBulkBusy(true)
+    setError(null)
+    setBulkDone(null)
+    try {
+      const r = await ascendAll(user.uid, starUpgradable)
+      setOwned((list) =>
+        list.map((entry) => {
+          const hit = r.results.find((x) => x.id === entry.id)
+          return hit ? { ...entry, star: hit.star, shards: hit.shards } : entry
+        }),
+      )
+      setBulkDone(r)
+    } catch (e) {
+      setError(explainError('อัปดาวไม่สำเร็จ', e))
+    }
+    setBulkBusy(false)
   }
 
   const current = powerOf(picks)
@@ -250,6 +287,23 @@ export default function Team() {
         )}
 
         <h2 className="section-title">ตัวละครที่มี {owned ? `(${owned.length})` : ''}</h2>
+
+        {starUpgradable.length > 0 && (
+          <div className="roster-head">
+            <span className="meta tiny">
+              มีตัวละคร {starUpgradable.length} ตัวที่ชิ้นส่วนพอขึ้นดาวได้ตอนนี้
+            </span>
+            <button className="rune-link" onClick={ascendAllStars} disabled={bulkBusy}>
+              {bulkBusy ? 'กำลังอัปดาว' : `⭐ อัปดาวทั้งหมด (${starUpgradable.length})`}
+            </button>
+          </div>
+        )}
+
+        {bulkDone && (
+          <p className="meta tiny">
+            อัปดาวสำเร็จ {bulkDone.count} ตัว รวม {bulkDone.totalSteps} ดาว
+          </p>
+        )}
 
         <div className="filter-row">
           <select

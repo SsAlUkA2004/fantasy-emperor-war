@@ -4,6 +4,7 @@ import { usePlayer } from '../context/PlayerContext'
 import { explainError } from '../lib/errors'
 import { loadLeaderboard } from '../lib/pvp'
 import { rankLabel, rankOf, titleName } from '../data/ranks'
+import { nameFor } from '../lib/displayname'
 
 export default function Leaderboard() {
   const { user, player } = usePlayer()
@@ -44,12 +45,18 @@ export default function Leaderboard() {
               </span>
               <span className="board-body">
                 <span className="board-name">
-                  {r.username}
+                  {nameFor(r, user.uid)}
+                  {r.guildTag && (
+                    <span className="guild-tag" title={r.guildName || undefined}>
+                      [{r.guildTag}]
+                    </span>
+                  )}
                   {r.titleIndex > 0 && <span className="board-title">{titleName(r.titleIndex)}</span>}
                 </span>
                 <span className="meta">
                   {rankOf(r.pvpPoints ?? 0).mark} {rankLabel(r.pvpPoints ?? 0)} · เลเวล{' '}
                   {r.playerLevel ?? 1}
+                  {r.guildName && ` · ${r.guildName}`}
                 </span>
               </span>
               <span className="board-points">{(r.pvpPoints ?? 0).toLocaleString('th-TH')}</span>

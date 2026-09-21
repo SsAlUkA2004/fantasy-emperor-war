@@ -10,6 +10,7 @@ import { hoursUntilReset } from '../lib/dayclock'
 import { UNLOCKS, chapterCleared } from '../data/stages'
 import Locked from '../components/Locked'
 import StageBrief from '../components/StageBrief'
+import { displayName } from '../lib/displayname'
 
 const fmt = (n) => Math.round(n).toLocaleString('th-TH')
 
@@ -206,7 +207,7 @@ function WorldBossCard({ slot }) {
                 {i + 1}
               </span>
               <span className="board-body">
-                <span className="board-name">{r.username}</span>
+                <span className="board-name">{displayName(r)}</span>
                 <span className="meta">
                   โจมตี {r.hits} ครั้ง · สูงสุด {fmt(r.best ?? 0)}
                 </span>

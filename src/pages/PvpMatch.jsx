@@ -17,6 +17,7 @@ import { submitWarResult } from '../lib/guildwar'
 import { logAttack } from '../lib/defenselog'
 import { teamPower, entryPower, formatPower } from '../lib/power'
 import BattleStage from '../components/BattleStage'
+import { displayName } from '../lib/displayname'
 
 const STEP_DELAY = 700
 // ท่าไม้ตายมีทั้งฉากกลางจอ+อนิเมชันเฉพาะธาตุที่ยาวกว่าท่าอื่น (ดู FX_MS.ultimate ใน BattleStage.jsx)
@@ -55,7 +56,7 @@ export default function PvpMatch() {
         setError('ทีมไม่ครบ กลับไปจัดทีมก่อน')
         return
       }
-      setState(createPvpBattle(mine, theirs, foe.username))
+      setState(createPvpBattle(mine, theirs, displayName(foe)))
     })
   }, [foe?.uid])
 
@@ -149,7 +150,7 @@ export default function PvpMatch() {
             ← ออก
           </button>
           <div className="battle-title">
-            <h1>{foe.username}</h1>
+            <h1>{displayName(foe)}</h1>
             <p className="meta">
               {friendly
                 ? 'ประลองสนุก ๆ ไม่นับแต้ม'
@@ -201,7 +202,7 @@ function PvpResult({ outcome, foe, decidedByHp, onAgain }) {
     <div className="veil" role="dialog" aria-modal="true">
       <section className="panel popup" data-outcome={outcome.won ? 'won' : 'lost'}>
         <div className="panel-head">{outcome.won ? 'ชนะการประลอง' : 'พ่ายแพ้'}</div>
-        <p className="meta">คู่แข่ง {foe.username}</p>
+        <p className="meta">คู่แข่ง {displayName(foe)}</p>
 
         {decidedByHp && <p className="meta">ตัดสินด้วยเลือดที่เหลือเมื่อครบรอบ</p>}
 

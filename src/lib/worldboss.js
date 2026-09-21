@@ -132,6 +132,7 @@ export async function submitDamage(player, week, rawDamage, slot = 'current') {
 
     tx.set(myRef, {
       username: player.username,
+      nickname: player.nickname ?? null,
       week,
       total,
       best,

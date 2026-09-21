@@ -21,7 +21,13 @@ import { roundFor } from '../data/chardungeon'
 import { RAID_TIERS, meetsRequirement } from '../data/raiddungeon'
 import { totalRunsLeftForTier } from '../lib/raiddungeon'
 import StatPeek from '../components/StatPeek'
+import BootCurtain from '../components/BootCurtain'
 import { signOut } from '../lib/auth'
+import { NICKNAME_MAX, cleanNickname, selfName, validateNickname } from '../lib/displayname'
+
+// ม่านเปิดเกมควรได้ดูครั้งเดียวต่อการเปิดเกมหนึ่งรอบ ไม่ใช่ทุกครั้งที่กดกลับหน้าหลัก
+// ตัวแปรระดับโมดูลจึงพอดี เพราะมันรีเซ็ตเองเมื่อโหลดหน้าเว็บใหม่ ซึ่งก็คือการ "เข้าเกม" รอบใหม่จริง ๆ
+let curtainShown = false
 
 function statRows(entry) {
   const s = entryStats(entry.id, entry)
@@ -37,6 +43,29 @@ export default function Lobby() {
   const [pickingTitle, setPickingTitle] = useState(false)
   const { user, player, refresh, attacked, clearAttacked } = usePlayer()
   const [owned, setOwned] = useState(null)
+  const [curtain, setCurtain] = useState(() => !curtainShown)
+  // null = ไม่ได้แก้อยู่ ถ้าเป็นสตริงแปลว่ากำลังพิมพ์ชื่อเล่นใหม่
+  const [draftNick, setDraftNick] = useState(null)
+  const [nickBusy, setNickBusy] = useState(false)
+  const [nickError, setNickError] = useState(null)
+
+  async function saveNickname() {
+    const problem = validateNickname(draftNick)
+    if (problem) {
+      setNickError(problem)
+      return
+    }
+    setNickBusy(true)
+    setNickError(null)
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { nickname: cleanNickname(draftNick) })
+      await refresh()
+      setDraftNick(null)
+    } catch (e) {
+      setNickError(e.message || 'บันทึกชื่อเล่นไม่สำเร็จ')
+    }
+    setNickBusy(false)
+  }
 
   useEffect(() => {
     loadCollection(user.uid).then(async (list) => {
@@ -70,14 +99,63 @@ export default function Lobby() {
 
   return (
     <main className="screen top">
+      {curtain && (
+        <BootCurtain
+          ready={owned !== null}
+          onDone={() => {
+            curtainShown = true
+            setCurtain(false)
+          }}
+        />
+      )}
+
       <div className="sheet">
         <header className="lobby-head">
           <div>
-            <h1>{player.username}</h1>
+            {/* เจ้าตัวเห็นชื่อผู้ใช้ในวงเล็บด้วย ส่วนคนอื่นเห็นแค่ชื่อเล่น (ดู lib/displayname.js) */}
+            <h1>{selfName(player)}</h1>
             <p className="meta">
               {rankOf(player.pvpPoints ?? 0).mark} {rankLabel(player.pvpPoints ?? 0)} ·{' '}
               {player.pvpPoints ?? 0} แต้ม
             </p>
+
+            {draftNick === null ? (
+              <button className="title-line" onClick={() => setDraftNick(player.nickname ?? '')}>
+                {player.nickname ? 'ชื่อเล่นของคุณ' : 'ยังไม่ได้ตั้งชื่อเล่น'}
+                <span className="title-edit">{player.nickname ? 'เปลี่ยน' : 'ตั้งชื่อเล่น'}</span>
+              </button>
+            ) : (
+              <div className="nick-edit">
+                <p className="meta tiny">คนอื่นจะเห็นชื่อเล่นนี้แทนชื่อผู้ใช้ เว้นว่างเพื่อกลับไปใช้ชื่อผู้ใช้</p>
+                <div className="field">
+                  <input
+                    value={draftNick}
+                    maxLength={NICKNAME_MAX}
+                    placeholder={player.username}
+                    onChange={(e) => {
+                      setDraftNick(e.target.value)
+                      setNickError(null)
+                    }}
+                  />
+                </div>
+                {nickError && <div className="trace">{nickError}</div>}
+                <div className="nick-edit-actions">
+                  <button className="rune-link" disabled={nickBusy} onClick={saveNickname}>
+                    {nickBusy ? 'กำลังบันทึก' : 'บันทึกชื่อเล่น'}
+                  </button>
+                  <button
+                    className="plain-link inline"
+                    disabled={nickBusy}
+                    onClick={() => {
+                      setDraftNick(null)
+                      setNickError(null)
+                    }}
+                  >
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            )}
             <button className="title-line" onClick={() => setPickingTitle((v) => !v)}>
               {titleName(player.titleIndex ?? 0)}
               <span className="title-edit">เปลี่ยน</span>

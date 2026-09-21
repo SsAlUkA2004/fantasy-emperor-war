@@ -13,6 +13,7 @@ import {
   pointsForNextLevel,
 } from '../data/guild'
 import {
+import { displayName } from '../lib/displayname'
   browseGuilds,
   guildPower,
   reportPower,
@@ -292,7 +293,7 @@ export default function Guild() {
                 {requests.map((r) => (
                   <div className="card guild-member" key={r.uid}>
                     <div className="card-body">
-                      <h3>{r.username}</h3>
+                      <h3>{displayName(r)}</h3>
                       <p className="meta">⚔ {fmt(r.power)}</p>
                     </div>
                     <div className="card-actions">
@@ -327,7 +328,7 @@ export default function Guild() {
           <div className="card guild-member" key={m.uid}>
             <div className="card-body">
               <h3>
-                {m.username}
+                {displayName(m)}
                 <span className="rarity">{GUILD_ROLES[m.role]?.name ?? 'สมาชิก'}</span>
               </h3>
               <p className="meta">
@@ -390,7 +391,7 @@ function GuildRow({ g, busy, onJoin, player, onSent }) {
         </h3>
         <p className="meta">
           เลเวล {guildLevel(g.points)} · สมาชิก {g.memberCount ?? 0}/{MAX_MEMBERS} · หัวหน้า{' '}
-          {g.ownerName ?? '—'} · {JOIN_POLICIES[g.joinPolicy ?? 'open'].name}
+          {g.ownerNick || g.ownerName || '—'} · {JOIN_POLICIES[g.joinPolicy ?? 'open'].name}
         </p>
         {g.notice && <p className="meta tiny">{g.notice}</p>}
       </div>

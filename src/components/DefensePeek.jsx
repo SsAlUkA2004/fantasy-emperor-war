@@ -7,6 +7,7 @@ import { entryLevelCap } from '../lib/stats'
 import { entryPower, formatPower } from '../lib/power'
 import { rankLabel, rankOf } from '../data/ranks'
 import { defenseEntries } from '../lib/pvp'
+import { displayName } from '../lib/displayname'
 
 /**
  * ดูทีมตั้งรับของผู้เล่นคนอื่น
@@ -21,7 +22,7 @@ export default function DefensePeek({ foe, title, onClose }) {
   return (
     <div className="veil" role="dialog" aria-modal="true">
       <section className="panel popup peek-popup">
-        <div className="panel-head">{title ?? `ทีมตั้งรับของ ${foe.username}`}</div>
+        <div className="panel-head">{title ?? `ทีมตั้งรับของ ${displayName(foe)}`}</div>
         <p className="meta">
           {rankOf(foe.pvpPoints ?? 0).mark} {rankLabel(foe.pvpPoints ?? 0)} · ⚔ {formatPower(total)}
         </p>

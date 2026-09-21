@@ -1063,7 +1063,7 @@ a {
    เหลือแค่ตัวหนังสือ ไม่มีภาพประกอบเฉพาะธาตุแล้ว สีของชื่อท่ามาจากธาตุของคนร่าย
 
    ชื่อคลาสใช้ prefix ultcall- ล้วน ห้ามตั้งเป็น .ult เปล่า ๆ เพราะชนกับ .move.ult
-   ที่หน้า Hero / ChooseStarter / DefensePeek ใช้อยู่ (เคยชนมาแล้ว กฎ position/​display ของตัวทับจอ
+   ที่หน้า Hero / ChooseStarter / DefensePeek ใช้อยู่ (เคยชนมาแล้ว กฎ position/display ของตัวทับจอ
    ไปโดนกล่องนั้นเข้า จนหัวข้อ "ท่าไม้ตาย" ในหน้ารายละเอียดตัวละครหายไปทั้งกล่อง) */
 
 .ultcall {
@@ -4168,5 +4168,262 @@ a {
   .nav-panel {
     max-height: 92dvh;
     padding-top: 0.85rem;
+  }
+}
+
+/* ───────── รายชื่อเพื่อนแบบย่อ/กาง ─────────
+   เดิมกางรายละเอียดของทุกคนค้างไว้พร้อมกัน พอเพื่อนเยอะหน้าจะยาวมากจนหาคนไม่เจอ
+   ตอนนี้เห็นแค่บรรทัดชื่อ กดแล้วค่อยกางของคนนั้นคนเดียว (ดู expanded ใน Friends.jsx) */
+
+.friend[data-open='true'] {
+  border-color: rgba(200, 164, 77, 0.45);
+}
+
+.friend-head-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.friend-line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.friend-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold-bright);
+}
+
+.friend-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+/* ───────── ช่องตั้งชื่อเล่น ───────── */
+
+.nick-edit {
+  margin-top: 0.5rem;
+}
+
+.nick-edit .field {
+  margin-top: 0.35rem;
+}
+
+.nick-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ───────── ม่านเปิดเกม ─────────
+   ประตูสองบานปิดจออยู่ตอนเข้าหน้าหลักครั้งแรก แล้วแหวกออกซ้าย-ขวาเผยหน้าหลักข้างใน
+   เวลาเปิดประตู (transition ของ .boot-door) ต้องเท่ากับ OPEN_MS ใน BootCurtain.jsx
+   ไม่งั้นคอมโพเนนต์จะถูกถอดทิ้งก่อนประตูเปิดสุด เห็นเป็นภาพกระตุก */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.boot-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* เกิน 50% เล็กน้อย กันเส้นสว่างตรงรอยต่อเวลาความกว้างจอหารสองไม่ลงตัว */
+  width: 50.4%;
+  background:
+    linear-gradient(180deg, rgba(36, 27, 79, 0.6), transparent 58%),
+    linear-gradient(90deg, var(--void), var(--ink));
+  transition: transform 950ms cubic-bezier(0.66, 0, 0.2, 1);
+}
+
+.boot-door-l {
+  left: 0;
+  border-right: 1px solid rgba(200, 164, 77, 0.35);
+}
+
+.boot-door-r {
+  right: 0;
+  border-left: 1px solid rgba(200, 164, 77, 0.35);
+}
+
+.boot[data-phase='open'] .boot-door-l {
+  transform: translateX(-100%);
+}
+
+.boot[data-phase='open'] .boot-door-r {
+  transform: translateX(100%);
+}
+
+/* เส้นแสงตรงรอยประตู วาบขึ้นตอนเริ่มแหวกออกแล้วค่อยจางไปพร้อมประตู */
+.boot-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--gold) 18%,
+    #fff6d8 50%,
+    var(--gold) 82%,
+    transparent
+  );
+}
+
+.boot[data-phase='open'] .boot-seam {
+  animation: boot-seam 950ms ease-out forwards;
+}
+
+@keyframes boot-seam {
+  0% { opacity: 0; transform: scaleX(1); }
+  16% { opacity: 1; transform: scaleX(7); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+
+.boot-core {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  text-align: center;
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.boot[data-phase='open'] .boot-core {
+  opacity: 0;
+  transform: scale(1.09);
+}
+
+.boot-sigil {
+  position: relative;
+  width: min(17rem, 60vw);
+  height: min(17rem, 60vw);
+  margin-bottom: 0.5rem;
+}
+
+/* .sigil ฐานเป็น absolute ขนาดคงที่ 15rem จึงต้องกำหนด inset ทับให้เต็มกรอบนี้แทน
+   จะได้อยู่กลางแน่นอนและย่อตามจอได้ */
+.boot-sigil .sigil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+  animation: boot-sigil-in 900ms ease-out backwards;
+}
+
+@keyframes boot-sigil-in {
+  0% { opacity: 0; transform: scale(0.62); }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+
+.boot-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 7vw, 2.9rem);
+  line-height: 1.2;
+  color: var(--gold-bright);
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 18px rgba(200, 164, 77, 0.45), 0 2px 10px rgba(0, 0, 0, 0.9);
+  animation: boot-rise 760ms ease-out backwards 180ms;
+}
+
+.boot-sub {
+  margin: 0.15rem 0 0;
+  font-family: var(--body);
+  font-size: clamp(0.6rem, 2.4vw, 0.76rem);
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: var(--parchment-dim);
+  animation: boot-rise 760ms ease-out backwards 300ms;
+}
+
+@keyframes boot-rise {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.boot-status {
+  margin: 1.7rem 0 0;
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--rune);
+  animation: boot-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes boot-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.boot-bar {
+  width: min(16rem, 58vw);
+  height: 2px;
+  margin-top: 0.8rem;
+  background: rgba(200, 164, 77, 0.16);
+  overflow: hidden;
+}
+
+.boot-bar span {
+  display: block;
+  width: 38%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+  animation: boot-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes boot-sweep {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-sigil .sigil,
+  .boot-title,
+  .boot-sub,
+  .boot-status,
+  .boot-bar span,
+  .boot[data-phase='open'] .boot-seam {
+    animation: none !important;
+  }
+
+  /* ไม่ต้องแหวกประตู ใช้จางหายแทน แต่ยังต้องหายจริงเพื่อไม่ให้บังหน้าหลักค้างไว้ */
+  .boot-door {
+    transition: opacity 320ms ease !important;
+  }
+
+  .boot[data-phase='open'] .boot-door {
+    transform: none;
+    opacity: 0;
   }
 }

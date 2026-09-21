@@ -10,6 +10,7 @@ import { effectiveRarity } from '../data/ascension'
 import { entryPower, formatPower } from '../lib/power'
 import { explainError } from '../lib/errors'
 import { defenseEntries } from '../lib/pvp'
+import { nameFor } from '../lib/displayname'
 import UnitPeek from '../components/UnitPeek'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
@@ -204,9 +205,16 @@ export default function Board() {
                   <span className="board-body">
                     <span className="board-name">
                       {CHARACTERS[charFilter]?.name}
-                      {r.guildTag && <span className="guild-tag">[{r.guildTag}]</span>}
+                      {r.guildTag && (
+                        <span className="guild-tag" title={r.guildName || undefined}>
+                          [{r.guildTag}]
+                        </span>
+                      )}
                     </span>
-                    <span className="meta">ผู้เล่น {r.username}</span>
+                    <span className="meta">
+                      ผู้เล่น {nameFor(r, user.uid)}
+                      {r.guildName && ` · กิลด์${r.guildName}`}
+                    </span>
                   </span>
                   <span className="board-points">⚔ {formatPower(entryPower(r.entry))}</span>
                   <span className="board-caret label">ดูรายละเอียด</span>
@@ -228,8 +236,12 @@ export default function Board() {
                 </span>
                 <span className="board-body">
                   <span className="board-name">
-                    {r.username}
-                    {r.guildTag && <span className="guild-tag">[{r.guildTag}]</span>}
+                    {nameFor(r, user.uid)}
+                    {r.guildTag && (
+                      <span className="guild-tag" title={r.guildName || undefined}>
+                        [{r.guildTag}]
+                      </span>
+                    )}
                     {r.titleIndex > 0 && (
                       <span className="board-title">{titleName(r.titleIndex)}</span>
                     )}
@@ -238,6 +250,7 @@ export default function Board() {
                     {tab === 'story'
                       ? `ล่าสุดด่าน ${furthest(r)} · เลเวล ${r.playerLevel ?? 1}`
                       : `${rankOf(r.pvpPoints ?? 0).mark} ${rankLabel(r.pvpPoints ?? 0)} · เลเวล ${r.playerLevel ?? 1}`}
+                    {r.guildName && ` · ${r.guildName}`}
                   </span>
                 </span>
                 <span className="board-points">

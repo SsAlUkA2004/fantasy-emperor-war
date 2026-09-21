@@ -10,6 +10,7 @@ import { teamPower, entryPower, formatPower } from '../lib/power'
 import { hoursUntilReset } from '../lib/dayclock'
 import { explainError } from '../lib/errors'
 import DefensePeek from '../components/DefensePeek'
+import { displayName } from '../lib/displayname'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
 
@@ -131,7 +132,7 @@ export default function GuildWar() {
             <div className="card foe-card" key={foe.uid}>
               <div className="card-body">
                 <h3>
-                  {foe.username}
+                  {displayName(foe)}
                   {foe.isBot && <span className="bot-tag">คู่ซ้อม</span>}
                 </h3>
                 <p className="meta cp">⚔ {formatPower(power)}</p>

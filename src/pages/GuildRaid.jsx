@@ -13,6 +13,7 @@ import { loadGuild, loadMembers } from '../lib/guild'
 import { buyGuildItem } from '../lib/guildshop'
 import { hoursUntilReset } from '../lib/dayclock'
 import StageBrief from '../components/StageBrief'
+import { displayName } from '../lib/displayname'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
 
@@ -153,7 +154,7 @@ export default function GuildRaid() {
                 {i + 1}
               </span>
               <span className="board-body">
-                <span className="board-name">{m.username}</span>
+                <span className="board-name">{displayName(m)}</span>
               </span>
               <span className="board-points">{fmt(m.contribution)}</span>
             </div>

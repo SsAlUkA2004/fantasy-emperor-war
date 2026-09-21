@@ -8,6 +8,7 @@ import { loadCollection } from '../lib/player'
 import { teamPower, stagePower, matchup, formatPower, entryPower } from '../lib/power'
 import { explainError } from '../lib/errors'
 import { HELPER_RUNS_PER_DAY, helperRunsLeft, loadHelpers } from '../lib/helper'
+import { displayName } from '../lib/displayname'
 
 /**
  * ป๊อปอัพก่อนเข้าด่าน
@@ -122,7 +123,7 @@ export default function StageBrief({ stage, onStart, onClose }) {
                 >
                   <span className="helper-name">{h.name}</span>
                   <span className="meta tiny">
-                    ⚔ {formatPower(h.power)} · {h.username}
+                    ⚔ {formatPower(h.power)} · {displayName(h)}
                   </span>
                 </button>
               ))}

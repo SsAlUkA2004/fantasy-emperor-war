@@ -34,6 +34,7 @@ export async function loadHelpers(myUid, count = 3) {
       return {
         uid: u.uid,
         username: u.username,
+        nickname: u.nickname ?? null,
         guildTag: u.guildTag ?? null,
         rosterPower: u.rosterPower ?? 0,
         entry: best,

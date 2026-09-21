@@ -299,6 +299,58 @@ export async function ascend(uid, entry) {
   return { star: entry.star + 1, shards: entry.shards - cost }
 }
 
+/**
+ * คำนวณผลไต่ดาวของตัวละครหนึ่งตัว ไล่ทีละดาวจนกว่าชิ้นส่วนจะหมดหรือดาวเต็ม
+ *
+ * แยกเป็นฟังก์ชันล้วน (ไม่แตะ Firestore) ไว้ต่างหากจาก ascendAll() เพื่อให้เทสต์คำนวณ
+ * ตรง ๆ ได้โดยไม่ต้องเชื่อมต่อฐานข้อมูลจริง เหมือนกับที่ nextStarCost/starCostFor แยกไว้แล้ว
+ */
+export function ascendSteps(entry, rarity) {
+  let star = entry.star ?? 1
+  let shards = entry.shards ?? 0
+  let steps = 0
+
+  for (;;) {
+    const cost = nextStarCost(star, rarity)
+    if (cost === null || shards < cost) break
+    star += 1
+    shards -= cost
+    steps += 1
+  }
+
+  return { star, shards, steps }
+}
+
+/**
+ * อัปดาวทีเดียวทั้งทีม ให้แต่ละตัวไต่ขึ้นไปเรื่อย ๆ จนกว่าชิ้นส่วนจะหมดหรือดาวเต็ม
+ * ไม่ใช่แค่ขึ้นให้ทีละดาวเหมือนกด ascend() ตัวเดียว เพราะถ้าตัวไหนตุนชิ้นส่วนไว้พอขึ้นได้
+ * หลายดาวรวด ผู้เล่นก็ควรได้ครบในคลิกเดียว ไม่ต้องกดปุ่มนี้ซ้ำหลายรอบ
+ *
+ * ใช้ writeBatch เดียวคุมทุกตัวละครที่ขึ้นได้จริง (เขียนเอกสารละครั้งเดียว ไม่ใช่ต่อดาว)
+ * ตัวที่ขึ้นไม่ได้เลยจะไม่ถูกแตะต้องและไม่รวมอยู่ใน results
+ */
+export async function ascendAll(uid, entries) {
+  const batch = writeBatch(db)
+  const results = []
+  let totalSteps = 0
+
+  for (const entry of entries) {
+    const rarity = CHARACTERS[entry.id]?.rarity ?? 'R'
+    const { star, shards, steps } = ascendSteps(entry, rarity)
+    if (steps === 0) continue
+    batch.update(doc(db, 'users', uid, 'collection', entry.id), { star, shards })
+    results.push({ id: entry.id, star, shards, steps })
+    totalSteps += steps
+  }
+
+  if (results.length > 0) {
+    await batch.commit()
+    invalidateRoster()
+  }
+
+  return { count: results.length, totalSteps, results }
+}
+
 export function rarityOf(id) {
   return CHARACTERS[id]?.rarity ?? 'R'
 }

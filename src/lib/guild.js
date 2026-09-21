@@ -50,6 +50,7 @@ export async function createGuild(player, name, tag) {
       joinPolicy: 'open',
       ownerUid: player.uid,
       ownerName: player.username,
+      ownerNick: player.nickname ?? null,
       memberCount: 1,
       points: 0,
       notice: '',
@@ -57,6 +58,7 @@ export async function createGuild(player, name, tag) {
     })
     tx.set(doc(membersRef(id), player.uid), {
       username: player.username,
+      nickname: player.nickname ?? null,
       role: 'owner',
       contribution: 0,
       joinedAt: serverTimestamp(),
@@ -85,6 +87,7 @@ export async function requestJoin(player, guildId) {
   if (player.guildId) throw new Error('ต้องออกจากกิลด์เดิมก่อน')
   await setDoc(doc(db, 'guilds', guildId, 'requests', player.uid), {
     username: player.username,
+    nickname: player.nickname ?? null,
     power: player.rosterPower ?? 0,
     at: serverTimestamp(),
   })
@@ -144,6 +147,7 @@ export async function joinGuild(player, guildId) {
     tx.update(guildRef(guildId), { memberCount: (g.memberCount ?? 0) + 1 })
     tx.set(doc(membersRef(guildId), player.uid), {
       username: player.username,
+      nickname: player.nickname ?? null,
       role: 'member',
       contribution: 0,
       joinedAt: serverTimestamp(),

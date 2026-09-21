@@ -25,6 +25,7 @@ import { closeSeasonIfNeeded } from '../lib/season'
 import { logAttack } from '../lib/defenselog'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
+import { displayName } from '../lib/displayname'
 
 export default function Arena() {
   const { user, player, refresh } = usePlayer()
@@ -89,7 +90,7 @@ export default function Arena() {
   async function quickFight(foe) {
     const defense = defenseEntries(foe)
     if (!defense.length) {
-      setError(`${foe.username} ยังไม่ได้ตั้งทีมรับ ยังท้าไม่ได้`)
+      setError(`${displayName(foe)} ยังไม่ได้ตั้งทีมรับ ยังท้าไม่ได้`)
       return
     }
     if (!myTeam.length) {
@@ -100,7 +101,7 @@ export default function Arena() {
     setBusy(true)
     setError(null)
     try {
-      const state = simulate(myTeam, defense, foe.username)
+      const state = simulate(myTeam, defense, displayName(foe))
       const won = state.outcome === 'won'
       const saved = await saveMatch({ ...player, uid: user.uid }, foe, won)
       // คนจริงที่ถูกท้าต้องเสียแต้มด้วย คู่ซ้อมไม่ต้อง
@@ -119,7 +120,7 @@ export default function Arena() {
   // เข้าแมตช์แล้วเล่นเองหรือกดออโต้ก็ได้ ผลบันทึกที่หน้านั้น
   function fight(foe) {
     if (!defenseEntries(foe).length) {
-      setError(`${foe.username} ยังไม่ได้ตั้งทีมรับ ยังท้าไม่ได้`)
+      setError(`${displayName(foe)} ยังไม่ได้ตั้งทีมรับ ยังท้าไม่ได้`)
       return
     }
     if (!myTeam.length) {
@@ -245,7 +246,7 @@ export default function Arena() {
             <div className="card foe-card" key={foe.uid}>
               <div className="card-body">
                 <h3>
-                  {foe.username}
+                  {displayName(foe)}
                   {foe.isBot && <span className="bot-tag">คู่ซ้อม</span>}
                 </h3>
                 <p className="meta">
@@ -325,7 +326,7 @@ function QuickResult({ result, onClose }) {
     <div className="veil" role="dialog" aria-modal="true">
       <section className="panel popup" data-outcome={result.won ? 'won' : 'lost'}>
         <div className="panel-head">{result.won ? 'ชนะการประลอง' : 'พ่ายแพ้'}</div>
-        <p className="meta">คู่แข่ง {result.foe.username}</p>
+        <p className="meta">คู่แข่ง {displayName(result.foe)}</p>
         {result.decidedByHp && <p className="meta">ตัดสินด้วยเลือดที่เหลือเมื่อครบรอบ</p>}
 
         <p className="stars">

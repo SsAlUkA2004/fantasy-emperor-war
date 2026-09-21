@@ -10,6 +10,7 @@ import DefensePeek from '../components/DefensePeek'
 import { defenseEntries } from '../lib/pvp'
 import { CHARACTERS, ELEMENTS } from '../data/characters'
 import { entryPower, formatPower } from '../lib/power'
+import { displayName } from '../lib/displayname'
 
 function furthestStage(progress = {}) {
   const cleared = STAGES.filter((s) => (progress[s.id] ?? 0) > 0)
@@ -34,6 +35,8 @@ export default function Friends() {
   const [found, setFound] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  // เปิดได้ทีละคน เก็บ uid ของคนที่กางอยู่ (null = ย่อหมด)
+  const [expanded, setExpanded] = useState(null)
 
   useEffect(() => {
     loadFriends(user.uid)
@@ -101,14 +104,14 @@ export default function Friends() {
         </div>
 
         <h1>เพื่อน</h1>
-        <p className="meta">ค้นหาจากชื่อผู้ใช้ ต้องพิมพ์ให้ตรงทั้งหมด</p>
+        <p className="meta">ค้นหาจากชื่อเล่นหรือชื่อผู้ใช้ ต้องพิมพ์ให้ตรงทั้งหมด</p>
 
         <div className="search-row">
           <input
             value={term}
             autoCapitalize="none"
             spellCheck="false"
-            placeholder="ชื่อผู้ใช้"
+            placeholder="ชื่อเล่นหรือชื่อผู้ใช้"
             onChange={(e) => setTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && search()}
           />
@@ -124,7 +127,7 @@ export default function Friends() {
         {found && (
           <div className="card found">
             <div className="card-body">
-              <h3>{found.username}</h3>
+              <h3>{displayName(found)}</h3>
               <p className="meta">
                 เลเวล {found.playerLevel ?? 1} · {rankLabel(found.pvpPoints)}
               </p>
@@ -145,84 +148,111 @@ export default function Friends() {
         {friends?.length === 0 && <p className="meta">ยังไม่มีเพื่อน ลองค้นหาชื่อที่รู้จักดู</p>}
 
         {friends?.map((f) => (
-          <article className="friend" key={f.uid}>
-            <header className="friend-head">
-              <h3>
-                {f.username}
-                {f.guildTag && <span className="guild-tag">[{f.guildTag}]</span>}
+          <article className="friend" key={f.uid} data-open={expanded === f.uid}>
+            {/* หัวแถวเป็นปุ่มทั้งแถบ กดเพื่อคลี่ดูรายละเอียด ค่าเริ่มต้นคือย่อไว้ทุกคน
+                รายชื่อจึงสั้นพอจะกวาดตาหาคนที่ต้องการได้ ไม่ใช่การ์ดยาว ๆ เรียงกันทั้งหน้า */}
+            <button
+              className="friend-head friend-head-btn"
+              onClick={() => setExpanded(expanded === f.uid ? null : f.uid)}
+            >
+              <span className="friend-line">
+                <span className="friend-name">
+                  {displayName(f)}
+                  {f.guildTag && (
+                    <span className="guild-tag" title={f.guildName || undefined}>
+                      [{f.guildTag}]
+                    </span>
+                  )}
+                </span>
+                <span className="meta tiny">
+                  เลเวล {f.playerLevel ?? 1} · {rankLabel(f.pvpPoints)}
+                  {f.guildName ? ` · ${f.guildName}` : ' · ไม่มีกิลด์'}
+                </span>
+              </span>
+              <span className="board-caret">{expanded === f.uid ? '▲' : '▼'}</span>
+            </button>
+
+            {expanded === f.uid && (
+              <>
+              <div className="friend-sub">
                 <span className="board-title">{titleName(f.titleIndex ?? 0)}</span>
-              </h3>
-              <button className="plain-link inline" onClick={() => drop(f.uid)}>
-                ลบ
-              </button>
-            </header>
+                <button className="plain-link inline" onClick={() => drop(f.uid)}>
+                  ลบ
+                </button>
+              </div>
 
-            <dl className="ledger">
-              <div className="ledger-row">
-                <dt>เลเวลผู้เล่น</dt>
-                <dd>
-                  {f.playerLevel ?? 1}
-                  {(f.playerLevel ?? 1) >= PLAYER_MAX_LEVEL && ' (สูงสุด)'}
-                </dd>
-              </div>
-              <div className="ledger-row">
-                <dt>ผ่านถึงด่าน</dt>
-                <dd>{furthestStage(f.stageProgress)}</dd>
-              </div>
-              <div className="ledger-row">
-                <dt>แรงค์ปัจจุบัน</dt>
-                <dd>{rankLabel(f.pvpPoints)}</dd>
-              </div>
-              <div className="ledger-row">
-                <dt>แรงค์สูงสุด</dt>
-                <dd>{RANKS[f.highestRank ?? 0]?.name ?? RANKS[0].name}</dd>
-              </div>
-              <div className="ledger-row">
-                <dt>ค่าพลังตัวละครทั้งหมด</dt>
-                <dd>{f.rosterPower ? `⚔ ${formatPower(f.rosterPower)}` : 'ยังไม่มีข้อมูล'}</dd>
-              </div>
-              <div className="ledger-row">
-                <dt>ค่าพลังทีมตั้งรับ</dt>
-                <dd>
-                  {defenseEntries(f).length
-                    ? `⚔ ${formatPower(defenseEntries(f).reduce((s, e) => s + entryPower(e), 0))}`
-                    : 'ยังไม่ได้ตั้ง'}
-                </dd>
-              </div>
-            </dl>
+              <dl className="ledger">
+                <div className="ledger-row">
+                  <dt>กิลด์</dt>
+                  <dd>{f.guildName ? `${f.guildName} [${f.guildTag}]` : 'ยังไม่ได้เข้ากิลด์'}</dd>
+                </div>
+                <div className="ledger-row">
+                  <dt>เลเวลผู้เล่น</dt>
+                  <dd>
+                    {f.playerLevel ?? 1}
+                    {(f.playerLevel ?? 1) >= PLAYER_MAX_LEVEL && ' (สูงสุด)'}
+                  </dd>
+                </div>
+                <div className="ledger-row">
+                  <dt>ผ่านถึงด่าน</dt>
+                  <dd>{furthestStage(f.stageProgress)}</dd>
+                </div>
+                <div className="ledger-row">
+                  <dt>แรงค์ปัจจุบัน</dt>
+                  <dd>{rankLabel(f.pvpPoints)}</dd>
+                </div>
+                <div className="ledger-row">
+                  <dt>แรงค์สูงสุด</dt>
+                  <dd>{RANKS[f.highestRank ?? 0]?.name ?? RANKS[0].name}</dd>
+                </div>
+                <div className="ledger-row">
+                  <dt>ค่าพลังตัวละครทั้งหมด</dt>
+                  <dd>{f.rosterPower ? `⚔ ${formatPower(f.rosterPower)}` : 'ยังไม่มีข้อมูล'}</dd>
+                </div>
+                <div className="ledger-row">
+                  <dt>ค่าพลังทีมตั้งรับ</dt>
+                  <dd>
+                    {defenseEntries(f).length
+                      ? `⚔ ${formatPower(defenseEntries(f).reduce((s, e) => s + entryPower(e), 0))}`
+                      : 'ยังไม่ได้ตั้ง'}
+                  </dd>
+                </div>
+              </dl>
 
-            {defenseEntries(f).length > 0 && (
-              <div className="team-strip-slots friend-team">
-                {defenseEntries(f).map((e, i) => {
-                  const c = CHARACTERS[e.id]
-                  if (!c) return null
-                  return (
-                    <div className="mini-slot" data-filled key={i}>
-                      <span className="mini-mark">{ELEMENTS[c.element].mark}</span>
-                      <span className="mini-name">{c.name}</span>
-                      <span className="meta tiny">lv{e.level}</span>
-                    </div>
-                  )
-                })}
+              {defenseEntries(f).length > 0 && (
+                <div className="team-strip-slots friend-team">
+                  {defenseEntries(f).map((e, i) => {
+                    const c = CHARACTERS[e.id]
+                    if (!c) return null
+                    return (
+                      <div className="mini-slot" data-filled key={i}>
+                        <span className="mini-mark">{ELEMENTS[c.element].mark}</span>
+                        <span className="mini-name">{c.name}</span>
+                        <span className="meta tiny">lv{e.level}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div className="friend-actions">
+                <button
+                  className="plain-link inline"
+                  disabled={!defenseEntries(f).length}
+                  onClick={() => setPeek(f)}
+                >
+                  ดูตัวละคร
+                </button>
+                <button
+                  className="plain-link inline"
+                  disabled={!defenseEntries(f).length}
+                  onClick={() => navigate('/pvp', { state: { foe: f, friendly: true } })}
+                >
+                  ประลองสนุก ๆ
+                </button>
               </div>
+              </>
             )}
-
-            <div className="friend-actions">
-              <button
-                className="plain-link inline"
-                disabled={!defenseEntries(f).length}
-                onClick={() => setPeek(f)}
-              >
-                ดูตัวละคร
-              </button>
-              <button
-                className="plain-link inline"
-                disabled={!defenseEntries(f).length}
-                onClick={() => navigate('/pvp', { state: { foe: f, friendly: true } })}
-              >
-                ประลองสนุก ๆ
-              </button>
-            </div>
           </article>
         ))}
 
@@ -235,7 +265,7 @@ export default function Friends() {
       {peek && (
         <DefensePeek
           foe={peek}
-          title={`ตัวละครที่ ${peek.username} ใช้`}
+          title={`ตัวละครที่ ${displayName(peek)} ใช้`}
           onClose={() => setPeek(null)}
         />
       )}
