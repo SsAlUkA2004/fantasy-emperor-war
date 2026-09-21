@@ -237,7 +237,6 @@ export default function Arena() {
           <p className="meta">ครบโควตาวันนี้แล้ว รีเซ็ตอีก {hoursUntilReset()} ชั่วโมง</p>
         )}
         {foes === null && <p className="meta">กำลังหาคู่แข่ง</p>}
-        {foes?.length === 0 && <p className="meta">ยังไม่มีผู้เล่นคนอื่นที่แต้มใกล้เคียง</p>}
 
         {foes?.map((foe) => {
           const d = defenseEntries(foe)

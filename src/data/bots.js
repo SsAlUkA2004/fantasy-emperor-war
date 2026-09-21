@@ -141,7 +141,7 @@ export function makeBots(player, count = 3) {
   for (let i = 0; i < count; i++) {
     // สุ่มขยับชุดตัวละครในช่วง ±1 รอบตำแหน่งฐาน ไม่ใช่สุ่มเต็มช่วง
     // เพื่อให้ยังอยู่ใกล้ระดับที่เหมาะกับผู้เล่น แต่ไม่ใช่ชุดเดิมทุกครั้งที่กดหาใหม่
-    const base = tier * 2 + i
+    const base = tier * 2 + (i % 3)
     let slot = base
     for (let guard = 0; guard < 6; guard++) {
       const offset = Math.floor(Math.random() * 3) - 1
