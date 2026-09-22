@@ -32,6 +32,7 @@ import {
   rejectRequest,
   requestJoin,
   setJoinPolicy,
+  syncGuildTag,
 } from '../lib/guild'
 
 const fmt = (n) => Math.round(n ?? 0).toLocaleString('th-TH')
@@ -66,6 +67,12 @@ export default function Guild() {
       setMembers(g ? await loadMembers(player.guildId) : [])
       setRequests(g ? await loadRequests(player.guildId).catch(() => []) : [])
       setList(null)
+
+      // ป้ายกิลด์ (guildTag/guildName) ที่จดไว้บนเอกสารผู้เล่นเองอาจไม่ตรงหรือหายไป
+      // เช่นคนที่เข้ากิลด์ตั้งแต่ก่อนมีการจดสองฟิลด์นี้ไว้บนเอกสารผู้เล่น
+      // ทำให้เพื่อน/บอร์ดของคนอื่นไม่เห็นว่าเขาอยู่กิลด์ไหน ทั้งที่อยู่จริง
+      // ซ่อมให้ตรงกับกิลด์จริงทุกครั้งที่เจ้าตัวเปิดหน้านี้ (เขียนได้แค่เอกสารของตัวเอง)
+      if (g) await syncGuildTag({ ...player, uid: user.uid }, g).catch(() => {})
     } else {
       setGuild(null)
       setMembers(null)
