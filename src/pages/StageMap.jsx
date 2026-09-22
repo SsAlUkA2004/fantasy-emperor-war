@@ -82,18 +82,35 @@ export default function StageMap() {
     return cleared(`${lastId}@hard`)
   }
 
-  // บทถัดไปเปิดเมื่อผ่านด่านสุดท้ายของบทก่อนหน้า
-  function chapterOpen(number) {
+  /**
+   * บทถัดไปเปิดเมื่อผ่านด่านสุดท้ายของบทก่อนหน้า "ในโหมดความยากเดียวกัน"
+   *
+   * เดิมเช็คจากรหัสด่านพื้นฐานอย่างเดียว ไม่ใส่ต่อท้าย @hard/@demon เลย
+   * ผลคือบทของโหมดยาก/ปีศาจเปิดได้ไกลสุดแค่เท่าที่โหมดปกติไปถึง ต่อให้ไต่โหมดยากผ่านมาไกลกว่านั้นแล้วก็ตาม
+   * (ทั้งที่แต่ละโหมดตั้งใจให้ไต่เป็นอิสระจากกันตั้งแต่ผ่านด่านเช็คพอยต์ ดู diffOpen ด้านบน)
+   */
+  function chapterOpen(number, diffId = diff) {
     if (number === 1) return true
     const prev = CHAPTERS[number - 2]
-    return cleared(prev.stages[prev.stages.length - 1].id)
+    const sfx = DIFFICULTIES.find((d) => d.id === diffId)?.suffix ?? ''
+    return cleared(prev.stages[prev.stages.length - 1].id + sfx)
   }
 
-  // เปิดที่บทล่าสุดที่เล่นได้ ไม่ใช่บทที่ 1 เสมอ
-  const latest = CHAPTERS.filter((c) => chapterOpen(c.number)).pop()?.number ?? 1
-  const [view, setView] = useState(latest)
+  // บทล่าสุดที่เล่นได้ของโหมดความยากที่ระบุ ไม่ใช่บทที่ 1 เสมอ
+  function latestChapterFor(diffId) {
+    return CHAPTERS.filter((c) => chapterOpen(c.number, diffId)).pop()?.number ?? 1
+  }
+
+  const [view, setView] = useState(() => latestChapterFor(diff))
   const chapter = CHAPTERS[view - 1]
   const open = chapterOpen(view)
+
+  // สลับแท็บโหมดความยาก ให้กระโดดไปบทล่าสุดที่ไต่ถึงของโหมดนั้นทันที
+  // ไม่งั้น view จะค้างอยู่ที่บทของโหมดก่อนหน้า ทำให้เจอบทที่ล็อกทั้งบทและไม่รู้ว่าต้องกดย้อนไปกี่บท
+  function selectDiff(id) {
+    setDiff(id)
+    setView(latestChapterFor(id))
+  }
 
   /**
    * ด่านเปิดเมื่อผ่านด่านก่อนหน้าในโหมดเดียวกัน
@@ -110,7 +127,7 @@ export default function StageMap() {
     return cleared(prev + sfx)
   }
 
-  const done = chapter.stages.filter((s) => cleared(s.id)).length
+  const done = chapter.stages.filter((s) => cleared(s.id + suffix)).length
 
   return (
     <main className="screen top">
@@ -171,7 +188,7 @@ export default function StageMap() {
                 className="mode-tab"
                 data-active={diff === d.id}
                 disabled={!ok}
-                onClick={() => setDiff(d.id)}
+                onClick={() => selectDiff(d.id)}
               >
                 {d.name}
                 {!ok && <span className="mode-count">ล็อก</span>}
