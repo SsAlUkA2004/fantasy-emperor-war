@@ -90,6 +90,21 @@ export function pointDelta(myPoints, foePoints, won) {
   return -Math.max(5, me.loss - gap * 5)
 }
 
+/**
+ * แต้มที่ผู้ตั้งรับได้หรือเสียเมื่อมีคนมาท้า
+ *
+ * ผู้โจมตีชนะ ผู้ตั้งรับเสียแต้มตามระดับแรงค์ของตัวเอง (เทียบกับคนแรงค์เดียวกัน)
+ * ผู้โจมตีแพ้ ผู้ตั้งรับได้แต้มเหมือนชนะ เทียบกับแรงค์ของผู้โจมตี (ชนะคนแรงค์สูงกว่าได้เพิ่ม)
+ * แต้มที่ได้ต่อครั้งถูกตัดที่ 45 ตามเพดานต่อครั้งในกฎ firestore.rules (rankOk)
+ * attackerPoints ไม่มีในใบบันทึกเก่า ให้ถือว่าแรงค์เท่ากัน
+ */
+export const MAX_POINTS_GAIN = 45
+
+export function defenseDelta(myPoints, attackerWon, attackerPoints = myPoints) {
+  if (attackerWon) return pointDelta(myPoints, myPoints, false)
+  return Math.min(MAX_POINTS_GAIN, pointDelta(myPoints, attackerPoints ?? myPoints, true))
+}
+
 /** ใช้พื้นกันตกของแรงค์ปัจจุบัน */
 export function applyDelta(points, delta) {
   const floor = rankOf(points).min

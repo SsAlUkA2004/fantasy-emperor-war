@@ -225,7 +225,9 @@ export default function Lobby() {
 
         {attacked && (
           <p className="meta defense-note">
-            ระหว่างที่ไม่อยู่ มีคนมาท้าและชนะ {attacked.count} ครั้ง เสียไป {attacked.lost} แต้ม
+            ระหว่างที่ไม่อยู่ มีคนมาท้า {attacked.count} ครั้ง ป้องกันสำเร็จ {attacked.defended ?? 0} ครั้ง ได้ {attacked.gained ?? 0} แต้ม
+            {' '}
+            ถูกชนะ {attacked.count - (attacked.defended ?? 0)} ครั้ง เสียไป {attacked.lost} แต้ม
             <button className="plain-link inline" onClick={clearAttacked}>
               รับทราบ
             </button>

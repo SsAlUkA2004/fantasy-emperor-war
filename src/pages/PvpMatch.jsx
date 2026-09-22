@@ -106,7 +106,11 @@ export default function PvpMatch() {
     }
 
     if (!foe.isBot) {
-      logAttack(foe.uid, { uid: user.uid, username: player.username }, won).catch(() => {})
+      logAttack(
+        foe.uid,
+        { uid: user.uid, username: player.username, points: player.pvpPoints ?? 0 },
+        won
+      ).catch(() => {})
     }
 
     saveMatch({ ...player, uid: user.uid }, foe, won)

@@ -4,15 +4,15 @@ export const ENEMIES = {
   // ───────── บทที่ 1 ชายแดนตะวันออก ─────────
   ratling: {
     id: 'ratling', name: 'หนูป่าเวท', element: 'wind', mark: '🐀',
-    stats: { hp: 260, atk: 55, def: 20, spd: 88, crit: 5 },
+    stats: { hp: 260, atk: 55, def: 17, spd: 88, crit: 5 },
   },
   skeleton: {
     id: 'skeleton', name: 'โครงกระดูกเดินได้', element: 'dark', mark: '💀',
-    stats: { hp: 380, atk: 72, def: 40, spd: 70, crit: 5 },
+    stats: { hp: 380, atk: 72, def: 22, spd: 70, crit: 5 },
   },
   frostwolf: {
     id: 'frostwolf', name: 'หมาป่าน้ำแข็ง', element: 'water', mark: '🐺',
-    stats: { hp: 420, atk: 85, def: 35, spd: 100, crit: 10 },
+    stats: { hp: 420, atk: 85, def: 26, spd: 100, crit: 10 },
   },
   hexer: {
     id: 'hexer', name: 'นักเวทเถื่อน', element: 'fire', mark: '🔮',
@@ -27,7 +27,7 @@ export const ENEMIES = {
   },
   golem: {
     id: 'golem', name: 'กอเลมหินผู้เฝ้าประตู', element: 'earth', mark: '🗿', boss: true,
-    stats: { hp: 2150, atk: 140, def: 92, spd: 58, crit: 8 },
+    stats: { hp: 2150, atk: 140, def: 31, spd: 58, crit: 8 },
   },
 
   // ───────── บทที่ 2 ป่าหมอกนิรันดร์ ─────────
@@ -37,7 +37,7 @@ export const ENEMIES = {
   },
   mandrake: {
     id: 'mandrake', name: 'รากแมนเดรก', element: 'earth', mark: '🌿',
-    stats: { hp: 1923, atk: 209, def: 117, spd: 54, crit: 5 },
+    stats: { hp: 1923, atk: 209, def: 63, spd: 54, crit: 5 },
     skill: {
       name: 'เสียงกรีดร้อง', mp: 3,
       effects: [{ kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.35 }],
@@ -49,7 +49,7 @@ export const ENEMIES = {
   },
   treant: {
     id: 'treant', name: 'ทรีแอนต์เฒ่า', element: 'earth', mark: '🌳', boss: true,
-    stats: { hp: 7866, atk: 389, def: 177, spd: 52, crit: 8 },
+    stats: { hp: 7866, atk: 389, def: 86, spd: 52, crit: 8 },
     skill: {
       name: 'รากพันธนาการ', mp: 3,
       effects: [
@@ -66,7 +66,7 @@ export const ENEMIES = {
   },
   mummy: {
     id: 'mummy', name: 'มัมมี่คำสาป', element: 'dark', mark: '🧟',
-    stats: { hp: 5233, atk: 502, def: 198, spd: 62, crit: 6 },
+    stats: { hp: 5233, atk: 502, def: 151, spd: 62, crit: 6 },
   },
   efreet: {
     id: 'efreet', name: 'อิฟรีตทะเลทราย', element: 'fire', mark: '🕯️',
@@ -81,7 +81,7 @@ export const ENEMIES = {
   },
   sandwyrm: {
     id: 'sandwyrm', name: 'พญาหนอนทราย', element: 'earth', mark: '🪱', boss: true,
-    stats: { hp: 21923, atk: 842, def: 281, spd: 70, crit: 10 },
+    stats: { hp: 21923, atk: 842, def: 185, spd: 70, crit: 10 },
     skill: {
       name: 'กลืนทั้งเป็น', mp: 3,
       effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
@@ -106,11 +106,11 @@ export const ENEMIES = {
   },
   rocdrake: {
     id: 'rocdrake', name: 'มังกรน้อยหินผา', element: 'wind', mark: '🐉',
-    stats: { hp: 3966, atk: 471, def: 175, spd: 120, crit: 15 },
+    stats: { hp: 3966, atk: 471, def: 141, spd: 120, crit: 15 },
   },
   emberlord: {
     id: 'emberlord', name: 'จอมเพลิงหลับใหล', element: 'fire', mark: '👹', boss: true,
-    stats: { hp: 20312, atk: 662, def: 270, spd: 100, crit: 14 },
+    stats: { hp: 20312, atk: 662, def: 146, spd: 100, crit: 14 },
     skill: {
       name: 'เปลวหมื่นปี', mp: 3,
       effects: [
@@ -127,7 +127,7 @@ export const ENEMIES = {
   },
   darkknight: {
     id: 'darkknight', name: 'อัศวินดำ', element: 'dark', mark: '⚔️',
-    stats: { hp: 3978, atk: 347, def: 213, spd: 92, crit: 12 },
+    stats: { hp: 3978, atk: 347, def: 104, spd: 92, crit: 12 },
     skill: {
       name: 'ดาบสาปแช่ง', mp: 3,
       effects: [{ kind: 'damage', mult: 2.2, target: 'one' }],
@@ -135,7 +135,7 @@ export const ENEMIES = {
   },
   sentinel: {
     id: 'sentinel', name: 'ผู้พิทักษ์แสงร้าง', element: 'light', mark: '🛡️',
-    stats: { hp: 4563, atk: 308, def: 242, spd: 80, crit: 8 },
+    stats: { hp: 4563, atk: 308, def: 92, spd: 80, crit: 8 },
     skill: {
       name: 'ปราการศักดิ์สิทธิ์', mp: 3,
       effects: [
@@ -146,7 +146,7 @@ export const ENEMIES = {
   },
   voidking: {
     id: 'voidking', name: 'ราชันสุญญากาศ', element: 'dark', mark: '🌑', boss: true,
-    stats: { hp: 21060, atk: 512, def: 280, spd: 116, crit: 18 },
+    stats: { hp: 21060, atk: 512, def: 113, spd: 116, crit: 18 },
     skill: {
       name: 'กลืนกินแสงสุดท้าย', mp: 3,
       effects: [
@@ -170,7 +170,7 @@ export const ENEMIES = {
   },
   gargoyle: {
     id: 'gargoyle', name: 'การ์กอยล์เฝ้าผา', element: 'earth', mark: '🗿',
-    stats: { hp: 25334, atk: 957, def: 601, spd: 88, crit: 10 },
+    stats: { hp: 25334, atk: 957, def: 287, spd: 88, crit: 10 },
   },
   harpy: {
     id: 'harpy', name: 'ฮาร์ปีล่าเหยื่อ', element: 'wind', mark: '🦅',
@@ -178,7 +178,7 @@ export const ENEMIES = {
   },
   abysswing: {
     id: 'abysswing', name: 'ปีกเหวลึก', element: 'dark', mark: '🕷️', boss: true,
-    stats: { hp: 125798, atk: 1712, def: 784, spd: 128, crit: 20 },
+    stats: { hp: 125798, atk: 1712, def: 377, spd: 128, crit: 20 },
     skill: {
       name: 'ปีกคลุมเหว', mp: 3,
       effects: [
@@ -191,7 +191,9 @@ export const ENEMIES = {
   // ───────── บทที่ 7 นครลอยฟ้าที่ร้างไป ─────────
   automaton: {
     id: 'automaton', name: 'จักรกลผู้พิทักษ์', element: 'light', mark: '🤖',
-    stats: { hp: 20807, atk: 752, def: 630, spd: 96, crit: 12 },
+    // เดิม def 630/atk 752 (สัดส่วน 0.84 สูงกว่าศัตรูตัวอื่นมาก) ตอนเพิ่มบทที่ 9-15 โหมดยาก/ปีศาจ
+    // ต้องใช้ค่าพลังอ้างอิงสูงกว่าเดิมมาก ด่านย่อยที่มีตัวนี้เลยทนเกินไปจนสู้ไม่จบในเพดานรอบ ลดสัดส่วนลงมาที่ ~0.3
+    stats: { hp: 20807, atk: 752, def: 226, spd: 96, crit: 12 },
     skill: {
       name: 'ลำแสงตัดสิน', mp: 3,
       effects: [{ kind: 'damage', mult: 2.4, target: 'one' }],
@@ -199,7 +201,7 @@ export const ENEMIES = {
   },
   stormcaller: {
     id: 'stormcaller', name: 'ผู้เรียกพายุ', element: 'wind', mark: '⚡',
-    stats: { hp: 15606, atk: 944, def: 368, spd: 156, crit: 22 },
+    stats: { hp: 15606, atk: 944, def: 283, spd: 156, crit: 22 },
     skill: {
       name: 'สายฟ้าซัดทั่วฟ้า', mp: 3,
       effects: [
@@ -210,7 +212,7 @@ export const ENEMIES = {
   },
   seraph: {
     id: 'seraph', name: 'เซราฟตกสวรรค์', element: 'light', mark: '👼',
-    stats: { hp: 18406, atk: 848, def: 490, spd: 120, crit: 18 },
+    stats: { hp: 18406, atk: 848, def: 254, spd: 120, crit: 18 },
     skill: {
       name: 'ปีกหกคู่', mp: 3,
       // ฟื้นพลังตัวเองแค่ 5% ไม่ใช่ 15%
@@ -226,9 +228,10 @@ export const ENEMIES = {
     id: 'skylord', name: 'เจ้าแห่งนภาที่ถูกลืม', element: 'light', mark: '☀️', boss: true,
     // เดิม def 857 สูงกว่าบอสบทอื่นตามสัดส่วนมาก (บอสอื่นแถวปลายเกม def/atk ราว 0.4-0.55
     // ตัวนี้เคยอยู่ที่ 0.62) พอไฟไหม้ไม่ทะลุพลังป้องกันแบบเดิม สูตรลดทอนดาเมจแบบไม่เป็นเส้นตรง
-    // (100/(100+def)) ทำให้ตัวนี้ทนกว่าบอสอื่นที่ค่าพลังรวมเท่ากันมาก จนสู้ไม่จบในเพดานรอบ
-    // ย้ายส่วนของ def ไปเป็น atk แทนโดยค่าพลังรวม (combatPower) เท่าเดิม ให้สัดส่วนกลับมาใกล้บอสอื่น
-    stats: { hp: 132047, atk: 1497, def: 688, spd: 140, crit: 22 },
+    // (100/(100+def)) ทำให้ตัวนี้ทนกว่าบอสอื่นที่ค่าพลังรวมเท่ากันมาก จนสู้ไม่จบในเพดานรอบ ย้ายเป็น 688
+    // ตอนนั้น ต่อมาตอนเพิ่มบทที่ 9-15 โหมดยาก/ปีศาจต้องใช้บอสบทนี้ที่ scale สูงกว่าเดิมมาก (ดู
+    // STAGE_SCALE.hard/demon) ที่สัดส่วน 0.46 ก็ยังทนเกินไปอีกครั้งที่ scale ระดับนั้น ลดลงอีกเหลือ ~0.22
+    stats: { hp: 132047, atk: 1497, def: 329, spd: 140, crit: 22 },
     skill: {
       name: 'คำสั่งจากเบื้องบน', mp: 3,
       effects: [
@@ -244,7 +247,7 @@ export const ENEMIES = {
     // เดิม def700/atk820 (สัดส่วน 0.85) สูงกว่าศัตรูตัวอื่นในเกมมาก แม้แต่สกายลอร์ดที่เคยแก้ไป
     // ก็ยังอยู่แค่ 0.62 พอด่านย่อยที่มีตัวนี้ต้องยกสเกลขึ้นให้ถึงเป้าค่าพลัง ทีมสู้ไม่ทันเพดานรอบ
     // ย้ายส่วนของ def ไปเป็น atk แทน (ค่าพลังรวมเท่าเดิม) ให้สัดส่วนใกล้เคียงศัตรูตัวอื่น (~0.5)
-    stats: { hp: 23000, atk: 973, def: 487, spd: 90, crit: 12 },
+    stats: { hp: 23000, atk: 973, def: 292, spd: 90, crit: 12 },
     skill: {
       name: 'หมัดผลึกอัดแน่น', mp: 3,
       effects: [
@@ -255,7 +258,7 @@ export const ENEMIES = {
   },
   gembat: {
     id: 'gembat', name: 'ค้างคาวอัญมณี', element: 'wind', mark: '🦇',
-    stats: { hp: 17000, atk: 980, def: 420, spd: 160, crit: 24 },
+    stats: { hp: 17000, atk: 980, def: 294, spd: 160, crit: 24 },
     skill: {
       name: 'โฉบปีกคม', mp: 3,
       effects: [{ kind: 'damage', mult: 1.6, target: 'one' }],
@@ -264,7 +267,7 @@ export const ENEMIES = {
   shardwraith: {
     id: 'shardwraith', name: 'วิญญาณเศษแก้ว', element: 'dark', mark: '🔪',
     // ปรับสัดส่วน def/atk ลงมาใกล้เคียงศัตรูตัวอื่น (~0.5) ด้วยเหตุผลเดียวกับ crystalgolem
-    stats: { hp: 19500, atk: 926, def: 463, spd: 130, crit: 22 },
+    stats: { hp: 19500, atk: 926, def: 278, spd: 130, crit: 22 },
     skill: {
       name: 'เศษคริสตัลกรีดเลือด', mp: 3,
       effects: [
@@ -275,20 +278,23 @@ export const ENEMIES = {
   },
   prismwyrm: {
     id: 'prismwyrm', name: 'พญางูปริซึม', element: 'light', mark: '🌈',
-    // ปรับสัดส่วน def/atk ลงมาใกล้เคียงศัตรูตัวอื่น (~0.5) ด้วยเหตุผลเดียวกับ crystalgolem
-    stats: { hp: 20500, atk: 915, def: 458, spd: 115, crit: 18 },
+    // ปรับสัดส่วน def/atk ลงมาใกล้เคียงศัตรูตัวอื่น ด้วยเหตุผลเดียวกับ crystalgolem
+    // (เดิม 0.5 ตอนเพิ่มบทที่ 9-15 โหมดยาก/ปีศาจต้องใช้ค่าพลังอ้างอิงสูงกว่าเดิมมาก ลดลงอีกเหลือ ~0.3)
+    stats: { hp: 20500, atk: 915, def: 275, spd: 115, crit: 18 },
+    // ฟื้นพลังตัวเองเดิม 12% ที่เลเวลอ้างอิงเดิมไม่มีปัญหา แต่พอต้องใช้ที่เลเวลสูงกว่านี้มาก
+    // (โหมดยาก/ปีศาจของบทที่ 9-15) ฟื้นเร็วกว่าที่ทีมตีเข้า ลดเหลือ 5% เหมือนเซราฟบทที่ 7
     skill: {
       name: 'แสงหักเหเยียวยา', mp: 3,
       effects: [
         { kind: 'damage', mult: 1.3, target: 'allFoes' },
-        { kind: 'heal', percent: 0.12, target: 'self' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
       ],
     },
   },
   geodetitan: {
     id: 'geodetitan', name: 'ไททันแก่นคริสตัล', element: 'earth', mark: '🔷', boss: true,
     // สัดส่วน def/atk ราว 0.46 ใกล้เคียงบอสบทอื่นตามที่แก้ให้สกายลอร์ดไว้ ไม่ให้ทนเกินจริงในเพดานรอบ
-    stats: { hp: 148000, atk: 1560, def: 715, spd: 112, crit: 20 },
+    stats: { hp: 148000, atk: 1560, def: 343, spd: 112, crit: 20 },
     skill: {
       name: 'พิภพแตกร้าว', mp: 3,
       effects: [
@@ -305,7 +311,7 @@ export const ENEMIES = {
   // เอามาใช้ตรง ๆ ในดันเจี้ยนที่ไม่มีตัวหารพวกนั้นจะแรงเกินจริงหลายเท่า (ดูรอยคอมมิตที่แก้เรื่องนี้)
   vaultguard1: {
     id: 'vaultguard1', name: 'ยามเฝ้าคลังชายแดน', element: 'earth', mark: '🛡️', boss: true,
-    stats: { hp: 40000, atk: 950, def: 420, spd: 108, crit: 16 },
+    stats: { hp: 40000, atk: 950, def: 285, spd: 108, crit: 16 },
     skill: {
       name: 'โล่กระแทกพิภพ', mp: 3,
       effects: [{ kind: 'damage', mult: 1.8, target: 'allFoes' }],
@@ -313,7 +319,7 @@ export const ENEMIES = {
   },
   vaultguard2: {
     id: 'vaultguard2', name: 'โจรเกราะเพลิง', element: 'fire', mark: '🔥', boss: true,
-    stats: { hp: 37000, atk: 1020, def: 380, spd: 125, crit: 20 },
+    stats: { hp: 37000, atk: 1020, def: 306, spd: 125, crit: 20 },
     skill: {
       name: 'เปลวริบทรัพย์', mp: 3,
       effects: [
@@ -346,7 +352,7 @@ export const ENEMIES = {
   },
   vaultknight2: {
     id: 'vaultknight2', name: 'ยักษ์เฝ้าสมบัติ', element: 'earth', mark: '🗻', boss: true,
-    stats: { hp: 68000, atk: 1260, def: 520, spd: 90, crit: 14 },
+    stats: { hp: 68000, atk: 1260, def: 378, spd: 90, crit: 14 },
     skill: {
       name: 'กำปั้นทลายคลัง', mp: 3,
       effects: [{ kind: 'damage', mult: 2.2, target: 'one' }],
@@ -378,7 +384,7 @@ export const ENEMIES = {
   },
   vaultlord2: {
     id: 'vaultlord2', name: 'เทพอสูรเฝ้าขุมทรัพย์', element: 'earth', mark: '🔱', boss: true,
-    stats: { hp: 92000, atk: 1590, def: 560, spd: 96, crit: 16 },
+    stats: { hp: 92000, atk: 1590, def: 477, spd: 96, crit: 16 },
     skill: {
       name: 'ตรีศูลทลายแผ่นดิน', mp: 3,
       effects: [{ kind: 'damage', mult: 2.4, target: 'allFoes' }],
@@ -392,6 +398,351 @@ export const ENEMIES = {
       effects: [
         { kind: 'damage', mult: 2.0, target: 'one' },
         { kind: 'status', status: 'burn', turns: 3, target: 'one' },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 9 ทะเลสีเลือดใต้พสุธา ─────────
+  // ทุกบทตั้งแต่นี้ (9-15) ต่อค่าพลังดิบจากบทที่ 8 ด้วยตัวคูณทบต้น 1.1 เท่าต่อบท (hp/atk/def)
+  // แล้วปล่อยให้ STAGE_SCALE (คำนวณจากค่าพลังทีมอ้างอิง คูณ 0.5 เหมือนบทที่ 5-8) เป็นตัวปรับละเอียด
+  // สัดส่วน def/atk คงไว้ราว 0.45-0.55 ตามบทเรียนจากบทที่ 7-8 (ดูหมายเหตุ crystalgolem/skylord ด้านบน)
+  coralfang: {
+    id: 'coralfang', name: 'เขี้ยวปะการังเลือด', element: 'water', mark: '🪸',
+    stats: { hp: 25300, atk: 1070, def: 235, spd: 95, crit: 14 },
+  },
+  leechswarm: {
+    id: 'leechswarm', name: 'ฝูงปลิงเลือด', element: 'dark', mark: '🩸',
+    stats: { hp: 18700, atk: 1078, def: 237, spd: 165, crit: 26 },
+    skill: {
+      name: 'ดูดกลืนโลหิต', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.4, target: 'one' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
+      ],
+    },
+  },
+  tideknight: {
+    id: 'tideknight', name: 'อัศวินกระแสเลือด', element: 'water', mark: '🌊',
+    stats: { hp: 21450, atk: 1019, def: 224, spd: 128, crit: 20 },
+    skill: {
+      name: 'คลื่นเลือดซัด', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.3 },
+      ],
+    },
+  },
+  abysscrab: {
+    id: 'abysscrab', name: 'ปูอสูรก้นสมุทร', element: 'earth', mark: '🦀',
+    stats: { hp: 22550, atk: 1007, def: 222, spd: 108, crit: 16 },
+  },
+  crimsonleviathan: {
+    id: 'crimsonleviathan', name: 'วารีอสูรเลือดโบราณ', element: 'water', mark: '🩸', boss: true,
+    stats: { hp: 162800, atk: 1716, def: 378, spd: 118, crit: 20 },
+    skill: {
+      name: 'วังวนโลหิตนิรันดร์', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.1, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'allFoes' },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 10 โรงหลอมเครื่องจักรโบราณ ─────────
+  forgesentry: {
+    id: 'forgesentry', name: 'ยามเฝ้าโรงหลอม', element: 'earth', mark: '🔧',
+    stats: { hp: 27830, atk: 1177, def: 259, spd: 92, crit: 14 },
+  },
+  moltengear: {
+    id: 'moltengear', name: 'เฟืองลาวา', element: 'fire', mark: '⚙️',
+    stats: { hp: 20570, atk: 1186, def: 261, spd: 158, crit: 24 },
+    skill: {
+      name: 'เฟืองบดสลาย', mp: 3,
+      effects: [{ kind: 'damage', mult: 1.6, target: 'one' }],
+    },
+  },
+  sparkwraith: {
+    id: 'sparkwraith', name: 'วิญญาณประกายไฟ', element: 'fire', mark: '⚡',
+    stats: { hp: 23595, atk: 1120, def: 246, spd: 134, crit: 22 },
+    skill: {
+      name: 'ประกายเพลิงกระจาย', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'allFoes' },
+      ],
+    },
+  },
+  ironjudge: {
+    id: 'ironjudge', name: 'ผู้พิพากษาเหล็กกล้า', element: 'earth', mark: '⚖️',
+    stats: { hp: 24805, atk: 1107, def: 244, spd: 110, crit: 18 },
+    skill: {
+      name: 'คำพิพากษาเหล็ก', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.3, target: 'one' }],
+    },
+  },
+  pyrotitan: {
+    id: 'pyrotitan', name: 'ไททันเพลิงแห่งโรงหลอม', element: 'fire', mark: '🔥', boss: true,
+    stats: { hp: 179080, atk: 1888, def: 415, spd: 114, crit: 22 },
+    skill: {
+      name: 'สายเพลิงหลอมสลาย', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.15, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'allFoes' },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 11 ทุ่งสายลมไร้จุดจบ ─────────
+  galeraptor: {
+    id: 'galeraptor', name: 'แร้งสายลม', element: 'wind', mark: '🦅',
+    stats: { hp: 30613, atk: 1295, def: 285, spd: 150, crit: 22 },
+  },
+  thunderhawk: {
+    id: 'thunderhawk', name: 'เหยี่ยวสายฟ้า', element: 'wind', mark: '🦉',
+    stats: { hp: 22627, atk: 1304, def: 287, spd: 172, crit: 26 },
+    skill: {
+      name: 'จิกฟ้าผ่า', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.6, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.4 },
+      ],
+    },
+  },
+  cloudserpent: {
+    id: 'cloudserpent', name: 'งูเมฆ', element: 'wind', mark: '🐍',
+    stats: { hp: 25955, atk: 1233, def: 271, spd: 138, crit: 20 },
+    skill: {
+      name: 'พันรัดม่านเมฆ', mp: 3,
+      effects: [{ kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.35 }],
+    },
+  },
+  stormpriest: {
+    id: 'stormpriest', name: 'นักบวชพายุ', element: 'wind', mark: '🌀',
+    stats: { hp: 27286, atk: 1218, def: 268, spd: 122, crit: 18 },
+    skill: {
+      name: 'มนตร์เรียกพายุ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
+      ],
+    },
+  },
+  tempestarchon: {
+    id: 'tempestarchon', name: 'อาร์คอนพายุนิรันดร์', element: 'wind', mark: '⛈️', boss: true,
+    // สปีด/คริสูงกว่าบอสบทอื่นราวนี้พอสมควร (158/26) รวมกับสตันหมู่โอกาส 0.4 ตอนจำลองแล้วทีมอ้างอิง
+    // โดนล็อกจนตีไม่ทันเพดานรอบ ลดโอกาสสตันเหลือ 0.25 ให้สมดุลกับความเร็ว/คริที่สูงอยู่แล้ว
+    stats: { hp: 196988, atk: 2076, def: 457, spd: 158, crit: 26 },
+    skill: {
+      name: 'พิพากษาสายลมกลืนฟ้า', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.2, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.25 },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 12 มหาวิหารแสงจันทร์ขาว ─────────
+  moonpriest: {
+    id: 'moonpriest', name: 'นักบวชจันทร์ขาว', element: 'light', mark: '🌙',
+    stats: { hp: 33674, atk: 1425, def: 314, spd: 108, crit: 18 },
+    skill: {
+      name: 'แสงจันทร์เยียวยา', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.3, target: 'allFoes' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
+      ],
+    },
+  },
+  lightward: {
+    id: 'lightward', name: 'ผู้พิทักษ์แสงขาว', element: 'light', mark: '🛡️',
+    stats: { hp: 24890, atk: 1435, def: 316, spd: 96, crit: 14 },
+    skill: {
+      name: 'ปราการจันทรา', mp: 3,
+      effects: [
+        { kind: 'status', status: 'defUp', turns: 2, target: 'self' },
+        { kind: 'status', status: 'shield', turns: 1, target: 'self' },
+      ],
+    },
+  },
+  seraphguard: {
+    id: 'seraphguard', name: 'การ์เดียนปีกแสง', element: 'light', mark: '🕊️',
+    stats: { hp: 28550, atk: 1356, def: 298, spd: 132, crit: 22 },
+    skill: {
+      name: 'ปีกแสงบาดตา', mp: 3,
+      effects: [{ kind: 'damage', mult: 1.7, target: 'one' }],
+    },
+  },
+  radiantscribe: {
+    id: 'radiantscribe', name: 'อาลักษณ์แสงจ้า', element: 'light', mark: '📜',
+    stats: { hp: 30014, atk: 1340, def: 295, spd: 118, crit: 18 },
+    skill: {
+      name: 'อักขระผนึกพลัง', mp: 3,
+      effects: [{ kind: 'status', status: 'skillLock', turns: 1, target: 'one', chance: 0.4 }],
+    },
+  },
+  lunarchseraph: {
+    id: 'lunarchseraph', name: 'อัครทูตจันทร์ขาว', element: 'light', mark: '🌕', boss: true,
+    stats: { hp: 216687, atk: 2284, def: 502, spd: 126, crit: 24 },
+    skill: {
+      name: 'พิพากษาจันทร์เพ็ญ', mp: 3,
+      // ตอนจำลองแล้วทีมอ้างอิงโดนสตันหมู่ซ้ำจนตีไม่ทันเพดานรอบ ลดโอกาสสตันจาก 0.4 เหลือ 0.22
+      // (ต่ำกว่าบทอื่นที่มีสตันหมู่เหมือนกัน เพราะบทนี้ค่าพลังดิบสูงอยู่แล้วจากช่วงเลเวลอ้างอิง)
+      effects: [
+        { kind: 'damage', mult: 2.25, target: 'allFoes' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'allFoes', chance: 0.22 },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 13 เขาวงกตเงาไร้ก้นบึ้ง ─────────
+  shadehunter: {
+    id: 'shadehunter', name: 'นักล่าเงา', element: 'dark', mark: '🗡️',
+    stats: { hp: 37042, atk: 1567, def: 345, spd: 136, crit: 24 },
+    skill: {
+      name: 'เงี่ยงเงาลอบกรีด', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.7, target: 'one' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'one' },
+      ],
+    },
+  },
+  wraithcollector: {
+    id: 'wraithcollector', name: 'ผู้เก็บวิญญาณ', element: 'dark', mark: '👻',
+    stats: { hp: 27379, atk: 1578, def: 347, spd: 118, crit: 18 },
+    skill: {
+      name: 'เก็บเกี่ยววิญญาณ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.4, target: 'allFoes' },
+        { kind: 'heal', percent: 0.05, target: 'self' },
+      ],
+    },
+  },
+  nightstalker: {
+    id: 'nightstalker', name: 'ผู้สะกดรอยราตรี', element: 'dark', mark: '🌑',
+    stats: { hp: 31405, atk: 1491, def: 328, spd: 148, crit: 26 },
+  },
+  hollowknight: {
+    id: 'hollowknight', name: 'อัศวินกลวงเปล่า', element: 'dark', mark: '⚔️',
+    stats: { hp: 33015, atk: 1474, def: 324, spd: 104, crit: 16 },
+    skill: {
+      name: 'ดาบไร้วิญญาณ', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.3, target: 'one' }],
+    },
+  },
+  voidsovereign: {
+    id: 'voidsovereign', name: 'จ้าวเงาสุญญาศูนย์', element: 'dark', mark: '🕳️', boss: true,
+    stats: { hp: 238355, atk: 2512, def: 553, spd: 132, crit: 24 },
+    skill: {
+      name: 'สูญสิ้นไร้ตัวตน', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.3, target: 'allFoes' },
+        { kind: 'status', status: 'skillLock', turns: 1, target: 'allFoes', chance: 0.35 },
+      ],
+    },
+  },
+
+  // ───────── บทที่ 14 ก้อนเมฆหินอุกกาบาต ─────────
+  meteorguard: {
+    id: 'meteorguard', name: 'ยามหินอุกกาบาต', element: 'earth', mark: '☄️',
+    stats: { hp: 40746, atk: 1724, def: 379, spd: 100, crit: 16 },
+  },
+  stoneserpent: {
+    id: 'stoneserpent', name: 'งูศิลาโบราณ', element: 'earth', mark: '🐉',
+    stats: { hp: 30117, atk: 1736, def: 382, spd: 140, crit: 22 },
+    skill: {
+      name: 'รัดกระแทกศิลา', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.6, target: 'one' },
+        { kind: 'status', status: 'stun', turns: 1, target: 'one', chance: 0.4 },
+      ],
+    },
+  },
+  quakebeast: {
+    id: 'quakebeast', name: 'อสูรแผ่นดินไหว', element: 'earth', mark: '🦏',
+    stats: { hp: 34545, atk: 1640, def: 361, spd: 92, crit: 14 },
+    skill: {
+      name: 'สั่นสะเทือนพิภพ', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.0, target: 'allFoes' }],
+    },
+  },
+  cinderrock: {
+    id: 'cinderrock', name: 'หินเถ้าถ่านลุกไหม้', element: 'fire', mark: '🪨',
+    stats: { hp: 36317, atk: 1621, def: 357, spd: 116, crit: 18 },
+    skill: {
+      name: 'เถ้าถ่านแผดเผา', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'status', status: 'burn', turns: 3, target: 'allFoes' },
+      ],
+    },
+  },
+  colossusmeteor: {
+    id: 'colossusmeteor', name: 'มหากายอุกกาบาตล่มโลก', element: 'earth', mark: '🌠', boss: true,
+    // เดิม def 1267/atk 2764 (สัดส่วน 0.46 ใกล้เคียงบอสบทอื่น) แต่จำลองแล้วทีมอ้างอิงตีไม่เข้า
+    // สูตรลดทอนดาเมจ 100/(100+def) ทำให้ทนกว่าที่ค่าพลังรวม (combatPower) บอกไว้มาก จนสู้ไม่จบในเพดานรอบ
+    // เหตุผลเดียวกับที่ต้องแก้ crystalgolem/skylord ตอนบทที่ 7-8 ย้ายส่วนของ def ไปเป็น atk แทน
+    stats: { hp: 262191, atk: 3500, def: 700, spd: 108, crit: 20 },
+    // ตอนจำลองแล้วทีมอ้างอิงยังโดนสตันหมู่ซ้ำจนตีไม่ทันเพดานรอบอยู่ดีทั้งที่ลดโอกาสแล้ว
+    // (ลามไปถึงโหมดยาก/ปีศาจที่เลเวลอ้างอิงสูงกว่านี้มาก) ตัดสตันออกเหลือดาเมจล้วนเหมือนสันดวงเวิร์มบทที่ 3
+    skill: {
+      name: 'อุกกาบาตล้างพิภพ', mp: 3,
+      effects: [{ kind: 'damage', mult: 2.4, target: 'allFoes' }],
+    },
+  },
+
+  // ───────── บทที่ 15 เงาสะท้อนบัลลังก์โคลโน ─────────
+  // บทสุดท้ายของเนื้อเรื่องตอนนี้ ผูกกับธีมจักรพรรดิโคลโน (ตัวละคร UR+ chronathar และตู้จักรพรรดิโคลโน)
+  // บอสตัวนี้เป็นแค่ "เงาสะท้อน" ไม่ใช่ตัวละคร chronathar เอง เปิดทางไว้ให้เนื้อเรื่องต่อในอนาคต
+  chronoguard: {
+    id: 'chronoguard', name: 'ยามพิทักษ์กาลเวลา', element: 'dark', mark: '⏳',
+    stats: { hp: 44820, atk: 1896, def: 417, spd: 112, crit: 18 },
+  },
+  timewraith: {
+    id: 'timewraith', name: 'วิญญาณเวลาที่หลงทาง', element: 'dark', mark: '🕰️',
+    stats: { hp: 33128, atk: 1910, def: 420, spd: 168, crit: 26 },
+    skill: {
+      name: 'บิดเบือนห้วงเวลา', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.6, target: 'one' },
+        { kind: 'mpDown', amount: 2, target: 'one' },
+      ],
+    },
+  },
+  echoknight: {
+    id: 'echoknight', name: 'อัศวินเงาสะท้อน', element: 'dark', mark: '🪞',
+    stats: { hp: 38000, atk: 1805, def: 397, spd: 138, crit: 22 },
+    skill: {
+      name: 'ดาบซ้อนเงา', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.6, target: 'one' },
+        { kind: 'status', status: 'burn', turns: 2, target: 'one' },
+      ],
+    },
+  },
+  voidherald: {
+    id: 'voidherald', name: 'ผู้ประกาศแห่งความว่างเปล่า', element: 'dark', mark: '📯',
+    stats: { hp: 39949, atk: 1783, def: 392, spd: 120, crit: 18 },
+    skill: {
+      name: 'สังคายนาสูญญาการ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 1.5, target: 'allFoes' },
+        { kind: 'status', status: 'skillLock', turns: 1, target: 'allFoes', chance: 0.3 },
+      ],
+    },
+  },
+  chronoshade: {
+    id: 'chronoshade', name: 'เงาสะท้อนจักรพรรดิโคลโน', element: 'dark', mark: '👑', boss: true,
+    // เดิม atk 3040/def 1393 (สัดส่วน 0.46) ผสมกับสามผลพร้อมกัน (ดาเมจหมู่+ลดพลังเวท+สตัน) จำลองแล้ว
+    // ทีมอ้างอิงตีไม่เข้าและโดนล็อกจนสู้ไม่จบในเพดานรอบ เหตุผลเดียวกับ colossusmeteor ด้านบน
+    // ย้ายส่วนของ def ไปเป็น atk แทน และลดความแรงของชุดสถานะลงเหลือผลเดียวที่หนักคือสตัน
+    stats: { hp: 288410, atk: 3600, def: 650, spd: 130, crit: 24 },
+    // ตอนจำลองแล้วทีมอ้างอิงยังโดนล็อกจนสู้ไม่ทันเพดานรอบอยู่ดี (เหตุผลเดียวกับ colossusmeteor ด้านบน)
+    // ตัดสตันออก เหลือดาเมจหมู่กับลดพลังเวทซึ่งบั่นทอนแบบสะสม ไม่ใช่ล็อกไม่ให้ขยับตรง ๆ
+    skill: {
+      name: 'ล่วงกาลเงาจักรพรรดิ', mp: 3,
+      effects: [
+        { kind: 'damage', mult: 2.2, target: 'allFoes' },
+        { kind: 'mpDown', amount: 1, target: 'allFoes' },
       ],
     },
   },
@@ -496,6 +847,69 @@ export const CHAPTERS = [
     { name: 'ประตูสู่แก่นพิภพ', intro: 'ประตูสุดท้ายก่อนถึงแก่นโลก อย่าลงไปด้วยทีมที่บาดเจ็บ', exp: 36000, enemies: [e('shardwraith', 3), e('prismwyrm', 3), e('crystalgolem', 4)] },
     { name: 'แก่นคริสตัลนิรันดร์', intro: 'สิ่งที่หลับอยู่ใต้พิภพตื่นขึ้นพร้อมแสงจ้าจากแก่นคริสตัล', exp: 50000, enemies: [e('geodetitan', 4)] },
   ]),
+
+  chapter(9, 'ทะเลสีเลือดใต้พสุธา', 'ลึกกว่าแก่นคริสตัลลงไปอีก มีทะเลที่ไม่ควรมีอยู่ใต้พิภพ', [
+    { name: 'ชายฝั่งเลือดจาง', intro: 'น้ำสีแดงซัดเข้าฝั่งเป็นจังหวะ เหมือนมีอะไรหายใจอยู่ใต้นั้น', exp: 56000, enemies: [e('coralfang', 2), e('coralfang', 2)] },
+    { name: 'แนวปะการังจมเลือด', intro: 'ปลิงตัวเล็กรวมฝูงกันจนดูเหมือนเงาเคลื่อนที่', exp: 60000, enemies: [e('leechswarm', 2), e('coralfang', 3)] },
+    { name: 'ซากเรือใต้สมุทร', intro: 'อัศวินจมน้ำยังยืนเฝ้าซากเรือของตัวเองอยู่', exp: 64000, enemies: [e('tideknight', 2), e('leechswarm', 3)] },
+    { name: 'หุบเหวก้นทะเล', intro: 'ปูยักษ์หนีบเรือทั้งลำให้จมได้ในไม่กี่วินาที', exp: 69000, enemies: [e('abysscrab', 2), e('tideknight', 3)] },
+    { name: 'ประตูสู่ทะเลลึก', intro: 'ประตูสุดท้ายก่อนถึงตัวมัน อย่าลงไปด้วยทีมที่บาดเจ็บ', exp: 74000, enemies: [e('tideknight', 3), e('abysscrab', 3), e('leechswarm', 4)] },
+    { name: 'ห้วงลึกแห่งวารีเลือด', intro: 'มันตื่นขึ้นจากก้นทะเล น้ำทั้งผืนกลายเป็นสีเลือดในพริบตา', exp: 100000, enemies: [e('crimsonleviathan', 4)] },
+  ]),
+
+  chapter(10, 'โรงหลอมเครื่องจักรโบราณ', 'เตาไฟที่ไม่เคยดับมาตั้งแต่ก่อนมีนครลอยฟ้า', [
+    { name: 'ประตูเหล็กแดง', intro: 'ยามเหล็กยืนตรวจตราแม้ไม่มีใครสั่งการมันมานานแล้ว', exp: 63000, enemies: [e('forgesentry', 2), e('forgesentry', 2)] },
+    { name: 'สายพานลาวา', intro: 'เฟืองหมุนไม่หยุดแม้พื้นโรงหลอมจะแตกร้าวไปทั่ว', exp: 68000, enemies: [e('moltengear', 2), e('forgesentry', 3)] },
+    { name: 'ห้องเตาหลอมกลาง', intro: 'ประกายไฟลอยฟุ้งจนมองไม่เห็นทาง', exp: 73000, enemies: [e('sparkwraith', 2), e('moltengear', 3)] },
+    { name: 'ศาลของผู้พิพากษา', intro: 'ที่นี่เคยตัดสินโทษคนงานที่ทำพลาด ตอนนี้ตัดสินทุกคนที่เข้ามา', exp: 78000, enemies: [e('ironjudge', 2), e('sparkwraith', 3)] },
+    { name: 'ประตูแก่นเตาไฟ', intro: 'ประตูสุดท้ายก่อนถึงแก่นโรงหลอม อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 84000, enemies: [e('ironjudge', 3), e('moltengear', 4), e('sparkwraith', 4)] },
+    { name: 'แก่นเตาไฟนิรันดร์', intro: 'ไททันที่หลอมตัวเองมานับพันปีลุกขึ้นจากเปลวไฟ', exp: 115000, enemies: [e('pyrotitan', 4)] },
+  ]),
+
+  chapter(11, 'ทุ่งสายลมไร้จุดจบ', 'ที่ราบสูงเหนือเมฆ ลมไม่เคยหยุดพัดแม้แต่วินาทีเดียว', [
+    { name: 'หน้าผาต้นลม', intro: 'แร้งสายลมบินวนรอบหน้าผาราวกับรอบางอย่างตก', exp: 71000, enemies: [e('galeraptor', 2), e('galeraptor', 2)] },
+    { name: 'ยอดเขาสายฟ้า', intro: 'เหยี่ยวสายฟ้าโฉบเร็วจนตามองแทบไม่ทัน', exp: 76000, enemies: [e('thunderhawk', 2), e('galeraptor', 3)] },
+    { name: 'ทะเลเมฆ', intro: 'งูเมฆพรางตัวอยู่ในหมอกจนแยกไม่ออกว่าจริงหรือภาพลวงตา', exp: 82000, enemies: [e('cloudserpent', 2), e('thunderhawk', 3)] },
+    { name: 'แท่นบูชากลางพายุ', intro: 'นักบวชพายุร่ายมนตร์เรียกลมมาช่วยตัวเองตลอดเวลา', exp: 88000, enemies: [e('stormpriest', 2), e('cloudserpent', 3)] },
+    { name: 'ประตูสู่ตาพายุ', intro: 'ประตูสุดท้ายก่อนถึงใจกลางพายุ อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 94000, enemies: [e('stormpriest', 3), e('thunderhawk', 4), e('cloudserpent', 4)] },
+    { name: 'ตาพายุนิรันดร์', intro: 'ใจกลางพายุที่ไม่เคยสงบ มีบางอย่างนั่งบัลลังก์อยู่ตรงนั้น', exp: 130000, enemies: [e('tempestarchon', 4)] },
+  ]),
+
+  chapter(12, 'มหาวิหารแสงจันทร์ขาว', 'วิหารลอยกลางฟากฟ้าที่แสงจันทร์ไม่เคยดับ', [
+    { name: 'บันไดแสงจันทร์', intro: 'นักบวชจันทร์ขาวสวดมนต์อยู่ทุกขั้นบันได', exp: 80000, enemies: [e('moonpriest', 2), e('moonpriest', 2)] },
+    { name: 'ระเบียงผู้พิทักษ์', intro: 'ผู้พิทักษ์ยืนนิ่งราวกับรูปปั้น จนกว่าจะมีใครเข้าใกล้', exp: 86000, enemies: [e('lightward', 2), e('moonpriest', 3)] },
+    { name: 'ปีกวิหารด้านใน', intro: 'ปีกแสงกางออกจากเงามืดของเสาหินทุกต้น', exp: 92000, enemies: [e('seraphguard', 2), e('lightward', 3)] },
+    { name: 'ห้องสมุดต้องห้าม', intro: 'อาลักษณ์เฝ้าคัมภีร์ที่ไม่อนุญาตให้ใครอ่าน', exp: 99000, enemies: [e('radiantscribe', 2), e('seraphguard', 3)] },
+    { name: 'ประตูสู่แท่นบูชาจันทร์', intro: 'ประตูสุดท้ายก่อนถึงแท่นบูชา อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 106000, enemies: [e('radiantscribe', 3), e('lightward', 4), e('seraphguard', 4)] },
+    { name: 'แท่นบูชาจันทร์เพ็ญ', intro: 'อัครทูตลืมตาขึ้นเป็นครั้งแรกในรอบพันปี', exp: 145000, enemies: [e('lunarchseraph', 4)] },
+  ]),
+
+  chapter(13, 'เขาวงกตเงาไร้ก้นบึ้ง', 'เขาวงกตที่สร้างจากเงาล้วน ไม่มีแผนที่ใดใช้ได้ที่นี่', [
+    { name: 'ทางเข้าเขาวงกต', intro: 'นักล่าเงาซุ่มอยู่ทุกทางแยก', exp: 90000, enemies: [e('shadehunter', 2), e('shadehunter', 2)] },
+    { name: 'ระเบียงผู้เก็บวิญญาณ', intro: 'ผู้เก็บวิญญาณเดินวนซ้ำเส้นทางเดิมไม่รู้จบ', exp: 96000, enemies: [e('wraithcollector', 2), e('shadehunter', 3)] },
+    { name: 'ห้องไร้แสง', intro: 'ผู้สะกดรอยราตรีเคลื่อนไหวได้แม้ไม่มีแสงสักนิด', exp: 103000, enemies: [e('nightstalker', 2), e('wraithcollector', 3)] },
+    { name: 'ลานอัศวินกลวง', intro: 'อัศวินที่ไม่มีใครอยู่ข้างในเกราะยังยืนถือดาบอยู่', exp: 110000, enemies: [e('hollowknight', 2), e('nightstalker', 3)] },
+    { name: 'ประตูสู่แก่นเงา', intro: 'ประตูสุดท้ายก่อนถึงใจกลางเขาวงกต อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 118000, enemies: [e('hollowknight', 3), e('nightstalker', 4), e('wraithcollector', 4)] },
+    { name: 'แก่นเงาสุญญาศูนย์', intro: 'จ้าวแห่งเงานั่งรออยู่ตรงนั้นมาตั้งแต่ก่อนเขาวงกตจะมีอยู่', exp: 160000, enemies: [e('voidsovereign', 4)] },
+  ]),
+
+  chapter(14, 'ก้อนเมฆหินอุกกาบาต', 'ก้อนหินลอยกลางฟ้าที่ร่วงลงมาจากที่ไหนสักแห่ง', [
+    { name: 'พื้นผิวอุกกาบาต', intro: 'ยามหินยืนเฝ้าหลุมอุกกาบาตแต่ละหลุมอย่างเงียบงัน', exp: 100000, enemies: [e('meteorguard', 2), e('meteorguard', 2)] },
+    { name: 'ถ้ำงูศิลา', intro: 'งูศิลารัดหินจนแตกเป็นผงได้ในไม่กี่วินาที', exp: 107000, enemies: [e('stoneserpent', 2), e('meteorguard', 3)] },
+    { name: 'รอยแยกแผ่นดินไหว', intro: 'พื้นสั่นทุกครั้งที่อสูรตัวนั้นขยับ', exp: 115000, enemies: [e('quakebeast', 2), e('stoneserpent', 3)] },
+    { name: 'ทุ่งเถ้าถ่านลุกไหม้', intro: 'หินที่ตกลงมาจากฟ้ายังร้อนจัดอยู่จนวันนี้', exp: 123000, enemies: [e('cinderrock', 2), e('quakebeast', 3)] },
+    { name: 'ประตูสู่แก่นอุกกาบาต', intro: 'ประตูสุดท้ายก่อนถึงแก่นก้อนเมฆ อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 132000, enemies: [e('cinderrock', 3), e('quakebeast', 4), e('stoneserpent', 4)] },
+    { name: 'แก่นอุกกาบาตล่มโลก', intro: 'มหากายที่หลับอยู่ในแก่นอุกกาบาตตื่นขึ้นพร้อมแรงสั่นสะเทือนทั้งก้อนเมฆ', exp: 180000, enemies: [e('colossusmeteor', 4)] },
+  ]),
+
+  chapter(15, 'เงาสะท้อนบัลลังก์โคลโน', 'ปลายทางของการเดินทางในตอนนี้ บัลลังก์ที่ไม่มีใครกล้าเข้าใกล้', [
+    { name: 'ทางเข้าบัลลังก์', intro: 'ยามพิทักษ์กาลเวลายืนนิ่งราวกับหยุดเวลาตัวเองไว้', exp: 111000, enemies: [e('chronoguard', 2), e('chronoguard', 2)] },
+    { name: 'ห้องโถงเวลาที่หลงทาง', intro: 'วิญญาณเวลาเดินวนซ้ำจุดเดิมไม่รู้จบ ราวกับติดอยู่ในรอบเดียวกันตลอดกาล', exp: 119000, enemies: [e('timewraith', 2), e('chronoguard', 3)] },
+    { name: 'ระเบียงกระจกเงา', intro: 'อัศวินเงาสะท้อนออกมาจากกระจกทุกบานที่เดินผ่าน', exp: 127000, enemies: [e('echoknight', 2), e('timewraith', 3)] },
+    { name: 'ลานประกาศศูนย์', intro: 'เสียงประกาศแห่งความว่างเปล่าดังก้องไปทั่วทั้งลาน', exp: 136000, enemies: [e('voidherald', 2), e('echoknight', 3)] },
+    { name: 'ประตูสู่บัลลังก์', intro: 'ประตูสุดท้ายก่อนถึงบัลลังก์ อย่าเข้าไปด้วยทีมที่บาดเจ็บ', exp: 145000, enemies: [e('voidherald', 3), e('echoknight', 4), e('timewraith', 4)] },
+    { name: 'เงาสะท้อนบนบัลลังก์โคลโน', intro: 'เงาที่สวมมงกุฎนั่งอยู่บนบัลลังก์ รอคอยใครสักคนมาพิสูจน์ตัวเองมานานแสนนาน', exp: 200000, enemies: [e('chronoshade', 4)] },
+  ]),
 ]
 export const STAGES = CHAPTERS.flatMap((c) => c.stages)
 
@@ -551,10 +965,20 @@ export function difficultyGateStageId() {
 // ─────────────────────────────────────────────────────────────
 
 /** เลเวลที่แนะนำสำหรับแต่ละบทของแต่ละโหมด ใช้แสดงในแผนที่ด่าน */
+/**
+ * ส่วนต่อบทที่ 9-15 (2026): เพิ่มเนื้อเรื่องใหม่ต่อจากบทที่ 8
+ *
+ * โหมดยาก/ปีศาจ "เล่นซ้ำทุกบทเดิม" ด้วยตัวคูณที่สูงขึ้น (ดูหมายเหตุ STAGE_SCALE ด้านล่าง)
+ * พอบทที่ 8 ไม่ใช่บทสุดท้ายอีกต่อไป โหมดยาก/ปีศาจก็ต้องเล่นซ้ำบทที่ 9-15 ด้วย และค่าพลังของ
+ * "โหมดยาก บทที่ 1" ต้องแรงกว่า "โหมดปกติ บทที่ 15" เสมอ (ไม่งั้นไต่จบเนื้อเรื่องแล้วโหมดยากจะกลับง่ายลง)
+ * บทที่ 9-15 ในตารางเดิมเลยไม่พอ ต้องคำนวณ TARGET_LEVEL/STAGE_SCALE ของโหมดยาก/ปีศาจใหม่ทั้งชุด
+ * (บทที่ 1-4 ของโหมดยาก/ปีศาจเดิมก็ขยับตามไปด้วย เพราะสูตรเดียวกันต้องใช้ทีมอ้างอิงแรงขึ้นทุกบท)
+ * โหมดปกติบทที่ 1-8 ไม่แตะ เพิ่มแค่บทที่ 9-15 ต่อท้าย
+ */
 export const TARGET_LEVEL = {
-  normal: [5, 10, 18, 28, 38, 50, 60, 70],
-  hard: [60, 63, 66, 70, 73, 77, 80, 83],
-  demon: [80, 82, 84, 86, 87, 89, 90, 92],
+  normal: [5, 10, 18, 28, 38, 50, 60, 70, 82, 94, 106, 118, 130, 142, 154],
+  hard: [205, 209, 213, 217, 221, 225, 229, 233, 237, 241, 245, 249, 253, 257, 261],
+  demon: [275, 277, 279, 281, 283, 285, 287, 289, 291, 293, 295, 297, 299, 301, 303],
 }
 
 /**
@@ -572,9 +996,10 @@ export const TARGET_LEVEL = {
  * โหมดปกติคงไว้ที่ 1 เกือบทั้งหมด เพราะปรับสมดุลด้วยการจำลองมาแล้ว
  * ยกเว้นบทที่ 7 ที่ลดลงให้ใช้ทีมเลเวล 60 แทน 70
  *
- * โหมดยากบทที่ 1 ตั้งให้เท่ากับโหมดปกติบทที่ 7 พอดี แล้วไล่ขึ้นต่อไปเอง
- * ตัวเลขจึงสูงมากในบทต้น เพราะศัตรูบทแรกมีค่าพลังพื้นฐานน้อย
- * ต้องคูณสามสิบเท่าจึงจะเทียบเท่าบอสบทสุดท้าย
+ * โหมดยากบทที่ 1 ตั้งให้แรงกว่าโหมดปกติบทสุดท้ายเล็กน้อยเสมอ (ดูหมายเหตุ TARGET_LEVEL ด้านบน
+ * ตอนนี้คือบทที่ 15 หลังเพิ่มเนื้อเรื่องใหม่ ไม่ใช่บทที่ 7 เหมือนตอนมีแค่แปดบทอีกต่อไป) แล้วไล่ขึ้นต่อไปเอง
+ * ตัวเลขจึงสูงมากในบทต้น ๆ ของโหมดยาก/ปีศาจ เพราะศัตรูบทที่ 1-4 มีค่าพลังพื้นฐานน้อย
+ * ต้องคูณหลายสิบเท่าจึงจะเทียบเท่าบอสบทสุดท้ายของโหมดก่อนหน้า
  */
 export const STAGE_SCALE = {
   // บทที่ 1 ถึง 4 ปรับด้วยมือจากการจำลอง เพราะผู้เล่นตอนนั้นยังไม่มีทีมครบห้าตัว
@@ -586,12 +1011,23 @@ export const STAGE_SCALE = {
   // ตอนเพิ่มบทที่ 8 เข้าไป บทแรกของโหมดยาก/ปีศาจ (ที่คำนวณจาก 0.5 เท่าของทีมอ้างอิงตรง ๆ)
   // อ่อนกว่าบอสบทสุดท้ายของโหมดก่อนหน้าไปเล็กน้อย เลยต้องขยับขึ้นให้พอดีกับบทสุดท้ายก่อนหน้า
   // (ต่างจากส่วนโค้ง 5-8 ในแต่ละโหมดที่ยังคำนวณตรงจากค่าพลังทีมล้วน ๆ ไม่ต้องขยับ)
-  normal: [1, 1, 0.75, 1.0, 1.1521, 0.3258, 0.3489, 0.3601],
+  // บทที่ 9-15 ต่อด้วยสูตรเดียวกับบทที่ 5-8 (0.5 เท่าของค่าพลังทีมที่เลเวลใน TARGET_LEVEL.normal)
+  normal: [
+    1, 1, 0.75, 1.0, 1.1521, 0.3258, 0.3489, 0.3601, 0.3865, 0.3956, 0.3982, 0.3995, 0.3961,
+    0.3765, 0.3737,
+  ],
 
-  // ตั้งแต่บทที่ 5 ขึ้นไปคำนวณจากค่าพลังทีมที่ควรมี คูณ 0.5 (ดูหมายเหตุด้านบน)
-  // บทแรกของแต่ละโหมดจึงต่อจากบทสุดท้ายของโหมดก่อนหน้าพอดี
-  hard: [18.525, 4.9381, 1.8294, 1.9442, 1.9658, 0.4691, 0.4469, 0.4176],
-  demon: [21.4598, 5.719, 2.1347, 2.3157, 2.2927, 0.5331, 0.4959, 0.4573],
+  // คำนวณใหม่ทั้งชุด 15 บท (ดูหมายเหตุ TARGET_LEVEL ด้านบน) ยังใช้สูตรเดียวกับก่อนหน้า
+  // (0.5 เท่าของค่าพลังทีมอ้างอิงที่ TARGET_LEVEL ของแต่ละบท) บทแรกของแต่ละโหมดจึงต่อจาก
+  // บทสุดท้ายของโหมดก่อนหน้าพอดีเหมือนเดิม เพียงแต่ตอนนี้ "บทสุดท้าย" คือบทที่ 15 ไม่ใช่บทที่ 8
+  hard: [
+    50.6751, 13.6441, 5.0965, 5.5635, 5.6135, 1.2946, 1.2079, 1.108, 1.0227, 0.9439, 0.8695,
+    0.8032, 0.7405, 0.659, 0.6156,
+  ],
+  demon: [
+    66.9607, 17.8387, 6.595, 7.1219, 7.1088, 1.6235, 1.4994, 1.3617, 1.2449, 1.1384, 1.0394,
+    0.9514, 0.8697, 0.7673, 0.7107,
+  ],
 }
 
 /**

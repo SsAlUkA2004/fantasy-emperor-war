@@ -105,7 +105,11 @@ export default function Arena() {
       const won = state.outcome === 'won'
       const saved = await saveMatch({ ...player, uid: user.uid }, foe, won)
       // คนจริงที่ถูกท้าต้องเสียแต้มด้วย คู่ซ้อมไม่ต้อง
-      if (!foe.isBot) await logAttack(foe.uid, { uid: user.uid, username: player.username }, won)
+      if (!foe.isBot) await logAttack(
+          foe.uid,
+          { uid: user.uid, username: player.username, points: player.pvpPoints ?? 0 },
+          won
+        )
       setQuick({ won, foe, log: state.log.slice(-6), decidedByHp: state.decidedByHp, ...saved })
       await refresh()
       setFoes(
