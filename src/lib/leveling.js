@@ -60,7 +60,7 @@ export const PLAYER_MAX_LEVEL = 150
  * ค่าประสบการณ์ผู้เล่นได้จากของที่จำกัดต่อวันเท่านั้น ฟาร์มรวดเดียวไม่ได้
  */
 export function playerExpToNext(level) {
-  return 500 * level * level
+  return 800 * level * level
 }
 
 export function gainPlayerExp(level, exp, amount) {
